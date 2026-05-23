@@ -23,9 +23,18 @@ dependencies {
     paperweight.paperDevBundle(libs.versions.paper.api.get())
     compileOnly("me.clip:placeholderapi:2.11.6")
     // Adventure is bundled with Paper, no need to shade
+    
+    testImplementation(libs.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.jupiter.engine)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.junit.jupiter)
 }
 
 tasks {
+    test {
+        useJUnitPlatform()
+    }
+
     processResources {
         val props = mapOf(
             "version" to project.version,
