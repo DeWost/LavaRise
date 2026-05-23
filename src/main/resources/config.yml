@@ -1,0 +1,137 @@
+# ============================================================
+#  LavaRise — Master Configuration
+#  All timings are in ticks (20 ticks = 1 second) unless noted.
+# ============================================================
+
+# General settings
+general:
+  # Language for messages (messages.yml)
+  language: "en"
+  # Debug mode — logs extra info to console
+  debug: false
+  # Auto-update checker
+  update-check: true
+
+# ─── Performance Tuning ──────────────────────────────────────
+performance:
+  # Max blocks placed per server tick during lava rise.
+  # Lower = less lag, but slower visual fill.
+  # Recommended: 32-128 depending on server hardware.
+  max-blocks-per-tick: 64
+
+  # How often (in ticks) to check player positions against lava level.
+  # 1 = every tick (50ms), 5 = every 250ms, 10 = every 500ms.
+  # Higher = less CPU, but slightly delayed damage detection.
+  player-check-interval: 5
+
+  # Pre-load arena chunks before game starts
+  preload-chunks: true
+
+  # Disable block physics when placing lava (HUGE performance gain)
+  disable-lava-physics: true
+
+# ─── Default Arena Settings ──────────────────────────────────
+# These are defaults for new arenas. Each arena can override.
+arena-defaults:
+  # Minimum players to start a game
+  min-players: 2
+  # Maximum players per arena
+  max-players: 16
+  # Lobby countdown (seconds) after min-players reached
+  lobby-countdown: 30
+  # Game countdown before lava starts rising (seconds)
+  game-countdown: 10
+  # Time between each lava rise (ticks) — 20 = 1 second
+  lava-rise-interval: 60
+  # How many Y-levels the lava rises each interval
+  lava-rise-amount: 1
+  # Starting Y-level of the lava
+  lava-start-y: -64
+  # Maximum Y-level the lava can reach (game ends if reached)
+  lava-max-y: 320
+  # Allow PvP during game
+  pvp-enabled: true
+  # Allow block breaking
+  block-break: true
+  # Allow block placing
+  block-place: true
+  # Keep inventory on death
+  keep-inventory: false
+  # Allow hunger
+  hunger: true
+
+# ─── Game Mode Specific Settings ─────────────────────────────
+modes:
+  # Mini-game mode — structured arena-based matches
+  minigame:
+    enabled: true
+    # Auto-reset arena after game ends
+    auto-reset: true
+    # Teleport players back to lobby after game
+    teleport-on-end: true
+    # Allow team mode
+    teams-enabled: false
+    # Team size (if teams enabled)
+    team-size: 2
+
+  # Survival Challenge — world-wide lava rising event
+  survival:
+    enabled: true
+    # Which worlds are affected (empty = all loaded worlds)
+    worlds: []
+    # Radius from center (0,0) to fill with lava. 0 = entire world
+    radius: 500
+    # Announce to server when survival challenge starts
+    announce: true
+
+  # Admin Event — manually triggered special events
+  event:
+    enabled: true
+    # Broadcast announcement to all players
+    broadcast-start: true
+    broadcast-end: true
+    # Reward winner (requires Vault)
+    reward-enabled: false
+    reward-amount: 1000
+
+# ─── Visual & Audio ──────────────────────────────────────────
+effects:
+  # Boss bar showing current lava level
+  bossbar:
+    enabled: true
+    # Color: PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE
+    color: RED
+    # Style: SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20
+    style: SEGMENTED_10
+
+  # Action bar messages
+  actionbar:
+    enabled: true
+    # Show lava level in action bar
+    show-lava-level: true
+
+  # Scoreboard sidebar
+  scoreboard:
+    enabled: true
+
+  # Particle effects on lava surface
+  particles:
+    enabled: true
+    # Type: LAVA, FLAME, SMOKE_LARGE, DRIP_LAVA
+    type: LAVA
+    # Density: particles per block (lower = better performance)
+    density: 2
+
+  # Sound effects
+  sounds:
+    enabled: true
+    # Sound when lava rises
+    lava-rise: "block.lava.ambient"
+    # Sound on game start
+    game-start: "entity.ender_dragon.growl"
+    # Sound on game end
+    game-end: "ui.toast.challenge_complete"
+    # Warning sound when lava is close
+    warning: "block.note_block.pling"
+    # Warning threshold — play warning when lava is within N blocks of player
+    warning-distance: 5

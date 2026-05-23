@@ -1,0 +1,39 @@
+name: LavaRise
+version: '${version}'
+main: dev.lavarise.core.LavaRisePlugin
+api-version: '1.21'
+description: '${description}'
+author: LavaRise Team
+website: https://github.com/lavarise
+prefix: LavaRise
+
+softdepend:
+  - Vault
+  - PlaceholderAPI
+  - FastAsyncWorldEdit
+
+commands:
+  lavarise:
+    description: Main LavaRise command
+    aliases: [lr, lava]
+    usage: /<command> [subcommand]
+
+permissions:
+  lavarise.play:
+    description: Join and play LavaRise games
+    default: true
+  lavarise.spectate:
+    description: Spectate LavaRise games
+    default: true
+  lavarise.admin:
+    description: Full admin access to LavaRise
+    default: op
+  lavarise.admin.setup:
+    description: Create and configure arenas
+    default: op
+  lavarise.admin.event:
+    description: Start/stop/pause admin events
+    default: op
+  lavarise.admin.reload:
+    description: Reload LavaRise configuration
+    default: op

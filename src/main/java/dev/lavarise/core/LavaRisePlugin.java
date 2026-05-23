@@ -1,0 +1,153 @@
+package dev.lavarise.core;
+
+import dev.lavarise.arena.Arena;
+import dev.lavarise.arena.ArenaConfig;
+import dev.lavarise.command.LavaRiseCommand;
+import dev.lavarise.data.ArenaRepository;
+import dev.lavarise.data.ConfigManager;
+import dev.lavarise.listener.PlayerListener;
+import dev.lavarise.feature.gui.ArenaSelectorGUI;
+import dev.lavarise.feature.ScoreboardModule;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.logging.Level;
+
+/**
+ * LavaRise — Premium Rising Lava Plugin
+ * <p>
+ * Main entry point. Initializes all services, loads arenas,
+ * and registers commands/listeners.
+ * </p>
+ */
+public final class LavaRisePlugin extends JavaPlugin {
+
+    private static LavaRisePlugin instance;
+    private final MiniMessage miniMessage = MiniMessage.miniMessage();
+
+    private ConfigManager configManager;
+    private GameManager gameManager;
+    private ArenaRepository arenaRepository;
+    private ArenaSelectorGUI guiManager;
+    private ScoreboardModule scoreboardModule;
+
+    @Override
+    public void onEnable() {
+        instance = this;
+        final long start = System.currentTimeMillis();
+
+        getLogger().info("");
+        getLogger().info("  _                     _____ _         ");
+        getLogger().info(" | |                   |  __ (_)        ");
+        getLogger().info(" | |     __ ___   ____ | |__) |___  ___ ");
+        getLogger().info(" | |    / _` \\ \\ / / _`|  _  / / __|/ _ \\");
+        getLogger().info(" | |___| (_| |\\ V / (_| | | \\ \\ \\__ \\  __/");
+        getLogger().info(" |______\\__,_| \\_/ \\__,_|_|  \\_\\|___/\\___|");
+        getLogger().info("");
+        getLogger().info("    Ultra-Optimized Paper 1.21.11 Engine");
+        getLogger().info("    by KTE Destroyer");
+        getLogger().info("");
+        // ── 1. Configuration ────────────────────────────────
+        saveDefaultConfig();
+        this.configManager = new ConfigManager(this);
+        this.configManager.loadAll();
+
+        // ── 2. Data Layer ───────────────────────────────────
+        this.arenaRepository = new ArenaRepository(this);
+        this.arenaRepository.loadArenas();
+
+        // ── 3. Game Manager ─────────────────────────────────
+        this.gameManager = new GameManager(this);
+
+        // ── 4. Commands ─────────────────────────────────────
+        final var command = getCommand("lavarise");
+        if (command != null) {
+            final var lavaCmd = new LavaRiseCommand(this);
+            command.setExecutor(lavaCmd);
+            command.setTabCompleter(lavaCmd);
+        }
+
+        // ── 5. Listeners ────────────────────────────────────
+        final var pm = getServer().getPluginManager();
+        pm.registerEvents(new ArenaEventRouter(this), this);
+        pm.registerEvents(new PlayerListener(this), this);
+        this.guiManager = new ArenaSelectorGUI(this);
+        this.scoreboardModule = new ScoreboardModule(this);
+
+        // ── 6. Integrations ─────────────────────────────────
+        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new dev.lavarise.hook.PapiExpansion(this).register();
+            getLogger().info("PlaceholderAPI expansion registered.");
+        }
+
+        // ── 7. Done ─────────────────────────────────────────
+        final long elapsed = System.currentTimeMillis() - start;
+        getLogger().info("LavaRise v" + getPluginMeta().getVersion() + " enabled in " + elapsed + "ms");
+        getLogger().info("Loaded " + arenaRepository.getArenas().size() + " arena(s).");
+    }
+
+    @Override
+    public void onDisable() {
+        // Gracefully end all running games
+        if (gameManager != null) {
+            gameManager.shutdownAll();
+        }
+
+        // Save arena data
+        if (arenaRepository != null) {
+            arenaRepository.saveAll();
+        }
+
+        getLogger().info("LavaRise disabled. All games ended gracefully.");
+        instance = null;
+    }
+
+    // ── Accessors ───────────────────────────────────────────
+
+    public static LavaRisePlugin getInstance() {
+        return instance;
+    }
+
+    public MiniMessage getMiniMessage() {
+        return miniMessage;
+    }
+
+    public ConfigManager getConfigManager() {
+        return configManager;
+    }
+
+    public GameManager getGameManager() {
+        return gameManager;
+    }
+
+    public ArenaRepository getArenaRepository() {
+        return arenaRepository;
+    }
+
+    public ArenaSelectorGUI getGuiManager() {
+        return guiManager;
+    }
+
+    public ScoreboardModule getScoreboardModule() {
+        return scoreboardModule;
+    }
+
+    /**
+     * Reloads the entire plugin configuration and arenas.
+     */
+    public void reload() {
+        reloadConfig();
+        configManager.loadAll();
+        arenaRepository.loadArenas();
+        getLogger().info("LavaRise configuration reloaded.");
+    }
+
+    /**
+     * Log a debug message (only if debug mode is enabled in config).
+     */
+    public void debug(String message) {
+        if (configManager.isDebug()) {
+            getLogger().log(Level.INFO, "[DEBUG] " + message);
+        }
+    }
+}

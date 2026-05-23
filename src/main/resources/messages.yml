@@ -1,0 +1,80 @@
+# ============================================================
+#  LavaRise — Messages (MiniMessage Format)
+#  Use MiniMessage tags: <red>, <bold>, <gradient:red:gold>, etc.
+#  Placeholders: {player}, {arena}, {lava_level}, {players},
+#                {max_players}, {countdown}, {winner}
+# ============================================================
+
+prefix: "<gradient:red:gold><bold>LavaRise</bold></gradient> <dark_gray>»</dark_gray> "
+
+# ─── General ─────────────────────────────────────────────────
+general:
+  no-permission: "<red>You don't have permission to do this!"
+  reload-success: "<green>Configuration reloaded successfully!"
+  player-only: "<red>This command can only be used by players!"
+  unknown-command: "<red>Unknown command. Use <yellow>/lava help</yellow> for help."
+
+# ─── Arena ───────────────────────────────────────────────────
+arena:
+  not-found: "<red>Arena <yellow>{arena}</yellow> not found!"
+  already-in-game: "<red>You are already in a game!"
+  not-in-game: "<red>You are not in any game!"
+  full: "<red>Arena <yellow>{arena}</yellow> is full! ({players}/{max_players})"
+  join: "<green>{player} <gray>joined the game! <dark_gray>({players}/{max_players})"
+  leave: "<red>{player} <gray>left the game! <dark_gray>({players}/{max_players})"
+  not-enough-players: "<yellow>Waiting for more players... <gray>({players}/{max_players})"
+
+# ─── Game States ─────────────────────────────────────────────
+state:
+  lobby-waiting: "<yellow>Waiting for players... <gray>({players}/{min_players} needed)"
+  countdown-start: "<gold>Game starting in <yellow>{countdown}</yellow> seconds!"
+  countdown-tick: "<gold>{countdown}..."
+  game-start: "<gradient:red:gold><bold>THE LAVA IS RISING!</bold></gradient>"
+  lava-rising: "<red>🔥 Lava reached level <bold>{lava_level}</bold>!"
+  game-end: "<gradient:gold:yellow><bold>GAME OVER!</bold></gradient>"
+  winner: "<gradient:gold:yellow>🏆 <bold>{winner}</bold> wins!</gradient>"
+  no-winner: "<gray>No winner — everyone was consumed by lava!"
+
+# ─── Player Events ───────────────────────────────────────────
+player:
+  eliminated: "<red>☠ <gray>You were eliminated by the lava!"
+  spectator-join: "<gray>You are now spectating. Use <yellow>/lava leave</yellow> to exit."
+  warning-lava-close: "<red><bold>⚠ WARNING!</bold> <yellow>Lava is {blocks} blocks below you!"
+
+# ─── Scoreboard ──────────────────────────────────────────────
+scoreboard:
+  title: "<gradient:red:gold><bold>🔥 LAVA RISE</bold></gradient>"
+  lines:
+    - ""
+    - "<gray>Lava Level: <red>{lava_level}"
+    - "<gray>Players: <yellow>{alive}/{total}"
+    - ""
+    - "<gray>Mode: <gold>{mode}"
+    - "<gray>Arena: <yellow>{arena}"
+    - ""
+    - "<dark_gray>play.yourserver.com"
+
+# ─── BossBar ─────────────────────────────────────────────────
+bossbar:
+  title: "<red>🔥 Lava Level: <bold>{lava_level}</bold> <dark_gray>| <gray>Players: {alive}"
+
+# ─── ActionBar ───────────────────────────────────────────────
+actionbar:
+  in-game: "<red>🔥 Y:{lava_level} <dark_gray>| <yellow>⚔ {alive} alive <dark_gray>| <gray>⏱ {time}"
+
+# ─── Admin Event ─────────────────────────────────────────────
+event:
+  broadcast-start: "<gradient:red:gold><bold>⚡ LAVA EVENT STARTED!</bold></gradient> <gray>The lava is rising across the world!"
+  broadcast-end: "<gradient:gold:yellow><bold>⚡ LAVA EVENT ENDED!</bold></gradient> <gray>The world is safe... for now."
+  pause: "<yellow>Lava event paused."
+  resume: "<yellow>Lava event resumed."
+
+# ─── Admin Setup ─────────────────────────────────────────────
+setup:
+  arena-created: "<green>Arena <yellow>{arena}</yellow> created successfully!"
+  arena-deleted: "<red>Arena <yellow>{arena}</yellow> deleted."
+  pos1-set: "<green>Position 1 set at <yellow>{x}, {y}, {z}</yellow>."
+  pos2-set: "<green>Position 2 set at <yellow>{x}, {y}, {z}</yellow>."
+  lobby-set: "<green>Lobby spawn set for arena <yellow>{arena}</yellow>."
+  spawn-set: "<green>Player spawn set for arena <yellow>{arena}</yellow>."
+  saved: "<green>Arena <yellow>{arena}</yellow> saved!"

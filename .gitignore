@@ -1,0 +1,16 @@
+.gradle/
+build/
+bin/
+out/
+.idea/
+*.iml
+*.iws
+.vscode/
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
+replay_pid*
+logs/
+.DS_Store
