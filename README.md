@@ -18,7 +18,7 @@
 
 - **Zero Dependencies**: Doesn't require WorldEdit or Multiverse. Drop it in and play.
 - **NMS Block Engine**: Bypasses Bukkit's heavy lighting and physics calculations by writing directly to chunk sections (`LevelChunkSection`).
-- **O(1) "Kaizen" Resets**: Uses a highly optimized Sequential Pointer algorithm for arena resets. No `Arrays.binarySearch`, no WorldEdit schematics. Harmlessly restores huge maps instantly.
+- **O(1) Smart Resets**: Uses a highly optimized Sequential Pointer algorithm for arena resets. No `Arrays.binarySearch`, no WorldEdit schematics. Harmlessly restores huge maps instantly.
 - **Zero-Allocation Tracking**: Uses asynchronous block scanning and `ConcurrentHashMap` iteration for tracking players. Your Garbage Collector will thank you.
 - **Rich UI**: BossBar for lava level tracking, ActionBars, custom Titles, and immersive particle/sound effects.
 - **PlaceholderAPI Hook**: Fully supports `PlaceholderAPI` for dynamic text and leaderboards.
