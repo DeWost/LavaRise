@@ -9,19 +9,14 @@ import net.kyori.adventure.title.Title;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 
 import java.time.Duration;
-import java.util.Set;
-import java.util.UUID;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import org.bukkit.block.data.BlockData;
 
-/**
- * Active game state — lava is rising!
- * The {@link LavaEngine} is ticked here. Players are checked
- * periodically for elimination (Y-level below lava).
- */
 public final class ActiveState implements GameState {
 
     private final LavaRisePlugin plugin;
@@ -29,8 +24,8 @@ public final class ActiveState implements GameState {
     private final ArenaSession session;
     private LavaEngine lavaEngine;
     private BukkitRunnable gameLoop;
-    private BukkitRunnable playerCheckLoop;
     private int tickCounter = 0;
+    private int playerCheckInterval;
 
     public ActiveState(LavaRisePlugin plugin, Arena arena, ArenaSession session) {
         this.plugin = plugin;
@@ -42,16 +37,16 @@ public final class ActiveState implements GameState {
     public void onEnter() {
         plugin.debug("Arena " + arena.getName() + " entered ACTIVE state.");
         session.setStartTime(System.currentTimeMillis());
-        
+
         plugin.getServer().getPluginManager().callEvent(new dev.lavarise.api.events.ArenaStartEvent(arena));
 
-        // Take Kaizen Snapshot for smart reset
         takeSnapshot();
 
         this.lavaEngine = new LavaEngine(plugin, arena.getConfig(), session,
                 plugin.getConfigManager().getMaxBlocksPerTick());
 
-        // Teleport players to game spawn
+        this.playerCheckInterval = plugin.getConfigManager().getPlayerCheckInterval();
+
         for (UUID uuid : session.getAlivePlayers()) {
             Player p = plugin.getServer().getPlayer(uuid);
             if (p != null && p.isOnline()) {
@@ -67,42 +62,40 @@ public final class ActiveState implements GameState {
             }
         }
 
-        // Main game loop — every tick
         gameLoop = new BukkitRunnable() {
             @Override
             public void run() {
                 tickCounter++;
+
                 if (tickCounter % arena.getConfig().lavaRiseInterval() == 0) {
                     lavaEngine.riseLava();
                     plugin.getScoreboardModule().updateScoreboard(session);
                     int lavaY = session.getCurrentLavaY();
                     broadcastActionBar(plugin.getMiniMessage().deserialize(
-                            "<red>\uD83D\uDD25 Lava: <bold>" + lavaY + "</bold> <dark_gray>| <gray>Max: "
+                            "<red>🔥 Lava: <bold>" + lavaY + "</bold> <dark_gray>| <gray>Max: "
                                     + arena.getConfig().lavaMaxY()));
                     for (UUID uuid : session.getAlivePlayers()) {
                         Player p = plugin.getServer().getPlayer(uuid);
                         if (p != null) p.playSound(p.getLocation(), Sound.BLOCK_LAVA_POP, 0.5f, 0.8f);
                     }
                 }
+
                 lavaEngine.processBatch();
+
+                // Main-thread player check — avoids async + anti-cheat fly false positives
+                if (tickCounter % playerCheckInterval == 0) {
+                    checkAndEliminatePlayers();
+                }
+
                 if (session.isLavaAtMax()) endGame(null);
             }
         };
         gameLoop.runTaskTimer(plugin, 0L, 1L);
-
-        // Player position check — every N ticks (not every tick!)
-        int checkInterval = plugin.getConfigManager().getPlayerCheckInterval();
-        playerCheckLoop = new BukkitRunnable() {
-            @Override
-            public void run() { checkPlayerPositions(); }
-        };
-        playerCheckLoop.runTaskTimerAsynchronously(plugin, checkInterval, checkInterval);
     }
 
     @Override
     public void onExit() {
         if (gameLoop != null) { gameLoop.cancel(); gameLoop = null; }
-        if (playerCheckLoop != null) { playerCheckLoop.cancel(); playerCheckLoop = null; }
         if (lavaEngine != null) lavaEngine.shutdown();
     }
 
@@ -123,37 +116,56 @@ public final class ActiveState implements GameState {
     @Override
     public void onPlayerEliminated(Player player) {
         plugin.getServer().getPluginManager().callEvent(new dev.lavarise.api.events.PlayerEliminatedEvent(arena, player));
-        
+
         player.showTitle(Title.title(
                 plugin.getMiniMessage().deserialize("<red><bold>ELIMINATED!</bold></red>"),
                 plugin.getMiniMessage().deserialize("<gray>You were consumed by lava!"),
                 Title.Times.times(Duration.ofMillis(200), Duration.ofSeconds(2), Duration.ofMillis(500))));
         player.playSound(player.getLocation(), Sound.ENTITY_BLAZE_DEATH, 1.0f, 0.5f);
-        
+
         plugin.getScoreboardModule().updateScoreboard(session);
-        
+
         broadcastToArena(plugin.getMiniMessage().deserialize(
-                "<red>\u2620 " + player.getName() + " <gray>eliminated! <dark_gray>(" + session.getAliveCount() + " alive)"));
+                "<red>☠ " + player.getName() + " <gray>eliminated! <dark_gray>(" + session.getAliveCount() + " alive)"));
         checkWinCondition();
     }
 
     @Override public boolean isJoinable() { return false; }
     @Override public String getDisplayName() { return "Active (Lava: " + session.getCurrentLavaY() + ")"; }
 
-    private void checkPlayerPositions() {
+    /**
+     * Runs on main thread every playerCheckInterval ticks.
+     *
+     * NMS-placed lava has no fluid physics, so vanilla lava damage never fires.
+     * We must: deal damage manually, push the player downward to prevent the
+     * client from sending swim-up packets (which Paper's movement check reads
+     * as illegal flight), then eliminate once health is gone.
+     */
+    private void checkAndEliminatePlayers() {
         int lavaY = session.getCurrentLavaY();
-        for (UUID uuid : session.getAlivePlayers()) {
+
+        for (UUID uuid : new ArrayList<>(session.getAlivePlayers())) {
             Player player = plugin.getServer().getPlayer(uuid);
             if (player == null || !player.isOnline()) continue;
-            
-            // Getting location is generally thread-safe in Paper 1.20+
-            if (player.getLocation().getBlockY() <= lavaY) {
-                // Eliminate on main thread to avoid AsyncCatcher errors
-                plugin.getServer().getScheduler().runTask(plugin, () -> {
-                    if (session.getAlivePlayers().contains(uuid)) {
-                        session.eliminatePlayer(player);
-                    }
-                });
+
+            int playerY = player.getLocation().getBlockY();
+            if (playerY > lavaY) continue;
+
+            // Suppress upward velocity so Paper's anti-cheat doesn't
+            // interpret lava-swim packets as flight.
+            Vector vel = player.getVelocity();
+            if (vel.getY() > 0) {
+                player.setVelocity(new Vector(vel.getX(), -0.4, vel.getZ()));
+            }
+
+            // Burn the player — NMS lava has no fire tick, so we set it manually.
+            player.setFireTicks(Math.max(player.getFireTicks(), 80));
+
+            // Deal damage; if dead, eliminatePlayer handles the rest.
+            player.damage(4.0);
+
+            if (player.getHealth() <= 0) {
+                session.eliminatePlayer(player);
             }
         }
     }
@@ -198,15 +210,13 @@ public final class ActiveState implements GameState {
 
             List<Integer> indicesList = new ArrayList<>();
             List<BlockData> blocksList = new ArrayList<>();
-            
+
             int index = 0;
             org.bukkit.World world = arena.getConfig().world();
-            
+
             for (int y = startY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
                     for (int x = minX; x <= maxX; x++) {
-                        // Paper allows async block data read if chunk is loaded.
-                        // Assuming arena is loaded during game.
                         BlockData data = world.getBlockData(x, y, z);
                         if (!data.getMaterial().isAir()) {
                             indicesList.add(index);
@@ -216,12 +226,12 @@ public final class ActiveState implements GameState {
                     }
                 }
             }
-            
+
             int[] indices = indicesList.stream().mapToInt(i -> i).toArray();
             BlockData[] blocks = blocksList.toArray(new BlockData[0]);
-            
+
             session.setSnapshot(indices, blocks);
-            plugin.debug("Arena " + arena.getName() + " snapshot taken async! Size: " + blocks.length + " non-air blocks out of " + index + " total.");
+            plugin.debug("Snapshot taken: " + blocks.length + " non-air blocks.");
         });
     }
 }
