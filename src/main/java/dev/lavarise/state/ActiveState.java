@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.time.Duration;
-import java.util.Set;
 import java.util.UUID;
 import java.util.List;
 import java.util.ArrayList;
@@ -29,7 +28,6 @@ public final class ActiveState implements GameState {
     private final ArenaSession session;
     private LavaEngine lavaEngine;
     private BukkitRunnable gameLoop;
-    private BukkitRunnable playerCheckLoop;
     private int tickCounter = 0;
 
     public ActiveState(LavaRisePlugin plugin, Arena arena, ArenaSession session) {
@@ -90,19 +88,14 @@ public final class ActiveState implements GameState {
         };
         gameLoop.runTaskTimer(plugin, 0L, 1L);
 
-        // Player position check — every N ticks (not every tick!)
-        int checkInterval = plugin.getConfigManager().getPlayerCheckInterval();
-        playerCheckLoop = new BukkitRunnable() {
-            @Override
-            public void run() { checkPlayerPositions(); }
-        };
-        playerCheckLoop.runTaskTimerAsynchronously(plugin, checkInterval, checkInterval);
+        // Elimination is driven by real lava/fire damage (see ArenaEventRouter):
+        // players burn when the lava reaches them and a lethal blow is converted
+        // into a clean elimination. No async position poll is needed.
     }
 
     @Override
     public void onExit() {
         if (gameLoop != null) { gameLoop.cancel(); gameLoop = null; }
-        if (playerCheckLoop != null) { playerCheckLoop.cancel(); playerCheckLoop = null; }
         if (lavaEngine != null) lavaEngine.shutdown();
     }
 
@@ -138,25 +131,8 @@ public final class ActiveState implements GameState {
     }
 
     @Override public boolean isJoinable() { return false; }
+    @Override public boolean isGameRunning() { return true; }
     @Override public String getDisplayName() { return "Active (Lava: " + session.getCurrentLavaY() + ")"; }
-
-    private void checkPlayerPositions() {
-        int lavaY = session.getCurrentLavaY();
-        for (UUID uuid : session.getAlivePlayers()) {
-            Player player = plugin.getServer().getPlayer(uuid);
-            if (player == null || !player.isOnline()) continue;
-            
-            // Getting location is generally thread-safe in Paper 1.20+
-            if (player.getLocation().getBlockY() <= lavaY) {
-                // Eliminate on main thread to avoid AsyncCatcher errors
-                plugin.getServer().getScheduler().runTask(plugin, () -> {
-                    if (session.getAlivePlayers().contains(uuid)) {
-                        session.eliminatePlayer(player);
-                    }
-                });
-            }
-        }
-    }
 
     private void checkWinCondition() {
         if (session.getAliveCount() <= 1) {

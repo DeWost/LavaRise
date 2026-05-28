@@ -97,26 +97,40 @@ public final class ArenaSession {
     }
 
     /**
-     * Eliminate a player (died to lava) — move to spectator.
+     * Mark a player as eliminated without moving them: removes them from the
+     * alive set, adds them to spectators, and fires the state's elimination
+     * hook (effects, broadcast, win-condition check).
+     * <p>
+     * Used by the death-driven path: when a player actually dies (to lava or
+     * PvP) their items have already dropped via the vanilla death, and the
+     * spectator gamemode/teleport is applied later on respawn.
+     * </p>
+     *
+     * @return true if the player was alive and is now eliminated, false otherwise.
      */
-    public void eliminatePlayer(Player player) {
+    public boolean markEliminated(Player player) {
         final UUID uuid = player.getUniqueId();
-        if (!alivePlayers.remove(uuid)) return;
+        if (!alivePlayers.remove(uuid)) return false;
 
         spectators.add(uuid);
-
-        // Set to spectator mode
-        player.setGameMode(GameMode.SPECTATOR);
-
-        // Teleport to spectator spawn if set
-        if (arena.getConfig().spectatorSpawn() != null) {
-            player.teleport(arena.getConfig().spectatorSpawn());
-        }
-
         currentState.onPlayerEliminated(player);
 
         plugin.debug(player.getName() + " eliminated in " + arena.getName()
                 + " — " + alivePlayers.size() + " alive");
+        return true;
+    }
+
+    /**
+     * Eliminate a still-living player immediately — marks them eliminated and
+     * moves them to spectator mode/spawn (no death, no item drop).
+     */
+    public void eliminatePlayer(Player player) {
+        if (!markEliminated(player)) return;
+
+        player.setGameMode(GameMode.SPECTATOR);
+        if (arena.getConfig().spectatorSpawn() != null) {
+            player.teleport(arena.getConfig().spectatorSpawn());
+        }
     }
 
     /**

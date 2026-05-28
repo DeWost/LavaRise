@@ -50,6 +50,15 @@ public interface GameState {
     boolean isJoinable();
 
     /**
+     * Whether the game is actively running (lava rising, players can be
+     * eliminated). Only true during the active phase. Used by listeners to
+     * decide when lethal lava/fire damage should convert into elimination.
+     */
+    default boolean isGameRunning() {
+        return false;
+    }
+
+    /**
      * Get the display name of this state for scoreboards/messages.
      */
     String getDisplayName();

@@ -1,6 +1,7 @@
 package dev.lavarise.listener;
 
 import dev.lavarise.arena.Arena;
+import dev.lavarise.arena.ArenaSession;
 import dev.lavarise.core.LavaRisePlugin;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -42,17 +43,29 @@ public class ArenaEventRouter implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onDamage(EntityDamageEvent event) {
-        if (event.getEntity() instanceof Player player) {
-            Arena arena = plugin.getGameManager().getArenaForPlayer(player.getUniqueId());
-            if (arena != null) {
-                // Ignore lava damage natively; elimination is handled by ActiveState Y-level checks
-                if (event.getCause() == EntityDamageEvent.DamageCause.LAVA || event.getCause() == EntityDamageEvent.DamageCause.FIRE_TICK) {
-                    event.setCancelled(true);
-                }
+        if (!(event.getEntity() instanceof Player player)) return;
+
+        final Arena arena = plugin.getGameManager().getArenaForPlayer(player.getUniqueId());
+        if (arena == null) return;
+
+        final ArenaSession session = arena.getSession();
+        if (session == null) return;
+
+        // Before the game starts (lobby / countdown), shield players from
+        // environmental lava and fire so a pre-placed pool can't kill them.
+        if (!session.getCurrentState().isGameRunning()) {
+            final EntityDamageEvent.DamageCause cause = event.getCause();
+            if (cause == EntityDamageEvent.DamageCause.LAVA
+                    || cause == EntityDamageEvent.DamageCause.FIRE
+                    || cause == EntityDamageEvent.DamageCause.FIRE_TICK) {
+                event.setCancelled(true);
             }
         }
+        // While the game is running: damage applies normally. Players burn in
+        // the lava for real and, on death, drop their items (handled by the
+        // vanilla death + PlayerListener#onPlayerDeath).
     }
 
     @EventHandler
