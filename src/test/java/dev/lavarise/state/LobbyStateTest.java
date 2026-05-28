@@ -37,10 +37,6 @@ class LobbyStateTest {
 
     @BeforeEach
     void setUp() {
-        when(arena.getConfig()).thenReturn(arenaConfig);
-        when(plugin.getMiniMessage()).thenReturn(MiniMessage.miniMessage());
-        when(plugin.getScoreboardModule()).thenReturn(scoreboardModule);
-        
         lobbyState = new LobbyState(plugin, arena, session);
     }
 
@@ -56,12 +52,16 @@ class LobbyStateTest {
 
     @Test
     void testOnPlayerJoinTeleportsToLobbySpawn() {
+        when(arena.getConfig()).thenReturn(arenaConfig);
+        when(plugin.getMiniMessage()).thenReturn(MiniMessage.miniMessage());
+        when(plugin.getScoreboardModule()).thenReturn(scoreboardModule);
+
         Location mockLocation = mock(Location.class);
         when(arenaConfig.lobbySpawn()).thenReturn(mockLocation);
         when(arenaConfig.maxPlayers()).thenReturn(10);
         when(arenaConfig.minPlayers()).thenReturn(2);
         when(session.getAllPlayerIds()).thenReturn(Collections.emptySet());
-        
+
         lobbyState.onPlayerJoin(player);
         
         verify(player).teleport(mockLocation);
