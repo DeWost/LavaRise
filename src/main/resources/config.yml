@@ -106,13 +106,16 @@ gameplay:
     # Stop giving once the player holds this many of the block.
     max-stack: 64
 
-  # Items given to each player when the game starts.
+  # Items given to each player when the game starts (KTE rising style:
+  # blocks to pillar up + tools to fight and mine).
   kit:
-    enabled: false
+    enabled: true
     # Format: MATERIAL:AMOUNT
     items:
       - COBBLESTONE:64
-      - WOODEN_PICKAXE:1
+      - STONE_SWORD:1
+      - STONE_PICKAXE:1
+      - COOKED_BEEF:8
 
 # ─── Rewards ─────────────────────────────────────────────────
 rewards:
