@@ -109,6 +109,8 @@ public final class ArenaRepository {
                 yaml.getBoolean("pvp", cfg.isDefaultPvp()),
                 yaml.getBoolean("block-break", cfg.isDefaultBlockBreak()),
                 yaml.getBoolean("block-place", cfg.isDefaultBlockPlace()),
+                yaml.getBoolean("keep-inventory", cfg.isDefaultKeepInventory()),
+                yaml.getBoolean("hunger", cfg.isDefaultHunger()),
                 yaml.getString("game-mode", cfg.getDefaultGameMode())
         );
 
@@ -145,6 +147,8 @@ public final class ArenaRepository {
         yaml.set("pvp", c.pvpEnabled());
         yaml.set("block-break", c.blockBreak());
         yaml.set("block-place", c.blockPlace());
+        yaml.set("keep-inventory", c.keepInventory());
+        yaml.set("hunger", c.hunger());
         yaml.set("game-mode", c.gameMode());
 
         try {

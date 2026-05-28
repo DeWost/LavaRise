@@ -28,6 +28,8 @@ import org.bukkit.World;
  * @param pvpEnabled   Whether PvP is enabled
  * @param blockBreak   Whether block breaking is allowed
  * @param blockPlace   Whether block placing is allowed
+ * @param keepInventory Whether players keep their items on death
+ * @param hunger       Whether hunger/food depletion is enabled during the game
  * @param gameMode     Game mode for this arena
  */
 public record ArenaConfig(
@@ -49,6 +51,8 @@ public record ArenaConfig(
         boolean pvpEnabled,
         boolean blockBreak,
         boolean blockPlace,
+        boolean keepInventory,
+        boolean hunger,
         String gameMode
 ) {
 

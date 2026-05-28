@@ -60,6 +60,67 @@ arena-defaults:
   # Allow hunger
   hunger: true
 
+# ─── Gameplay Rules ──────────────────────────────────────────
+gameplay:
+  # Seconds at the start of a game before the lava begins to rise.
+  # Lets players gear up and build. 0 = disabled.
+  grace-period: 10
+
+  # Lava rises faster the longer the game runs.
+  acceleration:
+    enabled: true
+    # Every N seconds, the rise interval is reduced...
+    speed-up-every: 30
+    # ...by this many ticks.
+    reduce-by: 5
+    # The rise interval will never drop below this (ticks).
+    min-interval: 10
+
+  # Scale lava speed with the number of players still alive
+  # (fewer players → faster lava, down to ~50% of the base interval).
+  dynamic-speed:
+    enabled: true
+
+  # When only a few players remain, the lava goes into overdrive.
+  sudden-death:
+    enabled: true
+    # Trigger when this many players (or fewer) are left.
+    players: 3
+    # Rise interval during sudden death (ticks).
+    interval: 10
+
+  # Shrink the world border toward the arena centre as the lava rises.
+  # Best on dedicated arena worlds (the border is per-world).
+  world-border:
+    enabled: false
+    # Smallest border size (blocks).
+    min-size: 20
+
+  # Periodically hand out building blocks so players can pillar up.
+  block-give:
+    enabled: true
+    # How often (seconds) to give blocks.
+    interval: 15
+    material: COBBLESTONE
+    amount: 1
+    # Stop giving once the player holds this many of the block.
+    max-stack: 64
+
+  # Items given to each player when the game starts.
+  kit:
+    enabled: false
+    # Format: MATERIAL:AMOUNT
+    items:
+      - COBBLESTONE:64
+      - WOODEN_PICKAXE:1
+
+# ─── Rewards ─────────────────────────────────────────────────
+rewards:
+  # Console commands run when a player wins.
+  # Placeholders: {winner}, {arena}
+  win-commands:
+    - "say {winner} won LavaRise in arena {arena}!"
+
 # ─── Game Mode Specific Settings ─────────────────────────────
 modes:
   # Mini-game mode — structured arena-based matches
