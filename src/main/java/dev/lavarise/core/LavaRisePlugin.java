@@ -5,6 +5,7 @@ import dev.lavarise.arena.ArenaConfig;
 import dev.lavarise.command.LavaRiseCommand;
 import dev.lavarise.data.ArenaRepository;
 import dev.lavarise.data.ConfigManager;
+import dev.lavarise.listener.ArenaEventRouter;
 import dev.lavarise.listener.PlayerListener;
 import dev.lavarise.feature.gui.ArenaSelectorGUI;
 import dev.lavarise.feature.ScoreboardModule;

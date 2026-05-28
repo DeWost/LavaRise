@@ -86,10 +86,15 @@ public final class GameManager {
     }
 
     /**
-     * Get the arena a player is currently in. O(1).
+     * Get the arena a player is currently in, or {@code null} if none.
+     * <p>
+     * Returns the raw nullable Arena (not an {@link Optional}) because this is
+     * called from event hot paths (block place/break, damage) where avoiding
+     * per-call allocation matters.
+     * </p>
      */
-    public Optional<Arena> getPlayerArena(UUID playerId) {
-        return Optional.ofNullable(playerArenaMap.get(playerId));
+    public Arena getArenaForPlayer(UUID playerId) {
+        return playerArenaMap.get(playerId);
     }
 
     /**
@@ -109,20 +114,29 @@ public final class GameManager {
     // ── Player Join/Leave ───────────────────────────────────
 
     /**
-     * Attempt to add a player to an arena.
-     * Returns true if successful, false if arena is full or not joinable.
+     * Attempt to add a player to an arena, sending the player feedback about
+     * the outcome.
+     *
+     * @return true if the player was added, false if rejected (already in a
+     *         game, arena not joinable, or arena full).
      */
-    public boolean joinArena(Player player, Arena arena) {
+    public boolean addPlayerToArena(Player player, Arena arena) {
         if (isInGame(player)) {
+            player.sendMessage(plugin.getMiniMessage().deserialize(
+                    "<red>You are already in a game! Use <yellow>/lavarise leave</yellow> first."));
             return false;
         }
 
         final ArenaSession session = arena.getSession();
         if (session == null || !session.isJoinable()) {
+            player.sendMessage(plugin.getMiniMessage().deserialize(
+                    "<red>Arena <yellow>" + arena.getName() + "</yellow> is not accepting players right now."));
             return false;
         }
 
         if (session.getPlayerCount() >= arena.getConfig().maxPlayers()) {
+            player.sendMessage(plugin.getMiniMessage().deserialize(
+                    "<red>Arena <yellow>" + arena.getName() + "</yellow> is full!"));
             return false;
         }
 
@@ -133,11 +147,16 @@ public final class GameManager {
     }
 
     /**
-     * Remove a player from their current arena.
+     * Remove a player from their current arena, if any. Safe to call even when
+     * the player is not in a game.
      */
-    public void leaveArena(Player player) {
+    public void removePlayer(Player player) {
         final Arena arena = playerArenaMap.get(player.getUniqueId());
-        if (arena == null) return;
+        if (arena == null) {
+            player.sendMessage(plugin.getMiniMessage().deserialize(
+                    "<red>You are not currently in a game."));
+            return;
+        }
 
         final ArenaSession session = arena.getSession();
         if (session != null) {

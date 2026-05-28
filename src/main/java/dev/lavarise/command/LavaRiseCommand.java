@@ -63,7 +63,10 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
 
         if (args[0].equalsIgnoreCase("list")) {
             if (!(sender instanceof Player player)) {
-                sender.sendMessage(plugin.getMiniMessage().deserialize("<green>Arenas: " + String.join(", ", plugin.getArenaRepository().getArenas().keySet())));
+                String names = plugin.getArenaRepository().getArenas().stream()
+                        .map(Arena::getName)
+                        .collect(Collectors.joining(", "));
+                sender.sendMessage(plugin.getMiniMessage().deserialize("<green>Arenas: " + names));
                 return true;
             }
             plugin.getGuiManager().open(player);
@@ -148,7 +151,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             completions.add("list");
             if (sender.hasPermission("lavarise.admin")) completions.add("stress");
         } else if (args.length == 2 && (args[0].equalsIgnoreCase("join") || args[0].equalsIgnoreCase("stress"))) {
-            completions.addAll(plugin.getArenaRepository().getArenas().keySet());
+            plugin.getArenaRepository().getArenas().forEach(a -> completions.add(a.getName()));
         }
         return completions.stream()
                 .filter(c -> c.toLowerCase().startsWith(args[args.length - 1].toLowerCase()))
