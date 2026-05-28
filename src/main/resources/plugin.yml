@@ -3,8 +3,8 @@ version: '${version}'
 main: dev.lavarise.core.LavaRisePlugin
 api-version: '1.21'
 description: '${description}'
-author: LavaRise Team
-website: https://github.com/lavarise
+author: DeWost
+website: https://github.com/DeWost/LavaRise
 prefix: LavaRise
 
 softdepend:
