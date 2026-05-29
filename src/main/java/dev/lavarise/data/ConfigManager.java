@@ -23,6 +23,17 @@ public final class ConfigManager {
     // ── Cached values (hot path) ────────────────────────────
     private boolean debug;
     private boolean updateCheck;
+    private boolean bstatsEnabled;
+    // Storage
+    private String storageType;
+    private String mysqlHost;
+    private int mysqlPort;
+    private String mysqlDatabase;
+    private String mysqlUser;
+    private String mysqlPassword;
+    private String mysqlTablePrefix;
+    private boolean mysqlSsl;
+    private int statsSyncInterval;
     private int maxBlocksPerTick;
     private int engineIntervalTicks;
     private boolean preloadChunks;
@@ -131,6 +142,18 @@ public final class ConfigManager {
         // General
         this.debug = config.getBoolean("general.debug", false);
         this.updateCheck = config.getBoolean("general.update-check", true);
+        this.bstatsEnabled = config.getBoolean("general.bstats", true);
+
+        // Storage
+        this.storageType = config.getString("storage.type", "yaml");
+        this.mysqlHost = config.getString("storage.mysql.host", "localhost");
+        this.mysqlPort = config.getInt("storage.mysql.port", 3306);
+        this.mysqlDatabase = config.getString("storage.mysql.database", "lavarise");
+        this.mysqlUser = config.getString("storage.mysql.username", "root");
+        this.mysqlPassword = config.getString("storage.mysql.password", "");
+        this.mysqlTablePrefix = config.getString("storage.mysql.table-prefix", "lavarise_");
+        this.mysqlSsl = config.getBoolean("storage.mysql.ssl", false);
+        this.statsSyncInterval = Math.max(15, config.getInt("storage.sync-interval", 120));
 
         // Performance
         this.maxBlocksPerTick = config.getInt("performance.max-blocks-per-tick", 64);
@@ -249,6 +272,17 @@ public final class ConfigManager {
 
     public boolean isDebug() { return debug; }
     public boolean isUpdateCheck() { return updateCheck; }
+    public boolean isBstatsEnabled() { return bstatsEnabled; }
+
+    public String getStorageType() { return storageType; }
+    public String getMysqlHost() { return mysqlHost; }
+    public int getMysqlPort() { return mysqlPort; }
+    public String getMysqlDatabase() { return mysqlDatabase; }
+    public String getMysqlUser() { return mysqlUser; }
+    public String getMysqlPassword() { return mysqlPassword; }
+    public String getMysqlTablePrefix() { return mysqlTablePrefix; }
+    public boolean isMysqlSsl() { return mysqlSsl; }
+    public int getStatsSyncInterval() { return statsSyncInterval; }
     public int getMaxBlocksPerTick() { return maxBlocksPerTick; }
     public int getEngineIntervalTicks() { return engineIntervalTicks; }
     public boolean isPreloadChunks() { return preloadChunks; }

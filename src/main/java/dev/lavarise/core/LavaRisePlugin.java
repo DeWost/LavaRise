@@ -30,6 +30,10 @@ import java.util.logging.Level;
 public final class LavaRisePlugin extends JavaPlugin {
 
     private static LavaRisePlugin instance;
+
+    /** bStats service id — register the plugin at https://bstats.org and replace this. */
+    private static final int BSTATS_PLUGIN_ID = 27000;
+
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
     private ConfigManager configManager;
@@ -107,6 +111,21 @@ public final class LavaRisePlugin extends JavaPlugin {
             new UpdateChecker(this).checkAsync();
         }
 
+        // bStats metrics (anonymous; toggle via general.bstats).
+        if (configManager.isBstatsEnabled()) {
+            try {
+                new org.bstats.bukkit.Metrics(this, BSTATS_PLUGIN_ID);
+            } catch (Throwable t) {
+                getLogger().warning("bStats init failed: " + t.getMessage());
+            }
+        }
+
+        // Periodically persist stats (matches the configured sync interval).
+        final long syncTicks = configManager.getStatsSyncInterval() * 20L;
+        getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
+            if (statsManager != null) statsManager.save();
+        }, syncTicks, syncTicks);
+
         // ── 7. Done ─────────────────────────────────────────
         final long elapsed = System.currentTimeMillis() - start;
         getLogger().info("LavaRise v" + getPluginMeta().getVersion() + " enabled in " + elapsed + "ms");
@@ -125,9 +144,9 @@ public final class LavaRisePlugin extends JavaPlugin {
             arenaRepository.saveAll();
         }
 
-        // Flush player statistics
+        // Flush player statistics and release backend resources
         if (statsManager != null) {
-            statsManager.save();
+            statsManager.close();
         }
 
         getLogger().info("LavaRise disabled. All games ended gracefully.");

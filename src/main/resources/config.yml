@@ -14,6 +14,26 @@ general:
   debug: false
   # Check GitHub for a newer release on startup (logs only; no auto-download)
   update-check: true
+  # Send anonymous usage metrics to bStats (https://bstats.org)
+  bstats: true
+
+# ─── Statistics Storage ──────────────────────────────────────
+storage:
+  # yaml  = single-server file (stats.yml), zero setup (default)
+  # mysql = network-wide database (shared across a proxy/BungeeCord network).
+  #         The MySQL driver is auto-provided via plugin.yml libraries.
+  #         If the connection fails, LavaRise falls back to YAML automatically.
+  type: yaml
+  # How often (seconds) cached stats are flushed to disk/DB.
+  sync-interval: 120
+  mysql:
+    host: localhost
+    port: 3306
+    database: lavarise
+    username: root
+    password: ""
+    table-prefix: "lavarise_"
+    ssl: false
 
 # ─── Performance Tuning ──────────────────────────────────────
 performance:
