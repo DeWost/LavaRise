@@ -172,19 +172,53 @@ procedural:
 # Players choose a kit with /lr kit; the chosen kit is given at game start.
 # If this section is empty, the single gameplay.kit above is used instead.
 # Each kit: icon (GUI item) + items (MATERIAL:AMOUNT). label is optional.
+# Item format: MATERIAL:AMOUNT[:ENCHANT:LEVEL...]  (levels may exceed vanilla caps)
 kits:
-  warrior:
-    label: "<red>Warrior"
-    icon: IRON_SWORD
-    items: [IRON_SWORD:1, COBBLESTONE:64, COOKED_BEEF:16, OAK_PLANKS:64]
-  builder:
-    label: "<gold>Builder"
-    icon: BRICKS
-    items: [STONE_PICKAXE:1, COBBLESTONE:192, OAK_PLANKS:64, COOKED_BEEF:8]
-  archer:
-    label: "<green>Archer"
-    icon: BOW
-    items: [BOW:1, ARROW:64, COBBLESTONE:48, COOKED_BEEF:8]
+  classic:
+    label: "<gray>Classic"
+    icon: NETHERITE_PICKAXE
+    items:
+      - "NETHERITE_PICKAXE:1:efficiency:3:unbreaking:3"
+      - "COBBLESTONE:64"
+      - "OAK_LOG:64"
+      - "COOKED_BEEF:16"
+  op:
+    label: "<red><bold>OP"
+    icon: DIAMOND
+    items:
+      - "DIAMOND_PICKAXE:1:efficiency:5:unbreaking:3"
+      - "DIAMOND:64"
+      - "IRON_INGOT:64"
+      - "COBBLESTONE:128"
+      - "COOKED_BEEF:32"
+  elytra:
+    label: "<aqua>Elytra"
+    icon: ELYTRA
+    items:
+      - "ELYTRA:1"
+      - "FIREWORK_ROCKET:16"
+      - "DIAMOND_PICKAXE:1:efficiency:4"
+      - "COBBLESTONE:64"
+      - "COOKED_BEEF:16"
+  trident:
+    label: "<blue>Trident"
+    icon: TRIDENT
+    items:
+      - "TRIDENT:1:riptide:3"
+      - "TRIDENT:1:loyalty:3:channeling:1"
+      - "COBBLESTONE:64"
+      - "COOKED_BEEF:16"
+  ultraop:
+    label: "<gold><bold>UltraOP"
+    icon: NETHERITE_SWORD
+    items:
+      - "NETHERITE_PICKAXE:1:efficiency:10:unbreaking:5"
+      - "NETHERITE_SWORD:1:sharpness:5"
+      - "BOW:1:power:5:infinity:1"
+      - "ARROW:1"
+      - "GOLDEN_APPLE:4"
+      - "GOLDEN_CARROT:24"
+      - "COBBLESTONE:128"
 
 # ─── Rewards ─────────────────────────────────────────────────
 rewards:

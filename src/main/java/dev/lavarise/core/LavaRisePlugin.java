@@ -10,6 +10,7 @@ import dev.lavarise.listener.ArenaEventRouter;
 import dev.lavarise.listener.PlayerListener;
 import dev.lavarise.feature.gui.ArenaSelectorGUI;
 import dev.lavarise.feature.gui.KitSelectorGUI;
+import dev.lavarise.feature.gui.VoteGUI;
 import dev.lavarise.feature.BossBarModule;
 import dev.lavarise.feature.KitManager;
 import dev.lavarise.feature.ScoreboardModule;
@@ -45,6 +46,7 @@ public final class LavaRisePlugin extends JavaPlugin {
     private StatsManager statsManager;
     private KitManager kitManager;
     private KitSelectorGUI kitSelectorGUI;
+    private VoteGUI voteGUI;
     private dev.lavarise.hook.VaultHook vaultHook;
 
     @Override
@@ -95,6 +97,7 @@ public final class LavaRisePlugin extends JavaPlugin {
         this.bossBarModule = new BossBarModule(this);
         this.kitManager = new KitManager(this);
         this.kitSelectorGUI = new KitSelectorGUI(this);
+        this.voteGUI = new VoteGUI(this);
 
         // ── 6. Integrations ─────────────────────────────────
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
@@ -201,6 +204,10 @@ public final class LavaRisePlugin extends JavaPlugin {
 
     public KitSelectorGUI getKitSelectorGUI() {
         return kitSelectorGUI;
+    }
+
+    public VoteGUI getVoteGUI() {
+        return voteGUI;
     }
 
     /**

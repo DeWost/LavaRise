@@ -41,6 +41,9 @@ public final class ArenaSession {
     /** Player UUID → team id (only used in teams mode). */
     private final Map<UUID, Integer> playerTeam = new ConcurrentHashMap<>();
 
+    /** Player UUID → voted kit key (kit voting in the lobby). */
+    private final Map<UUID, String> kitVotes = new ConcurrentHashMap<>();
+
     /** Whether the game loop is paused (admin event mode). */
     private volatile boolean paused = false;
     private long pauseStart = 0L;
@@ -96,6 +99,30 @@ public final class ArenaSession {
             if (t != -1) teams.add(t);
         }
         return teams;
+    }
+
+    // ── Kit voting ──────────────────────────────────────────
+
+    public void voteKit(UUID playerId, String kitKey) {
+        kitVotes.put(playerId, kitKey);
+    }
+
+    public Map<String, Integer> voteTally() {
+        final Map<String, Integer> tally = new HashMap<>();
+        for (String kit : kitVotes.values()) tally.merge(kit, 1, Integer::sum);
+        return tally;
+    }
+
+    /** The winning voted kit (ties broken randomly), or null if nobody voted. */
+    public String getVotedKit() {
+        final Map<String, Integer> tally = voteTally();
+        if (tally.isEmpty()) return null;
+        final int max = tally.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+        final List<String> winners = new ArrayList<>();
+        for (Map.Entry<String, Integer> e : tally.entrySet()) {
+            if (e.getValue() == max) winners.add(e.getKey());
+        }
+        return winners.get(java.util.concurrent.ThreadLocalRandom.current().nextInt(winners.size()));
     }
 
     // ── Pause (admin event) ─────────────────────────────────
