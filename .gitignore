@@ -10,6 +10,8 @@ out/
 *.jar
 *.war
 *.ear
+# ...but the Gradle wrapper jar MUST be committed (CI/release run ./gradlew)
+!gradle/wrapper/gradle-wrapper.jar
 hs_err_pid*
 replay_pid*
 logs/
