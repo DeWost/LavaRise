@@ -4,6 +4,17 @@ All notable changes to LavaRise are documented here.
 This project follows [Conventional Commits](https://www.conventionalcommits.org/)
 and roughly [Semantic Versioning](https://semver.org/).
 
+## [1.3.1]
+
+### Changed
+- **Sensible lava display.** The HUD/scoreboard/boss bar no longer show the raw
+  (often negative) world Y as "Lava Level". `{lava_level}` is now the lava
+  **height** (blocks risen, always ≥0), and a new `{lava_percent}` shows progress
+  to max — matching the "Current Lava Height" convention used by KteRising.
+- Added `{lava_y}` (raw Y) placeholder and PlaceholderAPI
+  `%lavarise_lava_percent_<arena>%` / `%lavarise_lava_y_<arena>%`;
+  `%lavarise_lava_level_<arena>%` now returns height.
+
 ## [1.3.0]
 
 ### Added

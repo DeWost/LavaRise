@@ -35,7 +35,9 @@ public class BossBarModule {
         final BossBar.Overlay overlay = parseOverlay(plugin.getConfigManager().getBossBarStyle());
 
         final String template = plugin.getConfigManager().getMessage("bossbar.title")
-                .replace("{lava_level}", String.valueOf(session.getCurrentLavaY()))
+                .replace("{lava_level}", String.valueOf(session.getLavaHeight()))
+                .replace("{lava_percent}", session.getLavaPercent() + "%")
+                .replace("{lava_y}", String.valueOf(session.getCurrentLavaY()))
                 .replace("{alive}", String.valueOf(session.getAliveCount()));
         final Component title = plugin.getMiniMessage().deserialize(template);
 

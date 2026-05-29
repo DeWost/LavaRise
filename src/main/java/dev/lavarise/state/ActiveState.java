@@ -196,7 +196,8 @@ public final class ActiveState implements GameState {
             shrinkWorldBorder();
 
             broadcastActionBar(plugin.getMiniMessage().deserialize(
-                    "<red>🔥 Lava: <bold>" + lavaY + "</bold> <dark_gray>| <gray>Max: " + arena.getConfig().lavaMaxY()));
+                    "<red>🔥 Lava height: <bold>" + session.getLavaHeight() + "</bold> <dark_gray>| <gray>"
+                            + session.getLavaPercent() + "% to max"));
             for (UUID uuid : session.getAlivePlayers()) {
                 Player p = plugin.getServer().getPlayer(uuid);
                 if (p != null) playSound(p, cfg.getSoundLavaRise(), 0.5f, 0.8f);
@@ -321,7 +322,9 @@ public final class ActiveState implements GameState {
         Component hud = null;
         if (hudEnabled) {
             String template = plugin.getConfigManager().getMessage("actionbar.in-game")
-                    .replace("{lava_level}", String.valueOf(lavaY))
+                    .replace("{lava_level}", String.valueOf(session.getLavaHeight()))
+                    .replace("{lava_percent}", session.getLavaPercent() + "%")
+                    .replace("{lava_y}", String.valueOf(lavaY))
                     .replace("{alive}", String.valueOf(session.getAliveCount()))
                     .replace("{time}", formatTime(session.getElapsedSeconds()));
             hud = plugin.getMiniMessage().deserialize(template);

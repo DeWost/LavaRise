@@ -30,7 +30,7 @@ state:
   countdown-start: "<gold>Game starting in <yellow>{countdown}</yellow> seconds!"
   countdown-tick: "<gold>{countdown}..."
   game-start: "<gradient:red:gold><bold>THE LAVA IS RISING!</bold></gradient>"
-  lava-rising: "<red>🔥 Lava reached level <bold>{lava_level}</bold>!"
+  lava-rising: "<red>🔥 Lava height: <bold>{lava_level}</bold> blocks <gray>(<bold>{lava_percent}</bold>)!"
   game-end: "<gradient:gold:yellow><bold>GAME OVER!</bold></gradient>"
   winner: "<gradient:gold:yellow>🏆 <bold>{winner}</bold> wins!</gradient>"
   no-winner: "<gray>No winner — everyone was consumed by lava!"
@@ -46,7 +46,7 @@ scoreboard:
   title: "<gradient:red:gold><bold>🔥 LAVA RISE</bold></gradient>"
   lines:
     - ""
-    - "<gray>Lava Level: <red>{lava_level}"
+    - "<gray>Lava Height: <red>{lava_level} <dark_gray>(<red>{lava_percent}<dark_gray>)"
     - "<gray>Players: <yellow>{alive}/{total}"
     - ""
     - "<gray>Mode: <gold>{mode}"
@@ -56,11 +56,11 @@ scoreboard:
 
 # ─── BossBar ─────────────────────────────────────────────────
 bossbar:
-  title: "<red>🔥 Lava Level: <bold>{lava_level}</bold> <dark_gray>| <gray>Players: {alive}"
+  title: "<red>🔥 Lava: <bold>{lava_percent}</bold> <dark_gray>(<gray>height {lava_level}<dark_gray>) | <gray>Players: {alive}"
 
 # ─── ActionBar ───────────────────────────────────────────────
 actionbar:
-  in-game: "<red>🔥 Y:{lava_level} <dark_gray>| <yellow>⚔ {alive} alive <dark_gray>| <gray>⏱ {time}"
+  in-game: "<red>🔥 Lava {lava_percent} <dark_gray>| <yellow>⚔ {alive} alive <dark_gray>| <gray>⏱ {time}"
 
 # ─── Admin Event ─────────────────────────────────────────────
 event:
