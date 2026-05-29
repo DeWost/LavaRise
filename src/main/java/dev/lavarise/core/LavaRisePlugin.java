@@ -5,8 +5,11 @@ import dev.lavarise.arena.ArenaConfig;
 import dev.lavarise.command.LavaRiseCommand;
 import dev.lavarise.data.ArenaRepository;
 import dev.lavarise.data.ConfigManager;
+import dev.lavarise.data.StatsManager;
+import dev.lavarise.listener.ArenaEventRouter;
 import dev.lavarise.listener.PlayerListener;
 import dev.lavarise.feature.gui.ArenaSelectorGUI;
+import dev.lavarise.feature.BossBarModule;
 import dev.lavarise.feature.ScoreboardModule;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -19,6 +22,8 @@ import java.util.logging.Level;
  * Main entry point. Initializes all services, loads arenas,
  * and registers commands/listeners.
  * </p>
+ *
+ * @author DeWost
  */
 public final class LavaRisePlugin extends JavaPlugin {
 
@@ -30,6 +35,9 @@ public final class LavaRisePlugin extends JavaPlugin {
     private ArenaRepository arenaRepository;
     private ArenaSelectorGUI guiManager;
     private ScoreboardModule scoreboardModule;
+    private BossBarModule bossBarModule;
+    private StatsManager statsManager;
+    private dev.lavarise.hook.VaultHook vaultHook;
 
     @Override
     public void onEnable() {
@@ -45,7 +53,7 @@ public final class LavaRisePlugin extends JavaPlugin {
         getLogger().info(" |______\\__,_| \\_/ \\__,_|_|  \\_\\|___/\\___|");
         getLogger().info("");
         getLogger().info("    Ultra-Optimized Paper 1.21.11 Engine");
-        getLogger().info("    by KTE Destroyer");
+        getLogger().info("    by DeWost");
         getLogger().info("");
         // ── 1. Configuration ────────────────────────────────
         saveDefaultConfig();
@@ -53,11 +61,14 @@ public final class LavaRisePlugin extends JavaPlugin {
         this.configManager.loadAll();
 
         // ── 2. Data Layer ───────────────────────────────────
+        this.statsManager = new StatsManager(this);
         this.arenaRepository = new ArenaRepository(this);
-        this.arenaRepository.loadArenas();
 
         // ── 3. Game Manager ─────────────────────────────────
         this.gameManager = new GameManager(this);
+
+        // Arenas must be loaded after the GameManager exists (they auto-register).
+        this.arenaRepository.loadArenas();
 
         // ── 4. Commands ─────────────────────────────────────
         final var command = getCommand("lavarise");
@@ -73,11 +84,17 @@ public final class LavaRisePlugin extends JavaPlugin {
         pm.registerEvents(new PlayerListener(this), this);
         this.guiManager = new ArenaSelectorGUI(this);
         this.scoreboardModule = new ScoreboardModule(this);
+        this.bossBarModule = new BossBarModule(this);
 
         // ── 6. Integrations ─────────────────────────────────
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new dev.lavarise.hook.PapiExpansion(this).register();
             getLogger().info("PlaceholderAPI expansion registered.");
+        }
+
+        this.vaultHook = new dev.lavarise.hook.VaultHook(this);
+        if (vaultHook.setup()) {
+            getLogger().info("Vault economy hooked — reward payouts enabled.");
         }
 
         // ── 7. Done ─────────────────────────────────────────
@@ -96,6 +113,11 @@ public final class LavaRisePlugin extends JavaPlugin {
         // Save arena data
         if (arenaRepository != null) {
             arenaRepository.saveAll();
+        }
+
+        // Flush player statistics
+        if (statsManager != null) {
+            statsManager.save();
         }
 
         getLogger().info("LavaRise disabled. All games ended gracefully.");
@@ -130,6 +152,18 @@ public final class LavaRisePlugin extends JavaPlugin {
 
     public ScoreboardModule getScoreboardModule() {
         return scoreboardModule;
+    }
+
+    public BossBarModule getBossBarModule() {
+        return bossBarModule;
+    }
+
+    public StatsManager getStatsManager() {
+        return statsManager;
+    }
+
+    public dev.lavarise.hook.VaultHook getVaultHook() {
+        return vaultHook;
     }
 
     /**

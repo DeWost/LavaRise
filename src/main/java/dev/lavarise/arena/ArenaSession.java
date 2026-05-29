@@ -35,6 +35,16 @@ public final class ArenaSession {
     /** Current game state (FSM) */
     private GameState currentState;
 
+    /** Strategy for the arena's game mode (teams, survival, admin event). */
+    private final dev.lavarise.mode.GameModeHandler modeHandler;
+
+    /** Player UUID → team id (only used in teams mode). */
+    private final Map<UUID, Integer> playerTeam = new ConcurrentHashMap<>();
+
+    /** Whether the game loop is paused (admin event mode). */
+    private volatile boolean paused = false;
+    private long pauseStart = 0L;
+
     /** Current lava Y-level */
     private int currentLavaY;
 
@@ -44,17 +54,73 @@ public final class ArenaSession {
     /** Game start timestamp (for duration tracking) */
     private long startTime;
 
-    /** Kaizen Memory Snapshot of the arena */
-    private int[] snapshotIndices;
-    private BlockData[] snapshotBlocks;
+    /** Kaizen Memory Snapshot of the arena (written async, read on main thread → volatile) */
+    private volatile int[] snapshotIndices;
+    private volatile BlockData[] snapshotBlocks;
+    private volatile boolean snapshotReady;
 
     public ArenaSession(LavaRisePlugin plugin, Arena arena) {
         this.plugin = plugin;
         this.arena = arena;
         this.currentLavaY = arena.getConfig().lavaStartY();
+        this.modeHandler = dev.lavarise.mode.GameModeHandler.forConfig(plugin, arena.getConfig());
         // Start in lobby state
         this.currentState = new LobbyState(plugin, arena, this);
         this.currentState.onEnter();
+    }
+
+    public dev.lavarise.mode.GameModeHandler getModeHandler() {
+        return modeHandler;
+    }
+
+    // ── Teams ───────────────────────────────────────────────
+
+    public void assignTeam(UUID playerId, int teamId) {
+        playerTeam.put(playerId, teamId);
+    }
+
+    public int getTeam(UUID playerId) {
+        return playerTeam.getOrDefault(playerId, -1);
+    }
+
+    public boolean sameTeam(UUID a, UUID b) {
+        int ta = getTeam(a);
+        return ta != -1 && ta == getTeam(b);
+    }
+
+    /** Distinct team ids that still have at least one alive member. */
+    public Set<Integer> aliveTeams() {
+        final Set<Integer> teams = new HashSet<>();
+        for (UUID id : alivePlayers) {
+            int t = getTeam(id);
+            if (t != -1) teams.add(t);
+        }
+        return teams;
+    }
+
+    // ── Pause (admin event) ─────────────────────────────────
+
+    public boolean isPaused() {
+        return paused;
+    }
+
+    public void setPaused(boolean paused) {
+        if (paused && !this.paused) {
+            this.pauseStart = System.currentTimeMillis();
+        } else if (!paused && this.paused) {
+            // Shift start time forward by the paused duration so elapsed stays continuous.
+            this.startTime += System.currentTimeMillis() - pauseStart;
+        }
+        this.paused = paused;
+    }
+
+    /**
+     * Add a player straight into the alive set without routing through the
+     * current state's join hook. Used by world-wide survival, which skips the
+     * lobby/countdown phases.
+     */
+    public void enroll(Player player) {
+        alivePlayers.add(player.getUniqueId());
     }
 
     // ── State Machine ───────────────────────────────────────
@@ -97,26 +163,40 @@ public final class ArenaSession {
     }
 
     /**
-     * Eliminate a player (died to lava) — move to spectator.
+     * Mark a player as eliminated without moving them: removes them from the
+     * alive set, adds them to spectators, and fires the state's elimination
+     * hook (effects, broadcast, win-condition check).
+     * <p>
+     * Used by the death-driven path: when a player actually dies (to lava or
+     * PvP) their items have already dropped via the vanilla death, and the
+     * spectator gamemode/teleport is applied later on respawn.
+     * </p>
+     *
+     * @return true if the player was alive and is now eliminated, false otherwise.
      */
-    public void eliminatePlayer(Player player) {
+    public boolean markEliminated(Player player) {
         final UUID uuid = player.getUniqueId();
-        if (!alivePlayers.remove(uuid)) return;
+        if (!alivePlayers.remove(uuid)) return false;
 
         spectators.add(uuid);
-
-        // Set to spectator mode
-        player.setGameMode(GameMode.SPECTATOR);
-
-        // Teleport to spectator spawn if set
-        if (arena.getConfig().spectatorSpawn() != null) {
-            player.teleport(arena.getConfig().spectatorSpawn());
-        }
-
         currentState.onPlayerEliminated(player);
 
         plugin.debug(player.getName() + " eliminated in " + arena.getName()
                 + " — " + alivePlayers.size() + " alive");
+        return true;
+    }
+
+    /**
+     * Eliminate a still-living player immediately — marks them eliminated and
+     * moves them to spectator mode/spawn (no death, no item drop).
+     */
+    public void eliminatePlayer(Player player) {
+        if (!markEliminated(player)) return;
+
+        player.setGameMode(GameMode.SPECTATOR);
+        if (arena.getConfig().spectatorSpawn() != null) {
+            player.teleport(arena.getConfig().spectatorSpawn());
+        }
     }
 
     /**
@@ -242,15 +322,23 @@ public final class ArenaSession {
     // ── Kaizen Snapshot ─────────────────────────────────────
     
     public void setSnapshot(int[] indices, BlockData[] blocks) {
+        // Publish data before flipping the ready flag so readers never see
+        // half-initialised arrays (happens-before via the volatile write).
         this.snapshotIndices = indices;
         this.snapshotBlocks = blocks;
+        this.snapshotReady = (indices != null && blocks != null && indices.length == blocks.length);
     }
-    
+
     public int[] getSnapshotIndices() {
         return snapshotIndices;
     }
-    
+
     public BlockData[] getSnapshotBlocks() {
         return snapshotBlocks;
+    }
+
+    /** True only once a consistent snapshot has been published. */
+    public boolean isSnapshotReady() {
+        return snapshotReady;
     }
 }

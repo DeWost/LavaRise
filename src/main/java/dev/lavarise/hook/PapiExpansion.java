@@ -26,7 +26,7 @@ public class PapiExpansion extends PlaceholderExpansion {
 
     @Override
     public @NotNull String getVersion() {
-        return plugin.getDescription().getVersion();
+        return plugin.getPluginMeta().getVersion();
     }
 
     @Override
@@ -36,6 +36,20 @@ public class PapiExpansion extends PlaceholderExpansion {
 
     @Override
     public String onRequest(OfflinePlayer player, @NotNull String params) {
+        // ── Per-player statistics ──────────────────────────
+        if (player != null) {
+            var stats = plugin.getStatsManager();
+            switch (params) {
+                case "wins": return String.valueOf(stats.getWins(player.getUniqueId()));
+                case "games": return String.valueOf(stats.getGames(player.getUniqueId()));
+                case "kills": return String.valueOf(stats.getKills(player.getUniqueId()));
+                case "deaths": return String.valueOf(stats.getDeaths(player.getUniqueId()));
+                case "best_time": return String.valueOf(stats.getBestTime(player.getUniqueId()));
+                case "winrate": return String.format("%.1f", stats.getWinRate(player.getUniqueId()) * 100);
+                default: break;
+            }
+        }
+
         // e.g. %lavarise_players_alive_arena1%
         if (params.startsWith("players_alive_")) {
             String arenaName = params.substring("players_alive_".length());

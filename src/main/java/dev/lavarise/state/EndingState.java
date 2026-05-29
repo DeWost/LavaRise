@@ -44,7 +44,18 @@ public final class EndingState implements GameState {
         
         plugin.getServer().getPluginManager().callEvent(new dev.lavarise.api.events.ArenaEndEvent(arena, winner));
 
+        // Remove every boss bar for this session's players.
+        for (UUID uuid : session.getAllPlayerIds()) {
+            Player p = plugin.getServer().getPlayer(uuid);
+            if (p != null) plugin.getBossBarModule().removeFor(p);
+        }
+
         if (winner != null && winner.isOnline()) {
+            // Persist the win + best survival time, then run any reward commands.
+            plugin.getStatsManager().recordWin(winner.getUniqueId(), winner.getName());
+            plugin.getStatsManager().recordSurvivalTime(winner.getUniqueId(), winner.getName(), elapsed);
+            runWinCommands(winner);
+
             // Winner announcement
             broadcastToArena(plugin.getMiniMessage().deserialize(
                     "<gold><bold>\u2605 WINNER: </bold><yellow>" + winner.getName()
@@ -60,6 +71,9 @@ public final class EndingState implements GameState {
             broadcastToArena(plugin.getMiniMessage().deserialize(
                     "<red><bold>GAME OVER!</bold> <gray>No survivors. Duration: <white>" + elapsed + "s"));
         }
+
+        // Mode-specific end behaviour (event broadcasts, Vault rewards, team wins).
+        session.getModeHandler().onArenaEnd(arena, session, winner);
 
         // Schedule arena reset after 5 seconds
         resetTask = new BukkitRunnable() {
@@ -104,14 +118,26 @@ public final class EndingState implements GameState {
             plugin.getGameManager().unmapPlayer(uuid);
         }
 
-        // Reset world blocks
-        WorldResetter.resetArena(plugin, arena);
+        // Reset world blocks (skipped for world-wide survival, which is not snapshotted)
+        if (session.getModeHandler().shouldSnapshot()) {
+            WorldResetter.resetArena(plugin, arena);
+        }
 
         // Destroy and recreate session (back to lobby)
         arena.destroySession();
         arena.createSession();
 
         plugin.debug("Arena " + arena.getName() + " reset complete.");
+    }
+
+    private void runWinCommands(Player winner) {
+        for (String command : plugin.getConfigManager().getWinCommands()) {
+            if (command == null || command.isBlank()) continue;
+            final String resolved = command
+                    .replace("{winner}", winner.getName())
+                    .replace("{arena}", arena.getName());
+            plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), resolved);
+        }
     }
 
     private void launchFireworks(Player player) {

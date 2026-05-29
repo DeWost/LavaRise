@@ -57,9 +57,11 @@ public class WorldResetter {
             World world = config.world();
             Set<Long> modifiedChunks = new HashSet<>();
             
-            int[] snapshotIndices = arena.getSession().getSnapshotIndices();
-            BlockData[] snapshotBlocks = arena.getSession().getSnapshotBlocks();
-            boolean hasSnapshot = snapshotIndices != null && snapshotBlocks != null;
+            // Only trust the snapshot once it has been fully published (equal-length
+            // arrays). Otherwise fall back to clearing the volume to air.
+            boolean hasSnapshot = arena.getSession().isSnapshotReady();
+            int[] snapshotIndices = hasSnapshot ? arena.getSession().getSnapshotIndices() : null;
+            BlockData[] snapshotBlocks = hasSnapshot ? arena.getSession().getSnapshotBlocks() : null;
 
             while (processed < maxBlocksPerTick) {
                 if (cy > config.lavaMaxY()) {
@@ -73,17 +75,9 @@ public class WorldResetter {
                 
                 boolean modified = false;
                 if (hasSnapshot) {
-                    // Calculate index using the same order as in ActiveState.takeSnapshot
-                    int width = config.maxX() - config.minX() + 1;
-                    int depth = config.maxZ() - config.minZ() + 1;
-                    
-                    int localX = cx - config.minX();
-                    int localZ = cz - config.minZ();
-                    int localY = cy - config.lavaStartY();
-                    
-                    // Index calculation: y * (depth * width) + z * width + x
-                    int index = localY * (depth * width) + localZ * width + localX;
-                    
+                    // Same y→z→x order as ActiveState.takeSnapshot (see ArenaIndex).
+                    int index = ArenaIndex.index(config, cx, cy, cz);
+
                     if (snapshotPointer < snapshotIndices.length && snapshotIndices[snapshotPointer] == index) {
                         // Snapshot block is not air, use fast NMS block setter for it too!
                         modified = fastBlockSetter.setBlock(cx, cy, cz, snapshotBlocks[snapshotPointer]);
@@ -120,10 +114,9 @@ public class WorldResetter {
                 for (long chunkKey : modifiedChunks) {
                     int chunkX = (int) chunkKey;
                     int chunkZ = (int) (chunkKey >> 32);
-                    FastBlockSetter.sendChunkUpdate(world, chunkX, chunkZ, world.getPlayers());
+                    FastBlockSetter.sendChunkUpdate(world, chunkX, chunkZ);
                 }
             }
-        }
         }
     }
 }

@@ -3,32 +3,29 @@
 #  All timings are in ticks (20 ticks = 1 second) unless noted.
 # ============================================================
 
+# Internal config version — do not edit (used for migration warnings).
+config-version: 2
+
 # General settings
 general:
   # Language for messages (messages.yml)
   language: "en"
   # Debug mode — logs extra info to console
   debug: false
-  # Auto-update checker
-  update-check: true
 
 # ─── Performance Tuning ──────────────────────────────────────
 performance:
   # Max blocks placed per server tick during lava rise.
   # Lower = less lag, but slower visual fill.
   # Recommended: 32-128 depending on server hardware.
+  # For world-wide survival challenges, raise this substantially.
   max-blocks-per-tick: 64
-
-  # How often (in ticks) to check player positions against lava level.
-  # 1 = every tick (50ms), 5 = every 250ms, 10 = every 500ms.
-  # Higher = less CPU, but slightly delayed damage detection.
-  player-check-interval: 5
 
   # Pre-load arena chunks before game starts
   preload-chunks: true
 
-  # Disable block physics when placing lava (HUGE performance gain)
-  disable-lava-physics: true
+  # NOTE: lava is always written via the NMS engine with physics/lighting
+  # bypassed — that is the whole point of the engine and cannot be toggled.
 
 # ─── Default Arena Settings ──────────────────────────────────
 # These are defaults for new arenas. Each arena can override.
@@ -59,6 +56,70 @@ arena-defaults:
   keep-inventory: false
   # Allow hunger
   hunger: true
+
+# ─── Gameplay Rules ──────────────────────────────────────────
+gameplay:
+  # Seconds at the start of a game before the lava begins to rise.
+  # Lets players gear up and build. 0 = disabled.
+  grace-period: 10
+
+  # Lava rises faster the longer the game runs.
+  acceleration:
+    enabled: true
+    # Every N seconds, the rise interval is reduced...
+    speed-up-every: 30
+    # ...by this many ticks.
+    reduce-by: 5
+    # The rise interval will never drop below this (ticks).
+    min-interval: 10
+
+  # Scale lava speed with the number of players still alive
+  # (fewer players → faster lava, down to ~50% of the base interval).
+  dynamic-speed:
+    enabled: true
+
+  # When only a few players remain, the lava goes into overdrive.
+  sudden-death:
+    enabled: true
+    # Trigger when this many players (or fewer) are left.
+    players: 3
+    # Rise interval during sudden death (ticks).
+    interval: 10
+
+  # Shrink the world border toward the arena centre as the lava rises.
+  # Best on dedicated arena worlds (the border is per-world).
+  world-border:
+    enabled: false
+    # Smallest border size (blocks).
+    min-size: 20
+
+  # Periodically hand out building blocks so players can pillar up.
+  block-give:
+    enabled: true
+    # How often (seconds) to give blocks.
+    interval: 15
+    material: COBBLESTONE
+    amount: 1
+    # Stop giving once the player holds this many of the block.
+    max-stack: 64
+
+  # Items given to each player when the game starts (KTE rising style:
+  # blocks to pillar up + tools to fight and mine).
+  kit:
+    enabled: true
+    # Format: MATERIAL:AMOUNT
+    items:
+      - COBBLESTONE:64
+      - STONE_SWORD:1
+      - STONE_PICKAXE:1
+      - COOKED_BEEF:8
+
+# ─── Rewards ─────────────────────────────────────────────────
+rewards:
+  # Console commands run when a player wins.
+  # Placeholders: {winner}, {arena}
+  win-commands:
+    - "say {winner} won LavaRise in arena {arena}!"
 
 # ─── Game Mode Specific Settings ─────────────────────────────
 modes:
@@ -109,6 +170,9 @@ effects:
     enabled: true
     # Show lava level in action bar
     show-lava-level: true
+    # How often (ticks) to refresh the per-player HUD + lava warning.
+    # Raise this (e.g. 20) on high-population servers to protect TPS.
+    update-interval: 10
 
   # Scoreboard sidebar
   scoreboard:
@@ -121,6 +185,8 @@ effects:
     type: LAVA
     # Density: particles per block (lower = better performance)
     density: 2
+    # How often (ticks) to emit surface particles. Raise/disable on big servers.
+    interval: 10
 
   # Sound effects
   sounds:

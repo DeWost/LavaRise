@@ -22,24 +22,54 @@ public class BossBarModule {
     }
 
     public void updateFor(ArenaSession session) {
-        float progress = (float) session.getCurrentLavaY() / session.getArena().getConfig().lavaMaxY();
-        progress = Math.max(0.0f, Math.min(1.0f, progress));
+        if (!plugin.getConfigManager().isBossBarEnabled()) return;
 
-        Component title = plugin.getMiniMessage().deserialize("<red><bold>Lava Y-Level: " + session.getCurrentLavaY() + "</bold></red>");
+        final int start = session.getArena().getConfig().lavaStartY();
+        final int max = session.getArena().getConfig().lavaMaxY();
+        final int range = Math.max(1, max - start);
+        float progress = (float) (session.getCurrentLavaY() - start) / range;
+        progress = Math.max(0.0f, Math.min(1.0f, progress));
+        final float finalProgress = progress;
+
+        final BossBar.Color color = parseColor(plugin.getConfigManager().getBossBarColor());
+        final BossBar.Overlay overlay = parseOverlay(plugin.getConfigManager().getBossBarStyle());
+
+        final String template = plugin.getConfigManager().getMessage("bossbar.title")
+                .replace("{lava_level}", String.valueOf(session.getCurrentLavaY()))
+                .replace("{alive}", String.valueOf(session.getAliveCount()));
+        final Component title = plugin.getMiniMessage().deserialize(template);
 
         for (UUID uuid : session.getAllPlayerIds()) {
             Player p = plugin.getServer().getPlayer(uuid);
-            if (p != null) {
-                final float finalProgress = progress;
-                BossBar bar = activeBars.computeIfAbsent(uuid, k -> {
-                    BossBar newBar = BossBar.bossBar(title, finalProgress, BossBar.Color.RED, BossBar.Overlay.PROGRESS);
-                    p.showBossBar(newBar);
-                    return newBar;
-                });
-                bar.name(title);
-                bar.progress(progress);
-            }
+            if (p == null) continue;
+            BossBar bar = activeBars.computeIfAbsent(uuid, k -> {
+                BossBar newBar = BossBar.bossBar(title, finalProgress, color, overlay);
+                p.showBossBar(newBar);
+                return newBar;
+            });
+            bar.name(title);
+            bar.progress(finalProgress);
+            bar.color(color);
+            bar.overlay(overlay);
         }
+    }
+
+    private BossBar.Color parseColor(String name) {
+        try {
+            return BossBar.Color.valueOf(name.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return BossBar.Color.RED;
+        }
+    }
+
+    private BossBar.Overlay parseOverlay(String style) {
+        return switch (style == null ? "" : style.toUpperCase()) {
+            case "SOLID" -> BossBar.Overlay.PROGRESS;
+            case "SEGMENTED_6" -> BossBar.Overlay.NOTCHED_6;
+            case "SEGMENTED_12" -> BossBar.Overlay.NOTCHED_12;
+            case "SEGMENTED_20" -> BossBar.Overlay.NOTCHED_20;
+            default -> BossBar.Overlay.NOTCHED_10;
+        };
     }
 
     public void removeFor(Player player) {
