@@ -6,6 +6,11 @@ and roughly [Semantic Versioning](https://semver.org/).
 
 ## [1.4.1]
 
+### Changed — dependency currency
+- Bumped to the latest libraries: `com.gradleup.shadow` 9.4.1, JUnit 5.14.4,
+  Mockito 5.18.0. `paperweight-userdev` 2.0.0-beta.21 was already latest. The
+  plugin always compiles against the real Paper 1.21.11 Mojang-mapped dev bundle.
+
 ### Changed — performance
 - **One damage listener.** Merged `EntityDamageByEntityEvent` handling into the
   single `EntityDamageEvent` handler — a PvP hit no longer fires two listeners

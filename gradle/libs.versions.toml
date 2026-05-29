@@ -2,11 +2,11 @@
 paper-api = "1.21.11-R0.1-SNAPSHOT"
 adventure-api = "4.17.0"
 adventure-minimessage = "4.17.0"
-shadow = "9.0.0"
+shadow = "9.4.1"
 run-task = "2.3.1"
 paperweight = "2.0.0-beta.21"
-junit = "5.10.2"
-mockito = "5.11.0"
+junit = "5.14.4"
+mockito = "5.18.0"
 
 [libraries]
 paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-api" }
