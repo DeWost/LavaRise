@@ -201,7 +201,7 @@ Requires JDK 21. The committed Gradle 9 wrapper handles everything; the first bu
 
 ## 🤝 Contributing
 
-PRs welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md). Keep NMS changes isolated to `FastBlockSetter`, avoid allocation in hot paths, and run `./gradlew build` before submitting. Architecture notes for contributors live in [`CLAUDE.md`](CLAUDE.md); release notes in [`CHANGELOG.md`](CHANGELOG.md).
+PRs welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md). Keep NMS changes isolated to `FastBlockSetter`, avoid allocation in hot paths, and run `./gradlew build` before submitting. Release notes live in [`CHANGELOG.md`](CHANGELOG.md).
 
 ## ⚖️ License
 
