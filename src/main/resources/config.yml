@@ -114,6 +114,25 @@ gameplay:
       - STONE_PICKAXE:1
       - COOKED_BEEF:8
 
+# ─── Procedural / Random Arenas ──────────────────────────────
+# Quick-join (/lr join with no arena) sends players to a RANDOM open arena;
+# /lr random always builds a fresh one. When none are free, a new arena is
+# auto-generated at a random spot, then removed + restored after the game
+# (random map rotation). Set game-mode: survival_challenge handled separately.
+procedural:
+  enabled: true
+  # World to carve random arenas in.
+  world: world
+  # Half-size of the arena cuboid (blocks from the random centre).
+  radius: 30
+  # Lava vertical range inside the arena.
+  lava-start-y: 60
+  lava-max-y: 150
+  # Random centres are picked within ±(spawn-area / 2) around 0,0.
+  spawn-area: 2000
+  # If quick-join finds no open arena, generate a fresh random one.
+  auto-on-quickjoin: true
+
 # ─── Rewards ─────────────────────────────────────────────────
 rewards:
   # Console commands run when a player wins.

@@ -4,6 +4,22 @@ All notable changes to LavaRise are documented here.
 This project follows [Conventional Commits](https://www.conventionalcommits.org/)
 and roughly [Semantic Versioning](https://semver.org/).
 
+## [1.3.0]
+
+### Added
+- **Random & procedural arenas:**
+  - Quick-join — `/lr join` with no arena name drops into a random open game.
+  - `/lr random` — generates and joins a fresh arena at a random world location.
+  - Random rotation — procedural arenas are torn down and their terrain restored
+    after each game, so the next one spawns somewhere new.
+  - `GameManager.findRandomAvailableArena()` and a `procedural` config section
+    (`radius`, `spawn-area`, lava range, `auto-on-quickjoin`).
+- A reusable `ProceduralArenaFactory` and a transient-arena flag (`Arena#markTransient`).
+
+### Changed
+- `WorldResetter` now captures the snapshot at schedule time (independent of the
+  session), fixing a latent reset-after-teardown race and enabling transient-arena cleanup.
+
 ## [1.2.0]
 
 ### Added

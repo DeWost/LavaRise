@@ -15,9 +15,22 @@ public final class Arena {
     private final ArenaConfig config;
     private ArenaSession session;
 
+    /** Transient arenas (procedural / survival) live only in memory and are
+     *  unregistered after their game ends instead of being recreated. */
+    private boolean transientArena;
+
     public Arena(LavaRisePlugin plugin, ArenaConfig config) {
         this.plugin = plugin;
         this.config = config;
+    }
+
+    public boolean isTransient() {
+        return transientArena;
+    }
+
+    public Arena markTransient() {
+        this.transientArena = true;
+        return this;
     }
 
     // ── Accessors ───────────────────────────────────────────

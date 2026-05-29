@@ -35,6 +35,12 @@ public class WorldResetter {
         private final BlockData airData;
         private final FastBlockSetter fastBlockSetter;
 
+        // Snapshot captured at schedule time so the task is independent of the
+        // (soon-to-be-destroyed) session and never reads a half-written snapshot.
+        private final boolean hasSnapshot;
+        private final int[] snapshotIndices;
+        private final BlockData[] snapshotBlocks;
+
         private int cx, cy, cz;
         private int snapshotPointer = 0;
 
@@ -46,6 +52,11 @@ public class WorldResetter {
             this.airData = Material.AIR.createBlockData();
             this.fastBlockSetter = new FastBlockSetter(config.world(), this.airData);
 
+            final var session = arena.getSession();
+            this.hasSnapshot = session != null && session.isSnapshotReady();
+            this.snapshotIndices = hasSnapshot ? session.getSnapshotIndices() : null;
+            this.snapshotBlocks = hasSnapshot ? session.getSnapshotBlocks() : null;
+
             this.cx = config.minX();
             this.cy = config.lavaStartY();
             this.cz = config.minZ();
@@ -56,12 +67,6 @@ public class WorldResetter {
             int processed = 0;
             World world = config.world();
             Set<Long> modifiedChunks = new HashSet<>();
-            
-            // Only trust the snapshot once it has been fully published (equal-length
-            // arrays). Otherwise fall back to clearing the volume to air.
-            boolean hasSnapshot = arena.getSession().isSnapshotReady();
-            int[] snapshotIndices = hasSnapshot ? arena.getSession().getSnapshotIndices() : null;
-            BlockData[] snapshotBlocks = hasSnapshot ? arena.getSession().getSnapshotBlocks() : null;
 
             while (processed < maxBlocksPerTick) {
                 if (cy > config.lavaMaxY()) {

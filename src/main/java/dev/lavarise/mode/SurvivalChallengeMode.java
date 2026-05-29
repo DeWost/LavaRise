@@ -65,7 +65,7 @@ public final class SurvivalChallengeMode {
                 true, true, true, false, true,
                 "survival_challenge");
 
-        final Arena arena = new Arena(plugin, cfg);
+        final Arena arena = new Arena(plugin, cfg).markTransient();
         plugin.getGameManager().registerArena(arena);
         final ArenaSession session = arena.createSession();
 
