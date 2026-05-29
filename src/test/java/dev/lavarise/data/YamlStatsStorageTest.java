@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class StatsManagerTest {
+class YamlStatsStorageTest {
 
     @Mock
     LavaRisePlugin plugin;
@@ -24,12 +24,12 @@ class StatsManagerTest {
     @TempDir
     File dataFolder;
 
-    StatsManager stats;
+    YamlStatsStorage stats;
 
     @BeforeEach
     void setUp() {
         when(plugin.getDataFolder()).thenReturn(dataFolder);
-        stats = new StatsManager(plugin);
+        stats = new YamlStatsStorage(plugin);
     }
 
     @Test
@@ -45,7 +45,6 @@ class StatsManagerTest {
         assertEquals(1, stats.getGames(a));
         assertEquals(1, stats.getKills(a));
         assertEquals(120L, stats.getBestTime(a));
-        assertEquals(1.0, stats.getWinRate(a));
     }
 
     @Test

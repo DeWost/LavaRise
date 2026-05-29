@@ -12,6 +12,10 @@ softdepend:
   - PlaceholderAPI
   - FastAsyncWorldEdit
 
+# Runtime libraries downloaded by the server (only needed for storage.type: mysql).
+libraries:
+  - "com.mysql:mysql-connector-j:8.4.0"
+
 commands:
   lavarise:
     description: Main LavaRise command

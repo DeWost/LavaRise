@@ -1,139 +1,67 @@
 package dev.lavarise.data;
 
 import dev.lavarise.core.LavaRisePlugin;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
-import java.util.logging.Level;
 
 /**
- * Persistent per-player statistics, backed by {@code stats.yml}.
- * <p>
- * Tracks games played, wins, kills, deaths and the player's best (longest)
- * survival time. Writes are debounced behind {@link #save()} and flushed on
- * disable; the in-memory {@link FileConfiguration} is the source of truth at
- * runtime so reads are cheap.
- * </p>
+ * Public stats API. Delegates to a {@link StatsStorage} backend chosen by
+ * {@code storage.type} — YAML (default, single-server) or MySQL (network-wide,
+ * with graceful fallback to YAML if the connection fails).
+ *
+ * @author DeWost
  */
 public final class StatsManager {
 
-    private final LavaRisePlugin plugin;
-    private final File file;
-    private final FileConfiguration data;
-    private boolean dirty = false;
+    private final StatsStorage storage;
 
     public StatsManager(LavaRisePlugin plugin) {
-        this.plugin = plugin;
-        this.file = new File(plugin.getDataFolder(), "stats.yml");
-        if (!file.exists()) {
+        StatsStorage chosen;
+        if ("mysql".equalsIgnoreCase(plugin.getConfigManager().getStorageType())) {
             try {
-                plugin.getDataFolder().mkdirs();
-                file.createNewFile();
-            } catch (IOException e) {
-                plugin.getLogger().log(Level.WARNING, "Could not create stats.yml", e);
+                chosen = new MySqlStatsStorage(plugin);
+            } catch (Exception e) {
+                plugin.getLogger().warning("MySQL stats unavailable (" + e.getMessage()
+                        + ") — falling back to YAML. Ensure the MySQL driver and credentials are correct.");
+                chosen = new YamlStatsStorage(plugin);
             }
+        } else {
+            chosen = new YamlStatsStorage(plugin);
         }
-        this.data = YamlConfiguration.loadConfiguration(file);
+        this.storage = chosen;
     }
 
-    // ── Recording ───────────────────────────────────────────
+    public void recordGamePlayed(UUID id, String name) { storage.recordGamePlayed(id, name); }
+    public void recordWin(UUID id, String name)        { storage.recordWin(id, name); }
+    public void recordKill(UUID id, String name)       { storage.recordKill(id, name); }
+    public void recordDeath(UUID id, String name)      { storage.recordDeath(id, name); }
+    public void recordSurvivalTime(UUID id, String name, long seconds) { storage.recordSurvivalTime(id, name, seconds); }
 
-    public void recordGamePlayed(UUID id, String name) {
-        setName(id, name);
-        increment(id, "games", 1);
-    }
+    public int getWins(UUID id)     { return storage.getWins(id); }
+    public int getGames(UUID id)    { return storage.getGames(id); }
+    public int getKills(UUID id)    { return storage.getKills(id); }
+    public int getDeaths(UUID id)   { return storage.getDeaths(id); }
+    public long getBestTime(UUID id) { return storage.getBestTime(id); }
+    public String getName(UUID id)  { return storage.getName(id); }
 
-    public void recordWin(UUID id, String name) {
-        setName(id, name);
-        increment(id, "wins", 1);
-    }
-
-    public void recordKill(UUID id, String name) {
-        setName(id, name);
-        increment(id, "kills", 1);
-    }
-
-    public void recordDeath(UUID id, String name) {
-        setName(id, name);
-        increment(id, "deaths", 1);
-    }
-
-    /**
-     * Update the player's best survival time if {@code seconds} beats their record.
-     */
-    public void recordSurvivalTime(UUID id, String name, long seconds) {
-        setName(id, name);
-        if (seconds > getBestTime(id)) {
-            data.set(path(id, "best-time"), seconds);
-            dirty = true;
-        }
-    }
-
-    // ── Queries ─────────────────────────────────────────────
-
-    public int getWins(UUID id) { return data.getInt(path(id, "wins"), 0); }
-    public int getGames(UUID id) { return data.getInt(path(id, "games"), 0); }
-    public int getKills(UUID id) { return data.getInt(path(id, "kills"), 0); }
-    public int getDeaths(UUID id) { return data.getInt(path(id, "deaths"), 0); }
-    public long getBestTime(UUID id) { return data.getLong(path(id, "best-time"), 0L); }
-    public String getName(UUID id) { return data.getString(path(id, "name"), "?"); }
-
-    /**
-     * Win/loss ratio expressed as wins per game played (0..1).
-     */
     public double getWinRate(UUID id) {
         int games = getGames(id);
         return games == 0 ? 0.0 : (double) getWins(id) / games;
     }
 
-    /**
-     * Top players by a given stat key ("wins", "kills", "best-time"), descending.
-     */
     public List<Entry> top(String stat, int limit) {
-        final List<Entry> entries = new ArrayList<>();
-        if (data.getConfigurationSection("players") == null) return entries;
-        for (String key : data.getConfigurationSection("players").getKeys(false)) {
-            final String base = "players." + key;
-            entries.add(new Entry(
-                    data.getString(base + ".name", "?"),
-                    data.getLong(base + "." + stat, 0L)));
-        }
-        entries.sort(Comparator.comparingLong(Entry::value).reversed());
-        return entries.size() > limit ? entries.subList(0, limit) : entries;
+        return storage.top(stat, limit);
     }
 
-    // ── Persistence ─────────────────────────────────────────
-
+    /** Persist pending changes (called periodically + on disable). */
     public void save() {
-        if (!dirty) return;
-        try {
-            data.save(file);
-            dirty = false;
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to save stats.yml", e);
-        }
+        storage.flush();
     }
 
-    // ── Internals ───────────────────────────────────────────
-
-    private void setName(UUID id, String name) {
-        data.set(path(id, "name"), name);
-        dirty = true;
-    }
-
-    private void increment(UUID id, String stat, int by) {
-        data.set(path(id, stat), data.getInt(path(id, stat), 0) + by);
-        dirty = true;
-    }
-
-    private String path(UUID id, String key) {
-        return "players." + id + "." + key;
+    /** Flush and release backend resources. */
+    public void close() {
+        storage.close();
     }
 
     /** A single leaderboard row. */

@@ -175,7 +175,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         String stat = args.length >= 2 ? args[1].toLowerCase() : "wins";
         String key = switch (stat) {
             case "kills" -> "kills";
-            case "time", "best", "survival" -> "best-time";
+            case "time", "best", "survival" -> "best_time";
             default -> "wins";
         };
         List<StatsManager.Entry> top = plugin.getStatsManager().top(key, 10);

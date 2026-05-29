@@ -4,6 +4,20 @@ All notable changes to LavaRise are documented here.
 This project follows [Conventional Commits](https://www.conventionalcommits.org/)
 and roughly [Semantic Versioning](https://semver.org/).
 
+## [1.5.0]
+
+### Added — full KteRising parity
+- **MySQL stats backend.** New `StatsStorage` abstraction with YAML (default) and
+  **MySQL** implementations, selected by `storage.type`. MySQL uses the JDK
+  `java.sql` API (driver auto-provided via `plugin.yml libraries:`), an in-memory
+  cache with lazy per-player load, batched async UPSERT flushing on
+  `storage.sync-interval`, and database-side leaderboards. Falls back to YAML
+  automatically if the connection fails.
+- **bStats metrics** (`general.bstats`) — shaded and relocated to
+  `dev.lavarise.libs.bstats` so it never clashes with other plugins.
+- Detailed `storage` config (host / port / database / credentials / table-prefix /
+  ssl / sync-interval).
+
 ## [1.4.1]
 
 ### Changed — dependency currency

@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "dev.lavarise"
-version = "1.4.1"
+version = "1.5.0"
 description = "Premium Rising Lava minigame plugin — 3 game modes, batch block engine, zero dependencies."
 
 java {
@@ -27,7 +27,10 @@ dependencies {
     compileOnly("com.github.MilkBowl:VaultAPI:1.7") { // economy API only, never shaded
         exclude(group = "org.bukkit", module = "bukkit") // drop ancient transitive
     }
-    // Adventure is bundled with Paper, no need to shade
+    implementation("org.bstats:bstats-bukkit:3.1.0") // shaded + relocated below
+    // Adventure is bundled with Paper, no need to shade.
+    // The MySQL driver is provided at runtime via plugin.yml `libraries:` —
+    // MySqlStatsStorage only uses the JDK java.sql API, so no compile dep is needed.
     
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)
@@ -69,7 +72,10 @@ tasks {
 
     shadowJar {
         archiveClassifier.set("")
-        minimize()
+        relocate("org.bstats", "dev.lavarise.libs.bstats") // avoid clashing with other plugins
+        minimize {
+            exclude(dependency("org.bstats:.*:.*")) // bStats loads classes reflectively
+        }
     }
 
     // Paper 1.20.5+ loads Mojang-mapped plugins natively, so we ship the
