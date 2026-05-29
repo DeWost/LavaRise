@@ -20,8 +20,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 import org.bukkit.block.data.BlockData;
 
@@ -70,7 +68,9 @@ public final class ActiveState implements GameState {
         if (cfg.isPreloadChunks()) {
             ChunkPreloader.preloadArenaChunks(arena.getConfig());
         }
-        takeSnapshot();
+        if (session.getModeHandler().shouldSnapshot()) {
+            takeSnapshot();
+        }
 
         this.currentInterval = Math.max(1, arena.getConfig().lavaRiseInterval());
         this.graceTicksLeft = Math.max(0, cfg.getGracePeriod()) * 20;
@@ -100,6 +100,8 @@ public final class ActiveState implements GameState {
                     Title.Times.times(Duration.ofMillis(200), Duration.ofSeconds(2), Duration.ofMillis(500))));
             playSound(p, cfg.getSoundGameStart(), 0.7f, 1.5f);
         }
+
+        session.getModeHandler().onGameStart(arena, session);
 
         plugin.getScoreboardModule().updateScoreboard(session);
         plugin.getBossBarModule().updateFor(session);
@@ -136,6 +138,7 @@ public final class ActiveState implements GameState {
     @Override
     public void onPlayerEliminated(Player player) {
         plugin.getServer().getPluginManager().callEvent(new dev.lavarise.api.events.PlayerEliminatedEvent(arena, player));
+        session.getModeHandler().onPlayerEliminated(arena, session, player);
 
         plugin.getStatsManager().recordDeath(player.getUniqueId(), player.getName());
         plugin.getStatsManager().recordSurvivalTime(player.getUniqueId(), player.getName(), session.getElapsedSeconds());
@@ -160,6 +163,10 @@ public final class ActiveState implements GameState {
     // ── Main tick ───────────────────────────────────────────
 
     private void tick() {
+        // Admin-event pause freezes everything; startTime is offset on resume
+        // so survival/acceleration timers stay continuous.
+        if (session.isPaused()) return;
+
         tickCounter++;
 
         // Grace period — lava is frozen, players build up.
@@ -244,13 +251,8 @@ public final class ActiveState implements GameState {
     // ── Win / end ───────────────────────────────────────────
 
     private void checkWinCondition() {
-        if (session.getAliveCount() <= 1) {
-            Player winner = null;
-            if (session.getAliveCount() == 1) {
-                UUID wid = session.getAlivePlayers().iterator().next();
-                winner = plugin.getServer().getPlayer(wid);
-            }
-            endGame(winner);
+        if (session.getModeHandler().isGameOver(arena, session)) {
+            endGame(session.getModeHandler().resolveWinner(arena, session));
         }
     }
 
@@ -433,31 +435,41 @@ public final class ActiveState implements GameState {
             int startY = arena.getConfig().lavaStartY();
             int maxY = arena.getConfig().lavaMaxY();
 
-            List<Integer> indicesList = new ArrayList<>();
-            List<BlockData> blocksList = new ArrayList<>();
+            // Growable primitive index buffer (no Integer boxing) paired with BlockData refs.
+            int[] indices = new int[1024];
+            BlockData[] blocks = new BlockData[1024];
+            int n = 0;
 
             int index = 0;
             World world = arena.getConfig().world();
 
-            for (int y = startY; y <= maxY; y++) {
-                for (int z = minZ; z <= maxZ; z++) {
-                    for (int x = minX; x <= maxX; x++) {
-                        BlockData data = world.getBlockData(x, y, z);
-                        if (!data.getMaterial().isAir()) {
-                            indicesList.add(index);
-                            blocksList.add(data);
+            try {
+                for (int y = startY; y <= maxY; y++) {
+                    for (int z = minZ; z <= maxZ; z++) {
+                        for (int x = minX; x <= maxX; x++) {
+                            BlockData data = world.getBlockData(x, y, z);
+                            if (!data.getMaterial().isAir()) {
+                                if (n == indices.length) {
+                                    indices = java.util.Arrays.copyOf(indices, n * 2);
+                                    blocks = java.util.Arrays.copyOf(blocks, n * 2);
+                                }
+                                indices[n] = index;
+                                blocks[n] = data;
+                                n++;
+                            }
+                            index++;
                         }
-                        index++;
                     }
                 }
+            } catch (Exception e) {
+                plugin.getLogger().log(java.util.logging.Level.WARNING,
+                        "Snapshot failed for arena " + arena.getName() + " — reset will fall back to clearing lava.", e);
+                return;
             }
 
-            int[] indices = indicesList.stream().mapToInt(i -> i).toArray();
-            BlockData[] blocks = blocksList.toArray(new BlockData[0]);
-
-            session.setSnapshot(indices, blocks);
+            session.setSnapshot(java.util.Arrays.copyOf(indices, n), java.util.Arrays.copyOf(blocks, n));
             plugin.debug("Arena " + arena.getName() + " snapshot taken async! Size: "
-                    + blocks.length + " non-air blocks out of " + index + " total.");
+                    + n + " non-air blocks out of " + index + " total.");
         });
     }
 }

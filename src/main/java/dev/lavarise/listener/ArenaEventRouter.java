@@ -75,6 +75,12 @@ public class ArenaEventRouter implements Listener {
             if (arena != null) {
                 if (!arena.getConfig().pvpEnabled()) {
                     event.setCancelled(true);
+                    return;
+                }
+                // Mode rules (e.g. teams disable friendly fire).
+                ArenaSession session = arena.getSession();
+                if (session != null && !session.getModeHandler().allowFriendlyFire(session, attacker, victim)) {
+                    event.setCancelled(true);
                 }
             }
         }

@@ -23,7 +23,6 @@ public final class ConfigManager {
     // ── Cached values (hot path) ────────────────────────────
     private boolean debug;
     private int maxBlocksPerTick;
-    private int playerCheckInterval;
     private boolean preloadChunks;
     private int lavaRiseInterval;
     private int lavaRiseAmount;
@@ -60,6 +59,19 @@ public final class ConfigManager {
     private List<String> kitItems;
     private List<String> winCommands;
 
+    // ── Modes ───────────────────────────────────────────────
+    private boolean teamsEnabled;
+    private int teamSize;
+    private boolean survivalEnabled;
+    private List<String> survivalWorlds;
+    private int survivalRadius;
+    private boolean survivalAnnounce;
+    private boolean eventEnabled;
+    private boolean eventBroadcastStart;
+    private boolean eventBroadcastEnd;
+    private boolean eventRewardEnabled;
+    private double eventRewardAmount;
+
     // ── Effects ─────────────────────────────────────────────
     private boolean bossBarEnabled;
     private String bossBarColor;
@@ -90,12 +102,19 @@ public final class ConfigManager {
     public void loadAll() {
         final FileConfiguration config = plugin.getConfig();
 
+        // Config version warning (helps admins notice an outdated config after upgrades).
+        final int CURRENT_CONFIG_VERSION = 2;
+        if (config.contains("config-version") && config.getInt("config-version") < CURRENT_CONFIG_VERSION) {
+            plugin.getLogger().warning("Your config.yml is version " + config.getInt("config-version")
+                    + " but this build expects " + CURRENT_CONFIG_VERSION
+                    + ". New options will use defaults — regenerate or merge config.yml to silence this.");
+        }
+
         // General
         this.debug = config.getBoolean("general.debug", false);
 
         // Performance
         this.maxBlocksPerTick = config.getInt("performance.max-blocks-per-tick", 64);
-        this.playerCheckInterval = config.getInt("performance.player-check-interval", 5);
         this.preloadChunks = config.getBoolean("performance.preload-chunks", true);
 
         // Lava defaults
@@ -136,6 +155,19 @@ public final class ConfigManager {
         this.kitEnabled = config.getBoolean("gameplay.kit.enabled", false);
         this.kitItems = config.getStringList("gameplay.kit.items");
         this.winCommands = config.getStringList("rewards.win-commands");
+
+        // Modes
+        this.teamsEnabled = config.getBoolean("modes.minigame.teams-enabled", false);
+        this.teamSize = Math.max(1, config.getInt("modes.minigame.team-size", 2));
+        this.survivalEnabled = config.getBoolean("modes.survival.enabled", true);
+        this.survivalWorlds = config.getStringList("modes.survival.worlds");
+        this.survivalRadius = config.getInt("modes.survival.radius", 500);
+        this.survivalAnnounce = config.getBoolean("modes.survival.announce", true);
+        this.eventEnabled = config.getBoolean("modes.event.enabled", true);
+        this.eventBroadcastStart = config.getBoolean("modes.event.broadcast-start", true);
+        this.eventBroadcastEnd = config.getBoolean("modes.event.broadcast-end", true);
+        this.eventRewardEnabled = config.getBoolean("modes.event.reward-enabled", false);
+        this.eventRewardAmount = config.getDouble("modes.event.reward-amount", 1000.0);
 
         // Effects
         this.bossBarEnabled = config.getBoolean("effects.bossbar.enabled", true);
@@ -179,7 +211,6 @@ public final class ConfigManager {
 
     public boolean isDebug() { return debug; }
     public int getMaxBlocksPerTick() { return maxBlocksPerTick; }
-    public int getPlayerCheckInterval() { return playerCheckInterval; }
     public boolean isPreloadChunks() { return preloadChunks; }
     public int getLavaRiseInterval() { return lavaRiseInterval; }
     public int getLavaRiseAmount() { return lavaRiseAmount; }
@@ -219,6 +250,20 @@ public final class ConfigManager {
     public boolean isKitEnabled() { return kitEnabled; }
     public List<String> getKitItems() { return Collections.unmodifiableList(kitItems); }
     public List<String> getWinCommands() { return Collections.unmodifiableList(winCommands); }
+
+    // ── Getters: modes ──────────────────────────────────────
+
+    public boolean isTeamsEnabled() { return teamsEnabled; }
+    public int getTeamSize() { return teamSize; }
+    public boolean isSurvivalEnabled() { return survivalEnabled; }
+    public List<String> getSurvivalWorlds() { return Collections.unmodifiableList(survivalWorlds); }
+    public int getSurvivalRadius() { return survivalRadius; }
+    public boolean isSurvivalAnnounce() { return survivalAnnounce; }
+    public boolean isEventEnabled() { return eventEnabled; }
+    public boolean isEventBroadcastStart() { return eventBroadcastStart; }
+    public boolean isEventBroadcastEnd() { return eventBroadcastEnd; }
+    public boolean isEventRewardEnabled() { return eventRewardEnabled; }
+    public double getEventRewardAmount() { return eventRewardAmount; }
 
     // ── Getters: effects ────────────────────────────────────
 

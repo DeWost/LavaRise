@@ -6,9 +6,11 @@ import dev.lavarise.arena.ArenaSession;
 import dev.lavarise.core.LavaRisePlugin;
 import dev.lavarise.data.StatsManager;
 import dev.lavarise.engine.nms.FastBlockSetter;
+import dev.lavarise.mode.SurvivalChallengeMode;
 import dev.lavarise.state.ActiveState;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -40,8 +42,12 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
     /** Per-admin in-progress arena setup sessions. */
     private final Map<UUID, SetupSession> setups = new HashMap<>();
 
+    /** World-wide survival challenge controller. */
+    private final SurvivalChallengeMode survival;
+
     public LavaRiseCommand(LavaRisePlugin plugin) {
         this.plugin = plugin;
+        this.survival = new SurvivalChallengeMode(plugin);
     }
 
     @Override
@@ -60,6 +66,8 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             case "start", "forcestart" -> handleStart(sender, args);
             case "stop" -> handleStop(sender, args);
             case "reload" -> handleReload(sender);
+            case "survival" -> handleSurvival(sender, args);
+            case "event" -> handleEvent(sender, args);
             case "create" -> handleCreate(sender, args);
             case "pos1" -> handleSetCorner(sender, 1);
             case "pos2" -> handleSetCorner(sender, 2);
@@ -180,6 +188,78 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         if (notAdmin(sender)) return true;
         plugin.reload();
         msg(sender, plugin.getConfigManager().getMessage("general.reload-success"));
+        return true;
+    }
+
+    // ── Admin: survival challenge (world-wide) ──────────────
+
+    private boolean handleSurvival(CommandSender sender, String[] args) {
+        if (notAdmin(sender)) return true;
+        if (args.length < 2) { msg(sender, "<red>Usage: /lavarise survival <start|stop> [world]"); return true; }
+
+        final World world;
+        if (args.length >= 3) {
+            world = plugin.getServer().getWorld(args[2]);
+        } else if (sender instanceof Player p) {
+            world = p.getWorld();
+        } else {
+            world = null;
+        }
+        if (world == null) { msg(sender, "<red>Specify a valid world."); return true; }
+
+        switch (args[1].toLowerCase()) {
+            case "start" -> {
+                if (survival.startChallenge(world)) {
+                    msg(sender, "<green>Survival challenge started in <yellow>" + world.getName() + "</yellow>.");
+                } else {
+                    msg(sender, "<red>A survival challenge is already running in that world.");
+                }
+            }
+            case "stop" -> {
+                if (survival.stopChallenge(world)) {
+                    msg(sender, "<green>Survival challenge stopped in <yellow>" + world.getName() + "</yellow>.");
+                } else {
+                    msg(sender, "<red>No survival challenge running in that world.");
+                }
+            }
+            default -> msg(sender, "<red>Usage: /lavarise survival <start|stop> [world]");
+        }
+        return true;
+    }
+
+    // ── Admin: event control (start/pause/resume/stop) ──────
+
+    private boolean handleEvent(CommandSender sender, String[] args) {
+        if (notAdmin(sender)) return true;
+        if (args.length < 3) { msg(sender, "<red>Usage: /lavarise event <start|pause|resume|stop> <arena>"); return true; }
+        Arena arena = plugin.getArenaRepository().getArena(args[2]).orElse(null);
+        if (arena == null) { msg(sender, "<red>Arena not found."); return true; }
+        ArenaSession session = arena.getSession();
+        if (session == null) { msg(sender, "<red>That arena has no active session."); return true; }
+
+        switch (args[1].toLowerCase()) {
+            case "start" -> {
+                if (session.getCurrentState().isGameRunning()) { msg(sender, "<red>Already running."); return true; }
+                if (session.getAliveCount() < 1) { msg(sender, "<red>No players in that arena."); return true; }
+                session.transitionTo(new ActiveState(plugin, arena, session));
+                msg(sender, "<green>Event started in <yellow>" + arena.getName() + "</yellow>.");
+            }
+            case "pause" -> {
+                session.setPaused(true);
+                msg(sender, plugin.getConfigManager().getMessage("event.pause"));
+            }
+            case "resume" -> {
+                session.setPaused(false);
+                msg(sender, plugin.getConfigManager().getMessage("event.resume"));
+            }
+            case "stop" -> {
+                session.forceEnd();
+                arena.destroySession();
+                arena.createSession();
+                msg(sender, "<green>Event stopped in <yellow>" + arena.getName() + "</yellow>.");
+            }
+            default -> msg(sender, "<red>Usage: /lavarise event <start|pause|resume|stop> <arena>");
+        }
         return true;
     }
 
@@ -348,6 +428,8 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         if (sender.hasPermission("lavarise.admin")) {
             msg(sender, "<gold>Admin: <yellow>create/pos1/pos2/setlobby/setgamespawn/setspectator/save/delete");
             msg(sender, "<gold>Admin: <yellow>start/stop/reload/stress");
+            msg(sender, "<gold>Admin: <yellow>survival <start|stop> [world]");
+            msg(sender, "<gold>Admin: <yellow>event <start|pause|resume|stop> <arena>");
         }
     }
 
@@ -370,7 +452,8 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             completions.addAll(List.of("join", "leave", "list", "stats", "top"));
             if (sender.hasPermission("lavarise.admin")) {
                 completions.addAll(List.of("create", "pos1", "pos2", "setlobby", "setgamespawn",
-                        "setspectator", "save", "delete", "start", "stop", "reload", "stress"));
+                        "setspectator", "save", "delete", "start", "stop", "reload", "stress",
+                        "survival", "event"));
             }
         } else if (args.length == 2) {
             String sub = args[0].toLowerCase();
@@ -378,7 +461,13 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
                 plugin.getArenaRepository().getArenas().forEach(a -> completions.add(a.getName()));
             } else if (sub.equals("top")) {
                 completions.addAll(List.of("wins", "kills", "time"));
+            } else if (sub.equals("survival")) {
+                completions.addAll(List.of("start", "stop"));
+            } else if (sub.equals("event")) {
+                completions.addAll(List.of("start", "pause", "resume", "stop"));
             }
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("event")) {
+            plugin.getArenaRepository().getArenas().forEach(a -> completions.add(a.getName()));
         }
         return completions.stream()
                 .filter(c -> c.toLowerCase().startsWith(args[args.length - 1].toLowerCase()))

@@ -72,6 +72,9 @@ public final class EndingState implements GameState {
                     "<red><bold>GAME OVER!</bold> <gray>No survivors. Duration: <white>" + elapsed + "s"));
         }
 
+        // Mode-specific end behaviour (event broadcasts, Vault rewards, team wins).
+        session.getModeHandler().onArenaEnd(arena, session, winner);
+
         // Schedule arena reset after 5 seconds
         resetTask = new BukkitRunnable() {
             @Override
@@ -115,8 +118,10 @@ public final class EndingState implements GameState {
             plugin.getGameManager().unmapPlayer(uuid);
         }
 
-        // Reset world blocks
-        WorldResetter.resetArena(plugin, arena);
+        // Reset world blocks (skipped for world-wide survival, which is not snapshotted)
+        if (session.getModeHandler().shouldSnapshot()) {
+            WorldResetter.resetArena(plugin, arena);
+        }
 
         // Destroy and recreate session (back to lobby)
         arena.destroySession();
