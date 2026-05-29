@@ -6,6 +6,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.CraftWorld;
@@ -13,9 +14,17 @@ import org.bukkit.craftbukkit.block.data.CraftBlockData;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
-import java.util.Collection;
-
+/**
+ * Writes block states directly into NMS chunk sections (bypassing physics and
+ * lighting) and pushes a single chunk packet to nearby clients.
+ *
+ * @author DeWost
+ */
 public class FastBlockSetter {
+
+    /** Flipped once if the version-specific packet constructor ever fails, to avoid log spam. */
+    private static volatile boolean packetApiBroken = false;
+
     private final ServerLevel serverLevel;
     private final BlockState nmsState;
 
@@ -24,6 +33,9 @@ public class FastBlockSetter {
     private int lastChunkX = Integer.MIN_VALUE;
     private int lastChunkZ = Integer.MIN_VALUE;
     private int lastSectionIndex = Integer.MIN_VALUE;
+
+    /** Count of blocks skipped because their chunk/section was not loaded. */
+    private long skippedBlocks = 0L;
 
     public FastBlockSetter(World world, BlockData bukkitData) {
         this.serverLevel = ((CraftWorld) world).getHandle();
@@ -43,9 +55,13 @@ public class FastBlockSetter {
             lastChunkX = chunkX;
             lastChunkZ = chunkZ;
             lastSectionIndex = Integer.MIN_VALUE; // Force section refresh
+            lastSection = null;                   // Drop stale section reference
         }
 
-        if (lastChunk == null) return false;
+        if (lastChunk == null) {
+            skippedBlocks++;
+            return false;
+        }
 
         if (sectionIndex != lastSectionIndex) {
             LevelChunkSection[] sections = lastChunk.getSections();
@@ -57,14 +73,16 @@ public class FastBlockSetter {
             lastSectionIndex = sectionIndex;
         }
 
-        if (lastSection == null) return false;
+        if (lastSection == null) {
+            skippedBlocks++;
+            return false;
+        }
 
         int localX = x & 15;
         int localY = y & 15;
         int localZ = z & 15;
 
-        // Set the block state without locking (lock is handled externally if needed, 
-        // but we assume main thread execution here).
+        // Set the block state without locking (main-thread execution assumed).
         lastSection.setBlockState(localX, localY, localZ, stateToSet);
         return true;
     }
@@ -85,19 +103,38 @@ public class FastBlockSetter {
         return setBlockWithState(x, y, z, dynamicState);
     }
 
+    /** Number of blocks skipped so far due to unloaded chunks/sections. */
+    public long getSkippedBlocks() {
+        return skippedBlocks;
+    }
+
     /**
-     * Sends a chunk update packet to all provided players.
+     * Sends a full chunk packet to every player who currently has this chunk in
+     * view, refreshing the modified blocks client-side. No-ops if the chunk is
+     * unloaded or if the version-specific packet constructor is unavailable.
      */
-    public static void sendChunkUpdate(World world, int chunkX, int chunkZ, Collection<? extends Player> players) {
+    public static void sendChunkUpdate(World world, int chunkX, int chunkZ) {
+        if (packetApiBroken) return;
+
         ServerLevel level = ((CraftWorld) world).getHandle();
         LevelChunk chunk = level.getChunkIfLoaded(chunkX, chunkZ);
         if (chunk == null) return;
 
-        // In 1.21.1, the packet constructor is ClientboundLevelChunkWithLightPacket(LevelChunk, LightEngine, BitSet, BitSet)
-        // Paper often provides a simpler constructor or we can just send the chunk data.
-        ClientboundLevelChunkWithLightPacket packet = new ClientboundLevelChunkWithLightPacket(chunk, level.getLightEngine(), null, null);
+        final ClientboundLevelChunkWithLightPacket packet;
+        try {
+            packet = new ClientboundLevelChunkWithLightPacket(chunk, level.getLightEngine(), null, null);
+        } catch (Throwable t) {
+            packetApiBroken = true;
+            Bukkit.getLogger().warning("[LavaRise] Chunk-update packet API changed on this server "
+                    + "version; live lava rendering disabled (blocks still apply server-side). " + t);
+            return;
+        }
 
-        for (Player p : players) {
+        // Only players who actually track this chunk need the update.
+        final int viewDistance = world.getViewDistance();
+        for (Player p : world.getPlayers()) {
+            if (Math.abs((p.getLocation().getBlockX() >> 4) - chunkX) > viewDistance) continue;
+            if (Math.abs((p.getLocation().getBlockZ() >> 4) - chunkZ) > viewDistance) continue;
             ServerPlayer serverPlayer = ((CraftPlayer) p).getHandle();
             serverPlayer.connection.send(packet);
         }

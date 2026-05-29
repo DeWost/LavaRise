@@ -57,9 +57,11 @@ public class WorldResetter {
             World world = config.world();
             Set<Long> modifiedChunks = new HashSet<>();
             
-            int[] snapshotIndices = arena.getSession().getSnapshotIndices();
-            BlockData[] snapshotBlocks = arena.getSession().getSnapshotBlocks();
-            boolean hasSnapshot = snapshotIndices != null && snapshotBlocks != null;
+            // Only trust the snapshot once it has been fully published (equal-length
+            // arrays). Otherwise fall back to clearing the volume to air.
+            boolean hasSnapshot = arena.getSession().isSnapshotReady();
+            int[] snapshotIndices = hasSnapshot ? arena.getSession().getSnapshotIndices() : null;
+            BlockData[] snapshotBlocks = hasSnapshot ? arena.getSession().getSnapshotBlocks() : null;
 
             while (processed < maxBlocksPerTick) {
                 if (cy > config.lavaMaxY()) {
@@ -120,7 +122,7 @@ public class WorldResetter {
                 for (long chunkKey : modifiedChunks) {
                     int chunkX = (int) chunkKey;
                     int chunkZ = (int) (chunkKey >> 32);
-                    FastBlockSetter.sendChunkUpdate(world, chunkX, chunkZ, world.getPlayers());
+                    FastBlockSetter.sendChunkUpdate(world, chunkX, chunkZ);
                 }
             }
         }

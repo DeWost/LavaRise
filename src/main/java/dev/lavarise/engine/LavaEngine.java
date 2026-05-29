@@ -28,6 +28,7 @@ public class LavaEngine {
     private int currentFillY;
     private int cx, cz;
     private int targetY;
+    private long lastWarnedSkip = 0L;
 
     public LavaEngine(LavaRisePlugin plugin, ArenaConfig config, ArenaSession session, int maxBlocksPerTick) {
         this.plugin = plugin;
@@ -91,13 +92,21 @@ public class LavaEngine {
             }
         }
 
-        // Send update packets for all modified chunks to all players in the arena world
+        // Refresh modified chunks for the players tracking them.
         if (!modifiedChunks.isEmpty()) {
             for (long chunkKey : modifiedChunks) {
                 int chunkX = (int) chunkKey;
                 int chunkZ = (int) (chunkKey >> 32);
-                FastBlockSetter.sendChunkUpdate(world, chunkX, chunkZ, world.getPlayers());
+                FastBlockSetter.sendChunkUpdate(world, chunkX, chunkZ);
             }
+        }
+
+        // Surface unloaded-chunk skips once per 25k so admins notice gaps.
+        long skipped = fastBlockSetter.getSkippedBlocks();
+        if (skipped - lastWarnedSkip >= 25_000) {
+            lastWarnedSkip = skipped;
+            plugin.getLogger().warning("LavaRise: " + skipped + " lava blocks skipped (unloaded chunks) "
+                    + "in arena " + config.name() + " — consider enabling chunk preloading or shrinking the arena.");
         }
     }
 
