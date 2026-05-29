@@ -69,6 +69,19 @@ public final class GameManager {
                 .findFirst();
     }
 
+    /**
+     * Pick a RANDOM joinable arena (random matchmaking / quick-join).
+     */
+    public Optional<Arena> findRandomAvailableArena() {
+        final java.util.List<Arena> open = arenas.values().stream()
+                .filter(a -> a.getSession() != null)
+                .filter(a -> a.getSession().isJoinable())
+                .filter(a -> a.getSession().getPlayerCount() < a.getConfig().maxPlayers())
+                .collect(java.util.stream.Collectors.toList());
+        if (open.isEmpty()) return Optional.empty();
+        return Optional.of(open.get(java.util.concurrent.ThreadLocalRandom.current().nextInt(open.size())));
+    }
+
     // ── Player Management ───────────────────────────────────
 
     /**

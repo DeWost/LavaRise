@@ -3,6 +3,7 @@ package dev.lavarise.command;
 import dev.lavarise.arena.Arena;
 import dev.lavarise.arena.ArenaConfig;
 import dev.lavarise.arena.ArenaSession;
+import dev.lavarise.arena.ProceduralArenaFactory;
 import dev.lavarise.core.LavaRisePlugin;
 import dev.lavarise.data.StatsManager;
 import dev.lavarise.engine.nms.FastBlockSetter;
@@ -59,6 +60,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
 
         return switch (args[0].toLowerCase()) {
             case "join" -> handleJoin(sender, args);
+            case "random" -> handleRandom(sender);
             case "leave" -> handleLeave(sender);
             case "list" -> handleList(sender);
             case "stats" -> handleStats(sender, args);
@@ -85,13 +87,36 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
 
     private boolean handleJoin(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
+
+        // No arena named → quick-join: a RANDOM open arena, or a fresh
+        // procedural one if none are free (random matchmaking + rotation).
         if (args.length < 2) {
-            msg(player, "<red>Usage: /lavarise join <arena>");
+            Arena arena = plugin.getGameManager().findRandomAvailableArena().orElse(null);
+            final var cfg = plugin.getConfigManager();
+            if (arena == null && cfg.isProceduralEnabled() && cfg.isProceduralAutoQuickjoin()) {
+                arena = ProceduralArenaFactory.create(plugin);
+                msg(player, "<gray>No open arenas — spun up a fresh random one!");
+            }
+            if (arena == null) { msg(player, "<red>No arenas available to quick-join."); return true; }
+            plugin.getGameManager().addPlayerToArena(player, arena);
             return true;
         }
+
         Arena arena = plugin.getArenaRepository().getArena(args[1]).orElse(null);
         if (arena == null) { msg(player, "<red>Arena not found."); return true; }
         plugin.getGameManager().addPlayerToArena(player, arena);
+        return true;
+    }
+
+    private boolean handleRandom(CommandSender sender) {
+        if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
+        if (!plugin.getConfigManager().isProceduralEnabled()) {
+            msg(player, "<red>Procedural random arenas are disabled in config.");
+            return true;
+        }
+        Arena arena = ProceduralArenaFactory.create(plugin);
+        plugin.getGameManager().addPlayerToArena(player, arena);
+        msg(player, "<green>Generated a fresh random arena — good luck!");
         return true;
     }
 
@@ -420,7 +445,8 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
 
     private void sendHelp(CommandSender sender) {
         msg(sender, "<gradient:red:gold><bold>LavaRise Commands</bold></gradient>");
-        msg(sender, "<yellow>/lr join <arena> <gray>- Join a game");
+        msg(sender, "<yellow>/lr join [arena] <gray>- Join (no name = quick-join a random arena)");
+        msg(sender, "<yellow>/lr random <gray>- Generate & join a fresh random arena");
         msg(sender, "<yellow>/lr leave <gray>- Leave your game");
         msg(sender, "<yellow>/lr list <gray>- Browse arenas");
         msg(sender, "<yellow>/lr stats [player] <gray>- View statistics");
@@ -449,7 +475,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         List<String> completions = new ArrayList<>();
         if (args.length == 1) {
-            completions.addAll(List.of("join", "leave", "list", "stats", "top"));
+            completions.addAll(List.of("join", "random", "leave", "list", "stats", "top"));
             if (sender.hasPermission("lavarise.admin")) {
                 completions.addAll(List.of("create", "pos1", "pos2", "setlobby", "setgamespawn",
                         "setspectator", "save", "delete", "start", "stop", "reload", "stress",

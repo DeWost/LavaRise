@@ -72,6 +72,15 @@ public final class ConfigManager {
     private boolean eventRewardEnabled;
     private double eventRewardAmount;
 
+    // ── Procedural / random arenas ──────────────────────────
+    private boolean proceduralEnabled;
+    private String proceduralWorld;
+    private int proceduralRadius;
+    private int proceduralLavaStartY;
+    private int proceduralLavaMaxY;
+    private int proceduralSpawnArea;
+    private boolean proceduralAutoQuickjoin;
+
     // ── Effects ─────────────────────────────────────────────
     private boolean bossBarEnabled;
     private String bossBarColor;
@@ -171,6 +180,15 @@ public final class ConfigManager {
         this.eventRewardEnabled = config.getBoolean("modes.event.reward-enabled", false);
         this.eventRewardAmount = config.getDouble("modes.event.reward-amount", 1000.0);
 
+        // Procedural / random arenas
+        this.proceduralEnabled = config.getBoolean("procedural.enabled", true);
+        this.proceduralWorld = config.getString("procedural.world", "world");
+        this.proceduralRadius = Math.max(8, config.getInt("procedural.radius", 30));
+        this.proceduralLavaStartY = config.getInt("procedural.lava-start-y", 60);
+        this.proceduralLavaMaxY = config.getInt("procedural.lava-max-y", 150);
+        this.proceduralSpawnArea = Math.max(0, config.getInt("procedural.spawn-area", 2000));
+        this.proceduralAutoQuickjoin = config.getBoolean("procedural.auto-on-quickjoin", true);
+
         // Effects
         this.bossBarEnabled = config.getBoolean("effects.bossbar.enabled", true);
         this.bossBarColor = config.getString("effects.bossbar.color", "RED");
@@ -268,6 +286,16 @@ public final class ConfigManager {
     public boolean isEventBroadcastEnd() { return eventBroadcastEnd; }
     public boolean isEventRewardEnabled() { return eventRewardEnabled; }
     public double getEventRewardAmount() { return eventRewardAmount; }
+
+    // ── Getters: procedural / random arenas ─────────────────
+
+    public boolean isProceduralEnabled() { return proceduralEnabled; }
+    public String getProceduralWorld() { return proceduralWorld; }
+    public int getProceduralRadius() { return proceduralRadius; }
+    public int getProceduralLavaStartY() { return proceduralLavaStartY; }
+    public int getProceduralLavaMaxY() { return proceduralLavaMaxY; }
+    public int getProceduralSpawnArea() { return proceduralSpawnArea; }
+    public boolean isProceduralAutoQuickjoin() { return proceduralAutoQuickjoin; }
 
     // ── Getters: effects ────────────────────────────────────
 

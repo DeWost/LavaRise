@@ -123,11 +123,17 @@ public final class EndingState implements GameState {
             WorldResetter.resetArena(plugin, arena);
         }
 
-        // Destroy and recreate session (back to lobby)
+        // Tear down the session. Transient arenas (procedural / survival) are
+        // unregistered so the next quick-join spins up a fresh random one
+        // (random rotation); normal arenas return to the lobby.
         arena.destroySession();
-        arena.createSession();
-
-        plugin.debug("Arena " + arena.getName() + " reset complete.");
+        if (arena.isTransient()) {
+            plugin.getGameManager().unregisterArena(arena.getName());
+            plugin.debug("Transient arena " + arena.getName() + " removed after game.");
+        } else {
+            arena.createSession();
+            plugin.debug("Arena " + arena.getName() + " reset complete.");
+        }
     }
 
     private void runWinCommands(Player winner) {
