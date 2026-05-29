@@ -35,9 +35,16 @@ public final class ProceduralArenaFactory {
         World world = plugin.getServer().getWorld(cfg.getProceduralWorld());
         if (world == null) world = plugin.getServer().getWorlds().get(0);
 
+        // Pick a random centre, preferring a playable (non-ocean/river/frozen) biome.
         final int half = Math.max(0, cfg.getProceduralSpawnArea() / 2);
-        final int cx = half == 0 ? 0 : ThreadLocalRandom.current().nextInt(-half, half + 1);
-        final int cz = half == 0 ? 0 : ThreadLocalRandom.current().nextInt(-half, half + 1);
+        int tx = 0, tz = 0;
+        for (int attempt = 0; attempt < 24; attempt++) {
+            tx = half == 0 ? 0 : ThreadLocalRandom.current().nextInt(-half, half + 1);
+            tz = half == 0 ? 0 : ThreadLocalRandom.current().nextInt(-half, half + 1);
+            if (half == 0 || isPlayableBiome(world, tx, tz)) break;
+        }
+        final int cx = tx;
+        final int cz = tz;
         final int r = cfg.getProceduralRadius();
         final int startY = cfg.getProceduralLavaStartY();
         final int maxY = cfg.getProceduralLavaMaxY();
@@ -64,5 +71,17 @@ public final class ProceduralArenaFactory {
         arena.createSession();
         plugin.debug("Generated procedural arena " + config.name() + " at " + cx + "," + cz);
         return arena;
+    }
+
+    /** Avoid oceans, rivers, frozen and beach biomes for fairer arenas. */
+    private static boolean isPlayableBiome(World world, int x, int z) {
+        try {
+            final int y = world.getHighestBlockYAt(x, z);
+            final String biome = world.getBiome(x, y, z).getKey().getKey().toLowerCase(java.util.Locale.ROOT);
+            return !(biome.contains("ocean") || biome.contains("river")
+                    || biome.contains("frozen") || biome.contains("beach"));
+        } catch (Throwable t) {
+            return true; // can't determine — accept the spot
+        }
     }
 }

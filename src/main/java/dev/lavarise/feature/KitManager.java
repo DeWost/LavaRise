@@ -2,13 +2,17 @@ package dev.lavarise.feature;
 
 import dev.lavarise.core.LavaRisePlugin;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -79,13 +83,23 @@ public final class KitManager {
 
     /** Give the player their selected kit (no-op if none defined). */
     public void applyKit(Player player) {
-        final Kit kit = get(selectedName(player.getUniqueId()));
+        applyKit(player, selectedName(player.getUniqueId()));
+    }
+
+    /** Give the player a specific kit by key (used by voting). */
+    public void applyKit(Player player, String kitKey) {
+        final Kit kit = get(kitKey);
         if (kit == null) return;
         for (ItemStack item : kit.items()) {
             player.getInventory().addItem(item.clone());
         }
     }
 
+    /**
+     * Parse {@code MATERIAL:AMOUNT[:ENCHANT:LEVEL...]} — e.g.
+     * {@code NETHERITE_PICKAXE:1:efficiency:10:unbreaking:5}. Levels above the
+     * vanilla cap are applied unsafely (OP kits).
+     */
     private ItemStack parseItem(String entry) {
         if (entry == null || entry.isBlank()) return null;
         final String[] parts = entry.split(":");
@@ -99,7 +113,31 @@ public final class KitManager {
             try { amount = Math.max(1, Integer.parseInt(parts[1].trim())); }
             catch (NumberFormatException ignored) {}
         }
-        return new ItemStack(material, amount);
+        final ItemStack item = new ItemStack(material, amount);
+        for (int i = 2; i + 1 < parts.length; i += 2) {
+            final Enchantment ench = resolveEnchant(parts[i].trim());
+            if (ench == null) {
+                plugin.getLogger().warning("Unknown enchantment in kit: " + parts[i]);
+                continue;
+            }
+            int level = 1;
+            try { level = Math.max(1, Integer.parseInt(parts[i + 1].trim())); }
+            catch (NumberFormatException ignored) {}
+            item.addUnsafeEnchantment(ench, level);
+        }
+        return item;
+    }
+
+    @SuppressWarnings("deprecation")
+    private Enchantment resolveEnchant(String name) {
+        final NamespacedKey key = NamespacedKey.minecraft(name.toLowerCase(Locale.ROOT));
+        try {
+            final Enchantment fromRegistry = Registry.ENCHANTMENT.get(key);
+            if (fromRegistry != null) return fromRegistry;
+        } catch (Throwable ignored) {
+            // Registry shape differs on some versions — fall through.
+        }
+        return Enchantment.getByKey(key);
     }
 
     private Material matchMaterial(String name, Material fallback) {

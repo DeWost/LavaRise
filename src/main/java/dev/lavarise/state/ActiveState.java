@@ -275,10 +275,15 @@ public final class ActiveState implements GameState {
     // ── Features ────────────────────────────────────────────
 
     private void giveKit(Player player) {
-        // Prefer the multi-kit system (player's chosen loadout); fall back to
-        // the single legacy gameplay.kit if no kits are defined.
+        // Prefer the multi-kit system. If players voted on a kit, everyone gets
+        // the winner; otherwise each player gets their own selected loadout.
         if (plugin.getKitManager() != null && plugin.getKitManager().hasKits()) {
-            plugin.getKitManager().applyKit(player);
+            final String voted = session.getVotedKit();
+            if (voted != null) {
+                plugin.getKitManager().applyKit(player, voted);
+            } else {
+                plugin.getKitManager().applyKit(player);
+            }
             return;
         }
         if (!cfg.isKitEnabled()) return;

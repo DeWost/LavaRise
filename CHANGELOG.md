@@ -4,6 +4,18 @@ All notable changes to LavaRise are documented here.
 This project follows [Conventional Commits](https://www.conventionalcommits.org/)
 and roughly [Semantic Versioning](https://semver.org/).
 
+## [1.6.0]
+
+### Added — surpass KteRising on its own turf
+- **Enchanted kit presets.** Kit items now parse enchantments
+  (`MATERIAL:AMOUNT:ENCHANT:LEVEL...`, levels may exceed vanilla caps). Ships
+  with KteRising-style presets: Classic, OP, Elytra, Trident, UltraOP.
+- **Kit voting** (`/lr vote`). A lobby GUI where players vote for the kit the
+  whole round will use; the winner (ties random) is applied to everyone, with
+  live vote counts shown.
+- **Biome-aware procedural placement.** Random arenas now prefer playable biomes,
+  skipping ocean/river/frozen/beach.
+
 ## [1.5.0]
 
 ### Added — full KteRising parity
