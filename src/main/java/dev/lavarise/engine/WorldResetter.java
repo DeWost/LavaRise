@@ -75,17 +75,9 @@ public class WorldResetter {
                 
                 boolean modified = false;
                 if (hasSnapshot) {
-                    // Calculate index using the same order as in ActiveState.takeSnapshot
-                    int width = config.maxX() - config.minX() + 1;
-                    int depth = config.maxZ() - config.minZ() + 1;
-                    
-                    int localX = cx - config.minX();
-                    int localZ = cz - config.minZ();
-                    int localY = cy - config.lavaStartY();
-                    
-                    // Index calculation: y * (depth * width) + z * width + x
-                    int index = localY * (depth * width) + localZ * width + localX;
-                    
+                    // Same y→z→x order as ActiveState.takeSnapshot (see ArenaIndex).
+                    int index = ArenaIndex.index(config, cx, cy, cz);
+
                     if (snapshotPointer < snapshotIndices.length && snapshotIndices[snapshotPointer] == index) {
                         // Snapshot block is not air, use fast NMS block setter for it too!
                         modified = fastBlockSetter.setBlock(cx, cy, cz, snapshotBlocks[snapshotPointer]);

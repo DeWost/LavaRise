@@ -1,12 +1,13 @@
 plugins {
     java
+    jacoco
     alias(libs.plugins.shadow)
     alias(libs.plugins.run.task)
     alias(libs.plugins.paperweight)
 }
 
 group = "dev.lavarise"
-version = "1.1.0"
+version = "1.2.0"
 description = "Premium Rising Lava minigame plugin — 3 game modes, batch block engine, zero dependencies."
 
 java {
@@ -39,6 +40,15 @@ dependencies {
 tasks {
     test {
         useJUnitPlatform()
+        finalizedBy(jacocoTestReport)
+    }
+
+    jacocoTestReport {
+        dependsOn(test)
+        reports {
+            xml.required.set(true)
+            html.required.set(true)
+        }
     }
 
     processResources {
