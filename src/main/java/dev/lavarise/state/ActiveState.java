@@ -266,6 +266,12 @@ public final class ActiveState implements GameState {
     // ── Features ────────────────────────────────────────────
 
     private void giveKit(Player player) {
+        // Prefer the multi-kit system (player's chosen loadout); fall back to
+        // the single legacy gameplay.kit if no kits are defined.
+        if (plugin.getKitManager() != null && plugin.getKitManager().hasKits()) {
+            plugin.getKitManager().applyKit(player);
+            return;
+        }
         if (!cfg.isKitEnabled()) return;
         for (String entry : cfg.getKitItems()) {
             ItemStack item = parseItem(entry);

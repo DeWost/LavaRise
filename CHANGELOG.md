@@ -4,6 +4,20 @@ All notable changes to LavaRise are documented here.
 This project follows [Conventional Commits](https://www.conventionalcommits.org/)
 and roughly [Semantic Versioning](https://semver.org/).
 
+## [1.4.0]
+
+### Added — KteRising parity pack
+- **Multiple kits + selector GUI** — define any number of loadouts under `kits`
+  in config; players pick one with `/lr kit` (falls back to the single legacy kit).
+- **Height-gated PvP** (`gameplay.pvp-after-height`) — no fighting until the lava
+  has risen N blocks.
+- **Auto-pickup / auto-smelt** (`gameplay.auto-pickup` / `auto-smelt`) — mined
+  drops go straight to the inventory and ores are smelted.
+- **Per-kill / per-death reward commands** (`rewards.kill-commands` /
+  `death-commands`) with `{killer}`/`{victim}`/`{player}` placeholders.
+- **Update checker** (`general.update-check`) — async GitHub Releases check that
+  logs when a newer version is out (no third-party dependency).
+
 ## [1.3.1]
 
 ### Changed

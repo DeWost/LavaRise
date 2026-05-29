@@ -22,8 +22,14 @@ public final class ConfigManager {
 
     // ── Cached values (hot path) ────────────────────────────
     private boolean debug;
+    private boolean updateCheck;
     private int maxBlocksPerTick;
     private boolean preloadChunks;
+    private int pvpAfterHeight;
+    private boolean autoPickup;
+    private boolean autoSmelt;
+    private List<String> killCommands;
+    private List<String> deathCommands;
     private int lavaRiseInterval;
     private int lavaRiseAmount;
     private int defaultMinPlayers;
@@ -123,10 +129,18 @@ public final class ConfigManager {
 
         // General
         this.debug = config.getBoolean("general.debug", false);
+        this.updateCheck = config.getBoolean("general.update-check", true);
 
         // Performance
         this.maxBlocksPerTick = config.getInt("performance.max-blocks-per-tick", 64);
         this.preloadChunks = config.getBoolean("performance.preload-chunks", true);
+
+        // Gameplay QoL / rules
+        this.pvpAfterHeight = config.getInt("gameplay.pvp-after-height", 0);
+        this.autoPickup = config.getBoolean("gameplay.auto-pickup", false);
+        this.autoSmelt = config.getBoolean("gameplay.auto-smelt", false);
+        this.killCommands = config.getStringList("rewards.kill-commands");
+        this.deathCommands = config.getStringList("rewards.death-commands");
 
         // Lava defaults
         this.lavaRiseInterval = config.getInt("lava.default-rise-interval", 100);
@@ -232,8 +246,14 @@ public final class ConfigManager {
     // ── Getters: general / performance ──────────────────────
 
     public boolean isDebug() { return debug; }
+    public boolean isUpdateCheck() { return updateCheck; }
     public int getMaxBlocksPerTick() { return maxBlocksPerTick; }
     public boolean isPreloadChunks() { return preloadChunks; }
+    public int getPvpAfterHeight() { return pvpAfterHeight; }
+    public boolean isAutoPickup() { return autoPickup; }
+    public boolean isAutoSmelt() { return autoSmelt; }
+    public List<String> getKillCommands() { return Collections.unmodifiableList(killCommands); }
+    public List<String> getDeathCommands() { return Collections.unmodifiableList(deathCommands); }
     public int getLavaRiseInterval() { return lavaRiseInterval; }
     public int getLavaRiseAmount() { return lavaRiseAmount; }
 

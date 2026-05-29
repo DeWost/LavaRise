@@ -48,13 +48,18 @@ public class PlayerListener implements Listener {
         if (session == null || !session.isAlive(player.getUniqueId())) return;
         if (!session.getCurrentState().isGameRunning()) return;
 
-        // Credit a PvP kill, if any.
+        // Credit a PvP kill, if any, and run kill-reward commands.
         final Player killer = player.getKiller();
         if (killer != null && !killer.equals(player)) {
             plugin.getStatsManager().recordKill(killer.getUniqueId(), killer.getName());
             killer.sendMessage(plugin.getMiniMessage().deserialize(
                     "<gray>You eliminated <red>" + player.getName() + "</red>!"));
+            runCommands(plugin.getConfigManager().getKillCommands(),
+                    "{killer}", killer.getName(), "{victim}", player.getName());
         }
+
+        // Run death-reward commands.
+        runCommands(plugin.getConfigManager().getDeathCommands(), "{player}", player.getName());
 
         // Honour the arena's keep-inventory setting (default: items drop).
         if (arena.getConfig().keepInventory()) {
@@ -101,6 +106,21 @@ public class PlayerListener implements Listener {
         if (!arena.getConfig().hunger()) {
             event.setCancelled(true);
             player.setFoodLevel(20);
+        }
+    }
+
+    /**
+     * Run a list of console commands, applying {@code key→value} placeholder
+     * replacements to each.
+     */
+    private void runCommands(java.util.List<String> commands, String... replacements) {
+        for (String command : commands) {
+            if (command == null || command.isBlank()) continue;
+            String resolved = command;
+            for (int i = 0; i + 1 < replacements.length; i += 2) {
+                resolved = resolved.replace(replacements[i], replacements[i + 1]);
+            }
+            plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), resolved);
         }
     }
 

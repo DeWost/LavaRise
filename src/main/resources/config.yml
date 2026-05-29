@@ -12,6 +12,8 @@ general:
   language: "en"
   # Debug mode — logs extra info to console
   debug: false
+  # Check GitHub for a newer release on startup (logs only; no auto-download)
+  update-check: true
 
 # ─── Performance Tuning ──────────────────────────────────────
 performance:
@@ -62,6 +64,14 @@ gameplay:
   # Seconds at the start of a game before the lava begins to rise.
   # Lets players gear up and build. 0 = disabled.
   grace-period: 10
+
+  # PvP is only enabled once the lava has risen this many blocks (KteRising-style
+  # height gate). 0 = PvP follows the arena's pvp flag with no height gate.
+  pvp-after-height: 0
+
+  # Quality-of-life: send mined drops straight to the inventory / auto-smelt ores.
+  auto-pickup: false
+  auto-smelt: false
 
   # Lava rises faster the longer the game runs.
   acceleration:
@@ -133,12 +143,33 @@ procedural:
   # If quick-join finds no open arena, generate a fresh random one.
   auto-on-quickjoin: true
 
+# ─── Kits / Loadouts ─────────────────────────────────────────
+# Players choose a kit with /lr kit; the chosen kit is given at game start.
+# If this section is empty, the single gameplay.kit above is used instead.
+# Each kit: icon (GUI item) + items (MATERIAL:AMOUNT). label is optional.
+kits:
+  warrior:
+    label: "<red>Warrior"
+    icon: IRON_SWORD
+    items: [IRON_SWORD:1, COBBLESTONE:64, COOKED_BEEF:16, OAK_PLANKS:64]
+  builder:
+    label: "<gold>Builder"
+    icon: BRICKS
+    items: [STONE_PICKAXE:1, COBBLESTONE:192, OAK_PLANKS:64, COOKED_BEEF:8]
+  archer:
+    label: "<green>Archer"
+    icon: BOW
+    items: [BOW:1, ARROW:64, COBBLESTONE:48, COOKED_BEEF:8]
+
 # ─── Rewards ─────────────────────────────────────────────────
 rewards:
-  # Console commands run when a player wins.
-  # Placeholders: {winner}, {arena}
+  # Console commands run when a player wins. Placeholders: {winner}, {arena}
   win-commands:
     - "say {winner} won LavaRise in arena {arena}!"
+  # Run when a player gets a kill. Placeholders: {killer}, {victim}
+  kill-commands: []
+  # Run when a player dies. Placeholders: {player}
+  death-commands: []
 
 # ─── Game Mode Specific Settings ─────────────────────────────
 modes:
