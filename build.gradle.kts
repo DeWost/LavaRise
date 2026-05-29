@@ -17,11 +17,15 @@ repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
+    maven("https://jitpack.io")
 }
 
 dependencies {
     paperweight.paperDevBundle(libs.versions.paper.api.get())
     compileOnly("me.clip:placeholderapi:2.11.6")
+    compileOnly("com.github.MilkBowl:VaultAPI:1.7") { // economy API only, never shaded
+        exclude(group = "org.bukkit", module = "bukkit") // drop ancient transitive
+    }
     // Adventure is bundled with Paper, no need to shade
     
     testImplementation(libs.junit.jupiter.api)

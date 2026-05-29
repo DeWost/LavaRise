@@ -37,6 +37,7 @@ public final class LavaRisePlugin extends JavaPlugin {
     private ScoreboardModule scoreboardModule;
     private BossBarModule bossBarModule;
     private StatsManager statsManager;
+    private dev.lavarise.hook.VaultHook vaultHook;
 
     @Override
     public void onEnable() {
@@ -89,6 +90,11 @@ public final class LavaRisePlugin extends JavaPlugin {
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new dev.lavarise.hook.PapiExpansion(this).register();
             getLogger().info("PlaceholderAPI expansion registered.");
+        }
+
+        this.vaultHook = new dev.lavarise.hook.VaultHook(this);
+        if (vaultHook.setup()) {
+            getLogger().info("Vault economy hooked — reward payouts enabled.");
         }
 
         // ── 7. Done ─────────────────────────────────────────
@@ -154,6 +160,10 @@ public final class LavaRisePlugin extends JavaPlugin {
 
     public StatsManager getStatsManager() {
         return statsManager;
+    }
+
+    public dev.lavarise.hook.VaultHook getVaultHook() {
+        return vaultHook;
     }
 
     /**
