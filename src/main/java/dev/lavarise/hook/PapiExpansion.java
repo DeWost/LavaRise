@@ -70,12 +70,26 @@ public class PapiExpansion extends PlaceholderExpansion {
             return "Offline";
         }
 
-        // e.g. %lavarise_lava_level_arena1%
+        // %lavarise_lava_percent_arena1% — progress 0-100
+        if (params.startsWith("lava_percent_")) {
+            Arena arena = plugin.getArenaRepository().getArena(params.substring("lava_percent_".length())).orElse(null);
+            return (arena != null && arena.getSession() != null)
+                    ? String.valueOf(arena.getSession().getLavaPercent()) : "0";
+        }
+
+        // %lavarise_lava_y_arena1% — raw world Y of the lava surface
+        if (params.startsWith("lava_y_")) {
+            Arena arena = plugin.getArenaRepository().getArena(params.substring("lava_y_".length())).orElse(null);
+            return (arena != null && arena.getSession() != null)
+                    ? String.valueOf(arena.getSession().getCurrentLavaY()) : "0";
+        }
+
+        // %lavarise_lava_level_arena1% — player-friendly lava HEIGHT (blocks risen)
         if (params.startsWith("lava_level_")) {
             String arenaName = params.substring("lava_level_".length());
             Arena arena = plugin.getArenaRepository().getArena(arenaName).orElse(null);
             if (arena != null && arena.getSession() != null) {
-                return String.valueOf(arena.getSession().getCurrentLavaY());
+                return String.valueOf(arena.getSession().getLavaHeight());
             }
             return "0";
         }

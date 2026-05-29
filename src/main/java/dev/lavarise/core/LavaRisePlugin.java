@@ -9,7 +9,9 @@ import dev.lavarise.data.StatsManager;
 import dev.lavarise.listener.ArenaEventRouter;
 import dev.lavarise.listener.PlayerListener;
 import dev.lavarise.feature.gui.ArenaSelectorGUI;
+import dev.lavarise.feature.gui.KitSelectorGUI;
 import dev.lavarise.feature.BossBarModule;
+import dev.lavarise.feature.KitManager;
 import dev.lavarise.feature.ScoreboardModule;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -37,6 +39,8 @@ public final class LavaRisePlugin extends JavaPlugin {
     private ScoreboardModule scoreboardModule;
     private BossBarModule bossBarModule;
     private StatsManager statsManager;
+    private KitManager kitManager;
+    private KitSelectorGUI kitSelectorGUI;
     private dev.lavarise.hook.VaultHook vaultHook;
 
     @Override
@@ -85,6 +89,8 @@ public final class LavaRisePlugin extends JavaPlugin {
         this.guiManager = new ArenaSelectorGUI(this);
         this.scoreboardModule = new ScoreboardModule(this);
         this.bossBarModule = new BossBarModule(this);
+        this.kitManager = new KitManager(this);
+        this.kitSelectorGUI = new KitSelectorGUI(this);
 
         // ── 6. Integrations ─────────────────────────────────
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
@@ -95,6 +101,10 @@ public final class LavaRisePlugin extends JavaPlugin {
         this.vaultHook = new dev.lavarise.hook.VaultHook(this);
         if (vaultHook.setup()) {
             getLogger().info("Vault economy hooked — reward payouts enabled.");
+        }
+
+        if (configManager.isUpdateCheck()) {
+            new UpdateChecker(this).checkAsync();
         }
 
         // ── 7. Done ─────────────────────────────────────────
@@ -166,6 +176,14 @@ public final class LavaRisePlugin extends JavaPlugin {
         return vaultHook;
     }
 
+    public KitManager getKitManager() {
+        return kitManager;
+    }
+
+    public KitSelectorGUI getKitSelectorGUI() {
+        return kitSelectorGUI;
+    }
+
     /**
      * Reloads the entire plugin configuration and arenas.
      */
@@ -173,6 +191,7 @@ public final class LavaRisePlugin extends JavaPlugin {
         reloadConfig();
         configManager.loadAll();
         arenaRepository.loadArenas();
+        if (kitManager != null) kitManager.load();
         getLogger().info("LavaRise configuration reloaded.");
     }
 

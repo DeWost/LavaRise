@@ -46,6 +46,7 @@ public final class ActiveState implements GameState {
     private int tickCounter = 0;
     private int graceTicksLeft = 0;
     private int currentInterval;
+    private int engineInterval = 1;
 
     // World border state to restore on exit.
     private boolean borderModified = false;
@@ -74,7 +75,11 @@ public final class ActiveState implements GameState {
 
         this.currentInterval = Math.max(1, arena.getConfig().lavaRiseInterval());
         this.graceTicksLeft = Math.max(0, cfg.getGracePeriod()) * 20;
-        this.lavaEngine = new LavaEngine(plugin, arena.getConfig(), session, cfg.getMaxBlocksPerTick());
+        // Run the fill engine every N ticks with N× the budget — same blocks/sec,
+        // but fewer scheduler passes and chunk packets.
+        this.engineInterval = cfg.getEngineIntervalTicks();
+        this.lavaEngine = new LavaEngine(plugin, arena.getConfig(), session,
+                cfg.getMaxBlocksPerTick() * engineInterval);
 
         setupWorldBorder();
 
@@ -196,14 +201,19 @@ public final class ActiveState implements GameState {
             shrinkWorldBorder();
 
             broadcastActionBar(plugin.getMiniMessage().deserialize(
-                    "<red>🔥 Lava: <bold>" + lavaY + "</bold> <dark_gray>| <gray>Max: " + arena.getConfig().lavaMaxY()));
+                    "<red>🔥 Lava height: <bold>" + session.getLavaHeight() + "</bold> <dark_gray>| <gray>"
+                            + session.getLavaPercent() + "% to max"));
             for (UUID uuid : session.getAlivePlayers()) {
                 Player p = plugin.getServer().getPlayer(uuid);
                 if (p != null) playSound(p, cfg.getSoundLavaRise(), 0.5f, 0.8f);
             }
         }
 
-        lavaEngine.processBatch();
+        // Fill lava + flush chunk packets on the engine cadence (every N ticks,
+        // N× budget) — same blocks/sec with fewer passes and packets.
+        if (tickCounter % engineInterval == 0) {
+            lavaEngine.processBatch();
+        }
 
         // Cosmetic updates at configurable cadences (raise the intervals to
         // protect TPS on high-population servers).
@@ -265,6 +275,12 @@ public final class ActiveState implements GameState {
     // ── Features ────────────────────────────────────────────
 
     private void giveKit(Player player) {
+        // Prefer the multi-kit system (player's chosen loadout); fall back to
+        // the single legacy gameplay.kit if no kits are defined.
+        if (plugin.getKitManager() != null && plugin.getKitManager().hasKits()) {
+            plugin.getKitManager().applyKit(player);
+            return;
+        }
         if (!cfg.isKitEnabled()) return;
         for (String entry : cfg.getKitItems()) {
             ItemStack item = parseItem(entry);
@@ -321,7 +337,9 @@ public final class ActiveState implements GameState {
         Component hud = null;
         if (hudEnabled) {
             String template = plugin.getConfigManager().getMessage("actionbar.in-game")
-                    .replace("{lava_level}", String.valueOf(lavaY))
+                    .replace("{lava_level}", String.valueOf(session.getLavaHeight()))
+                    .replace("{lava_percent}", session.getLavaPercent() + "%")
+                    .replace("{lava_y}", String.valueOf(lavaY))
                     .replace("{alive}", String.valueOf(session.getAliveCount()))
                     .replace("{time}", formatTime(session.getElapsedSeconds()));
             hud = plugin.getMiniMessage().deserialize(template);

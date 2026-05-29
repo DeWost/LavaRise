@@ -4,6 +4,41 @@ All notable changes to LavaRise are documented here.
 This project follows [Conventional Commits](https://www.conventionalcommits.org/)
 and roughly [Semantic Versioning](https://semver.org/).
 
+## [1.4.1]
+
+### Changed — performance
+- **One damage listener.** Merged `EntityDamageByEntityEvent` handling into the
+  single `EntityDamageEvent` handler — a PvP hit no longer fires two listeners
+  (two arena lookups) for the same blow.
+- **Engine cadence.** The fill engine now runs every `performance.engine-interval-ticks`
+  ticks with an N× budget (same blocks/second), cutting scheduler passes and
+  chunk-update packets vs. running every tick.
+
+## [1.4.0]
+
+### Added — KteRising parity pack
+- **Multiple kits + selector GUI** — define any number of loadouts under `kits`
+  in config; players pick one with `/lr kit` (falls back to the single legacy kit).
+- **Height-gated PvP** (`gameplay.pvp-after-height`) — no fighting until the lava
+  has risen N blocks.
+- **Auto-pickup / auto-smelt** (`gameplay.auto-pickup` / `auto-smelt`) — mined
+  drops go straight to the inventory and ores are smelted.
+- **Per-kill / per-death reward commands** (`rewards.kill-commands` /
+  `death-commands`) with `{killer}`/`{victim}`/`{player}` placeholders.
+- **Update checker** (`general.update-check`) — async GitHub Releases check that
+  logs when a newer version is out (no third-party dependency).
+
+## [1.3.1]
+
+### Changed
+- **Sensible lava display.** The HUD/scoreboard/boss bar no longer show the raw
+  (often negative) world Y as "Lava Level". `{lava_level}` is now the lava
+  **height** (blocks risen, always ≥0), and a new `{lava_percent}` shows progress
+  to max — matching the "Current Lava Height" convention used by KteRising.
+- Added `{lava_y}` (raw Y) placeholder and PlaceholderAPI
+  `%lavarise_lava_percent_<arena>%` / `%lavarise_lava_y_<arena>%`;
+  `%lavarise_lava_level_<arena>%` now returns height.
+
 ## [1.3.0]
 
 ### Added

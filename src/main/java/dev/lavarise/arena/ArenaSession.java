@@ -262,6 +262,22 @@ public final class ArenaSession {
         return currentLavaY >= arena.getConfig().lavaMaxY();
     }
 
+    /** Blocks the lava has risen from its start — a positive, player-friendly
+     *  "lava height" (vs. the raw, possibly-negative world Y). */
+    public int getLavaHeight() {
+        return Math.max(0, currentLavaY - arena.getConfig().lavaStartY());
+    }
+
+    /** Total blocks the lava will rise over the whole game. */
+    public int getLavaMaxHeight() {
+        return Math.max(1, arena.getConfig().lavaMaxY() - arena.getConfig().lavaStartY());
+    }
+
+    /** Progress of the lava toward its maximum, 0–100. */
+    public int getLavaPercent() {
+        return Math.max(0, Math.min(100, Math.round(getLavaHeight() * 100.0f / getLavaMaxHeight())));
+    }
+
     // ── Timing ──────────────────────────────────────────────
 
     public long getStartTime() {

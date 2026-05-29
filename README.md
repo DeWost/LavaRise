@@ -50,8 +50,10 @@
 | 🎲 | **Random & Procedural Arenas** | Quick-join random matchmaking, random map rotation, and on-the-fly arenas generated at random world locations. |
 | 🛡️ | **Real Elimination** | Players actually burn in the lava and drop their loot (PvP too); the eliminated become spectators. |
 | 📊 | **Stats & Leaderboards** | Persistent wins / games / kills / best survival time, `/lr top`, and PlaceholderAPI placeholders. |
+| 🎒 | **Kits & Loadouts** | Define any number of kits in config; players pick one with `/lr kit` via a GUI. |
 | 🧰 | **In-Game Setup Wizard** | Build arenas without touching YAML (`/lr create … save`). |
-| 💰 | **Optional Vault Rewards** | Pay the winner — soft hook, no hard dependency. |
+| 💰 | **Rewards** | Per-win, per-kill and per-death command hooks, plus optional Vault payouts (soft hook). |
+| 🪄 | **Quality of Life** | Auto-pickup, auto-smelt, height-gated PvP, and an async GitHub update checker. |
 | 🎚️ | **Tunable UI** | Boss bar, action-bar HUD, flicker-free scoreboard, particles, sounds, proximity warnings — each configurable with TPS-protecting cadence knobs. |
 | ⚙️ | **Dynamic Difficulty** | Grace period, lava acceleration, speed scaling by player count, sudden death, and an optional shrinking world border. |
 
@@ -123,6 +125,7 @@ Base command `/lavarise` — aliases **`/lr`**, **`/lava`**.
 |---|---|
 | `/lr join [arena]` | Join an arena — **no name = quick-join a random open game** |
 | `/lr random` | Generate & join a fresh random (procedural) arena |
+| `/lr kit` | Choose your kit / loadout (GUI) |
 | `/lr leave` | Leave your current game |
 | `/lr list` | Open the arena browser GUI |
 | `/lr stats [player]` | View statistics |
@@ -161,12 +164,14 @@ Tune it under the `procedural` section of `config.yml` (`radius`, `spawn-area`, 
 
 Everything lives in `config.yml` (fully commented). Key sections:
 
+- **`general`** — language, debug, `update-check` (async GitHub release notice).
 - **`performance`** — `max-blocks-per-tick`, `preload-chunks`.
 - **`arena-defaults`** — defaults for new arenas (players, countdowns, lava Y-range, pvp, keep-inventory, hunger).
-- **`gameplay`** — `grace-period`, `acceleration`, `dynamic-speed`, `sudden-death`, `world-border`, `block-give` (pillar blocks), starting `kit`.
+- **`gameplay`** — `grace-period`, `pvp-after-height` (height-gated PvP), `auto-pickup`, `auto-smelt`, `acceleration`, `dynamic-speed`, `sudden-death`, `world-border`, `block-give`.
+- **`kits`** — any number of selectable loadouts (`icon` + `items`), chosen with `/lr kit`.
 - **`procedural`** — random/procedural arena generation.
-- **`rewards.win-commands`** — console commands run on win (`{winner}`, `{arena}`).
-- **`modes`** — teams, survival radius/worlds, event broadcasts & reward amount.
+- **`rewards`** — `win-commands` (`{winner}`,`{arena}`), `kill-commands` (`{killer}`,`{victim}`), `death-commands` (`{player}`).
+- **`modes`** — teams, survival radius/worlds, event broadcasts & Vault reward amount.
 - **`effects`** — boss bar, action bar, scoreboard, particles, sounds — each toggleable, with `update-interval` / `interval` cadence knobs.
 
 > [!TIP]
@@ -190,7 +195,8 @@ With PlaceholderAPI installed:
 | `%lavarise_best_time%` · `%lavarise_winrate%` | Best survival time · win-rate % |
 | `%lavarise_players_alive_<arena>%` | Players alive in an arena |
 | `%lavarise_state_<arena>%` | Arena state (Waiting / Active / …) |
-| `%lavarise_lava_level_<arena>%` | Current lava Y |
+| `%lavarise_lava_level_<arena>%` | Lava **height** (blocks risen) |
+| `%lavarise_lava_percent_<arena>%` · `%lavarise_lava_y_<arena>%` | Progress to max % · raw world Y |
 
 ## 🧠 How it beats the competition
 

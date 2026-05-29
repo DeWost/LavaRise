@@ -61,6 +61,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         return switch (args[0].toLowerCase()) {
             case "join" -> handleJoin(sender, args);
             case "random" -> handleRandom(sender);
+            case "kit" -> handleKit(sender);
             case "leave" -> handleLeave(sender);
             case "list" -> handleList(sender);
             case "stats" -> handleStats(sender, args);
@@ -105,6 +106,12 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         Arena arena = plugin.getArenaRepository().getArena(args[1]).orElse(null);
         if (arena == null) { msg(player, "<red>Arena not found."); return true; }
         plugin.getGameManager().addPlayerToArena(player, arena);
+        return true;
+    }
+
+    private boolean handleKit(CommandSender sender) {
+        if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
+        plugin.getKitSelectorGUI().open(player);
         return true;
     }
 
@@ -447,6 +454,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         msg(sender, "<gradient:red:gold><bold>LavaRise Commands</bold></gradient>");
         msg(sender, "<yellow>/lr join [arena] <gray>- Join (no name = quick-join a random arena)");
         msg(sender, "<yellow>/lr random <gray>- Generate & join a fresh random arena");
+        msg(sender, "<yellow>/lr kit <gray>- Choose your kit/loadout");
         msg(sender, "<yellow>/lr leave <gray>- Leave your game");
         msg(sender, "<yellow>/lr list <gray>- Browse arenas");
         msg(sender, "<yellow>/lr stats [player] <gray>- View statistics");
@@ -475,7 +483,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         List<String> completions = new ArrayList<>();
         if (args.length == 1) {
-            completions.addAll(List.of("join", "random", "leave", "list", "stats", "top"));
+            completions.addAll(List.of("join", "random", "kit", "leave", "list", "stats", "top"));
             if (sender.hasPermission("lavarise.admin")) {
                 completions.addAll(List.of("create", "pos1", "pos2", "setlobby", "setgamespawn",
                         "setspectator", "save", "delete", "start", "stop", "reload", "stress",

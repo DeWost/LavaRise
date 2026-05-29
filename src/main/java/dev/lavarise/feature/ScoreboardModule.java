@@ -105,7 +105,9 @@ public class ScoreboardModule {
     private Component render(String line, ArenaSession session) {
         final var config = session.getArena().getConfig();
         final String resolved = line
-                .replace("{lava_level}", String.valueOf(session.getCurrentLavaY()))
+                .replace("{lava_level}", String.valueOf(session.getLavaHeight()))
+                .replace("{lava_percent}", session.getLavaPercent() + "%")
+                .replace("{lava_y}", String.valueOf(session.getCurrentLavaY()))
                 .replace("{alive}", String.valueOf(session.getAliveCount()))
                 .replace("{total}", String.valueOf(session.getPlayerCount()))
                 .replace("{mode}", config.gameMode())
