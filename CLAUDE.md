@@ -15,11 +15,11 @@ modified chunk. Everything else in the codebase exists to feed that engine safel
 ## Build & Test Commands
 
 ```bash
-./gradlew build          # compile + test + shadowJar (produces the plugin jar)
-./gradlew test           # run JUnit 5 tests only
-./gradlew shadowJar      # build the shaded/minimized plugin jar
-./gradlew runServer      # launch a Paper 1.21.11 test server with the plugin loaded (run-paper)
-./gradlew reobfJar       # produce a Mojang-mapped -> Spigot-mapped jar (via assemble)
+./gradlew build            # compile + test + shadowJar (produces the plugin jar)
+./gradlew test             # run JUnit 5 tests only
+./gradlew jacocoTestReport # coverage report (build/reports/jacoco/test/html)
+./gradlew shadowJar        # build the shaded/minimized plugin jar (the release artifact)
+./gradlew runServer        # launch a Paper 1.21.11 test server with the plugin loaded (run-paper)
 ```
 
 Run a single test class / method:
@@ -28,18 +28,18 @@ Run a single test class / method:
 ./gradlew test --tests "dev.lavarise.state.LobbyStateTest.testIsJoinable"
 ```
 
-**Gotcha — no Gradle wrapper is committed.** `gradle/` contains only `libs.versions.toml`;
-`gradlew`, `gradlew.bat`, and `gradle/wrapper/` are absent. The `./gradlew` invocations above
-(used in README/CONTRIBUTING and CI) require the wrapper to exist. If it's missing, either
-regenerate it (`gradle wrapper`) using a system Gradle, or run with a system `gradle` directly.
-The first build also downloads the Paper dev bundle via **paperweight**, so it needs network access.
+A **Gradle 9.0.0 wrapper is committed** (`gradle/wrapper/`), so `./gradlew` works out of the box.
+The first build downloads the Paper dev bundle via **paperweight**, so it needs network access.
 
 Build details (`build.gradle.kts`):
-- **paperweight-userdev** provides the NMS-mapped Paper dev bundle (`paper-api` version in `libs.versions.toml`).
-- **shadowJar** is `minimize()`d and produces the release artifact (classifier cleared).
+- **Gradle 9** + **paperweight-userdev 2.x** (Mojang-mapped dev bundle) + **`com.gradleup.shadow` 9.x**.
+- **shadowJar** is `minimize()`d and is the **sole** release artifact (the thin `jar` task is disabled).
+  No reobf step — Paper 1.20.5+ loads the Mojang-mapped jar natively.
 - `processResources` expands `${version}` / `${description}` into `plugin.yml`.
-- PlaceholderAPI is `compileOnly`; Adventure/MiniMessage are bundled with Paper (not shaded).
-- Tests use JUnit 5 + Mockito; there is no live server in tests — collaborators are mocked.
+- PlaceholderAPI and **Vault** (`VaultAPI`) are `compileOnly`; Adventure/MiniMessage are bundled with Paper.
+- Tests use JUnit 5 + Mockito (Gradle 9 needs an explicit `junit-platform-launcher`); **JaCoCo** runs after `test`.
+  MockBukkit is intentionally not used — it conflicts with the Mojang-mapped dev-bundle classpath; tests
+  cover extracted pure logic instead (see `ArenaIndex`, `GameManagerTest`, `StatsManagerTest`).
 
 ## Architecture
 
@@ -95,13 +95,25 @@ files together:
 - `listener/PlayerListener.java` — quit/disconnect cleanup.
 - `command/LavaRiseCommand.java` — `/lavarise` (`/lr`, `/lava`) executor + tab completer.
 
+### Game modes (strategy over the FSM)
+- `mode/GameMode.java` — enum (`MINIGAME`, `SURVIVAL_CHALLENGE`, `ADMIN_EVENT`).
+- `mode/GameModeHandler.java` — **the seam**. An abstract strategy with default = classic FFA, created
+  once per `ArenaSession` (`forConfig`) and queried at fixed hooks: `onGameStart`, `isGameOver`,
+  `resolveWinner`, `onPlayerEliminated`, `onArenaEnd`, `allowFriendlyFire`, `shouldSnapshot`. The FSM
+  states call these instead of hard-coding win/mode logic — so adding a mode means adding a handler,
+  not editing `ActiveState`.
+- `MinigameModeHandler` (teams), `AdminEventModeHandler` (broadcasts + Vault reward),
+  `SurvivalModeHandler` (skips snapshot). `SurvivalChallengeMode` is the world-wide controller that
+  synthesises an ephemeral `Arena` around world spawn (registered in `GameManager`, never persisted).
+
 ### Supporting packages
-- `mode/` — `GameMode` enum (`MINIGAME`, `SURVIVAL_CHALLENGE`, `ADMIN_EVENT`) + per-mode classes.
 - `feature/` — UI/effects modules (`ScoreboardModule`, `BossBarModule`, `ParticleModule`,
   `SoundModule`) and `feature/gui/` (inventory GUIs; identity via `LavaRiseGUIHolder`).
+- `data/StatsManager.java` — persistent per-player stats (`stats.yml`) + leaderboards.
 - `api/events/` — custom Bukkit events (`ArenaStartEvent`, `ArenaEndEvent`, `PlayerEliminatedEvent`)
   fired from states so other plugins can react.
-- `hook/PapiExpansion.java` — PlaceholderAPI expansion, registered only if PAPI is present.
+- `hook/PapiExpansion.java` — PlaceholderAPI expansion; `hook/VaultHook.java` — optional Vault economy
+  (soft hook; all `net.milkbowl.*` refs confined here behind a plugin-presence guard).
 
 ## Conventions & Constraints
 
@@ -120,13 +132,17 @@ files together:
 - **Commit style** follows Conventional Commits (`feat:`, `chore:`, `docs:`, `ci:` — see `git log`).
 - CI (`.github/workflows/gradle.yml`) runs `./gradlew build` on push/PR to `main` (JDK 21, Temurin).
 
-## Known inconsistencies (verify before building)
+## Elimination model (important)
 
-Static reading turned up references that don't resolve in the current tree — a fresh `./gradlew build`
-will likely surface compile errors here first:
-- `core/LavaRisePlugin.java` uses `new ArenaEventRouter(this)` but **does not import**
-  `dev.lavarise.listener.ArenaEventRouter`.
-- `listener/ArenaEventRouter.java` calls `plugin.getGameManager().getArenaForPlayer(uuid)`, but
-  `GameManager` defines `getPlayerArena(UUID)` returning `Optional<Arena>` (no `getArenaForPlayer`).
+Elimination is driven by **real lava/fire damage**, not a Y-level poll. `ArenaEventRouter` lets players
+burn during a running game; on death `PlayerListener#onPlayerDeath` drops items (unless the arena has
+`keep-inventory`), marks them eliminated, and respawns them as a spectator. Before the game starts,
+`ArenaEventRouter` shields players from environmental lava/fire. Win/elimination decisions route through
+the session's `GameModeHandler`.
 
-When touching these areas, reconcile the method names / imports rather than assuming the tree compiles.
+## Status
+
+The tree compiles and tests pass on a fresh `./gradlew build` (Gradle 9, JDK 21). The historical
+`GameManager`/import inconsistencies have been reconciled (`getArenaForPlayer`, `ArenaEventRouter`
+import, etc.). Keep NMS changes isolated to `engine/nms/FastBlockSetter.java` and re-run the build —
+the dev bundle download requires network on the first run.

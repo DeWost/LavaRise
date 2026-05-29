@@ -1,0 +1,46 @@
+# Changelog
+
+All notable changes to LavaRise are documented here.
+This project follows [Conventional Commits](https://www.conventionalcommits.org/)
+and roughly [Semantic Versioning](https://semver.org/).
+
+## [1.2.0]
+
+### Added
+- **Full game modes** via a `GameModeHandler` strategy:
+  - **Teams** (last-team-standing, friendly fire disabled, multi-winner stats).
+  - **Survival Challenge** — world-wide rising lava around spawn (`/lr survival`).
+  - **Admin Event** — manual start/pause/resume/stop with broadcasts and an
+    optional Vault reward for the winner (`/lr event`).
+- Optional **Vault** economy integration (soft hook — no hard dependency).
+- Unit test suite (index parity, GameManager, StatsManager, ArenaConfig, GameMode)
+  and **JaCoCo** coverage; CI now uploads test results, coverage and the jar.
+
+### Changed
+- Snapshot is now published thread-safely (volatile + ready flag) and uses a
+  primitive `int[]` to avoid GC spikes; resets only read a complete snapshot.
+- Chunk update packets target only players tracking the chunk, and the
+  version-specific packet path degrades gracefully on Paper API changes.
+- Removed misleading/unused config keys (`update-check`, `player-check-interval`,
+  `disable-lava-physics`); added a `config-version` mismatch warning.
+
+### Fixed
+- Arenas were loaded before the `GameManager` existed (startup NPE).
+- Snapshot/reset linear-index math unified in `ArenaIndex` to prevent drift.
+
+## [1.1.0]
+
+### Added
+- Real lava burning death with item drops (lava + PvP) and spectator respawn.
+- Grace period, lava acceleration, dynamic speed, sudden death, shrinking world
+  border, starting kit, periodic pillar blocks.
+- Config-driven scoreboard, boss bar, action-bar HUD, particles, sounds,
+  proximity warnings; persistent stats + leaderboards; win-reward commands;
+  expanded PlaceholderAPI placeholders; admin controls + arena setup wizard.
+
+### Fixed
+- Reconciled `GameManager` API with callers; coherent Gradle 9 build with a
+  committed wrapper; `WorldResetter` brace bug.
+
+## [1.0.0]
+- Initial release of the zero-lag NMS rising-lava engine.
