@@ -205,11 +205,13 @@ public final class ActiveState implements GameState {
 
         lavaEngine.processBatch();
 
-        // Lower-frequency HUD / ambience / warnings (every half second).
-        if (tickCounter % 10 == 0) {
-            updateActionBarHud();
+        // Cosmetic updates at configurable cadences (raise the intervals to
+        // protect TPS on high-population servers).
+        if (tickCounter % cfg.getHudIntervalTicks() == 0) {
+            updatePerPlayerHud();
+        }
+        if (cfg.isParticlesEnabled() && tickCounter % cfg.getParticleIntervalTicks() == 0) {
             spawnParticles();
-            warnNearbyPlayers();
         }
 
         // Periodic block hand-out.
@@ -306,16 +308,40 @@ public final class ActiveState implements GameState {
         return new ItemStack(material, amount);
     }
 
-    private void updateActionBarHud() {
-        if (!cfg.isActionBarEnabled()) return;
-        String template = plugin.getConfigManager().getMessage("actionbar.in-game")
-                .replace("{lava_level}", String.valueOf(session.getCurrentLavaY()))
-                .replace("{alive}", String.valueOf(session.getAliveCount()))
-                .replace("{time}", formatTime(session.getElapsedSeconds()));
-        Component hud = plugin.getMiniMessage().deserialize(template);
+    /**
+     * Single per-player pass for the action-bar HUD and the lava proximity
+     * warning. The HUD component is session-global, so it is parsed once and
+     * reused; the warning template is only parsed for players actually in range.
+     */
+    private void updatePerPlayerHud() {
+        final int lavaY = session.getCurrentLavaY();
+        final int warnDistance = cfg.getWarningDistance();
+        final boolean hudEnabled = cfg.isActionBarEnabled();
+
+        Component hud = null;
+        if (hudEnabled) {
+            String template = plugin.getConfigManager().getMessage("actionbar.in-game")
+                    .replace("{lava_level}", String.valueOf(lavaY))
+                    .replace("{alive}", String.valueOf(session.getAliveCount()))
+                    .replace("{time}", formatTime(session.getElapsedSeconds()));
+            hud = plugin.getMiniMessage().deserialize(template);
+        }
+        final String warnTemplate = plugin.getConfigManager().getMessage("player.warning-lava-close");
+
         for (UUID uuid : session.getAlivePlayers()) {
             Player p = plugin.getServer().getPlayer(uuid);
-            if (p != null && p.isOnline()) p.sendActionBar(hud);
+            if (p == null || !p.isOnline()) continue;
+
+            if (warnDistance > 0) {
+                int delta = p.getLocation().getBlockY() - lavaY;
+                if (delta > 0 && delta <= warnDistance) {
+                    p.sendActionBar(plugin.getMiniMessage().deserialize(
+                            warnTemplate.replace("{blocks}", String.valueOf(delta))));
+                    playSound(p, cfg.getSoundWarning(), 1.0f, 2.0f);
+                    continue; // warning replaces the HUD for this player
+                }
+            }
+            if (hud != null) p.sendActionBar(hud);
         }
     }
 
@@ -329,23 +355,6 @@ public final class ActiveState implements GameState {
                 arena.getConfig().minX(), arena.getConfig().maxX(),
                 arena.getConfig().minZ(), arena.getConfig().maxZ(),
                 session.getCurrentLavaY(), particle, count);
-    }
-
-    private void warnNearbyPlayers() {
-        int lavaY = session.getCurrentLavaY();
-        int distance = cfg.getWarningDistance();
-        if (distance <= 0) return;
-        for (UUID uuid : session.getAlivePlayers()) {
-            Player p = plugin.getServer().getPlayer(uuid);
-            if (p == null || !p.isOnline()) continue;
-            int delta = p.getLocation().getBlockY() - lavaY;
-            if (delta > 0 && delta <= distance) {
-                p.sendActionBar(plugin.getMiniMessage().deserialize(
-                        plugin.getConfigManager().getMessage("player.warning-lava-close")
-                                .replace("{blocks}", String.valueOf(delta))));
-                playSound(p, cfg.getSoundWarning(), 1.0f, 2.0f);
-            }
-        }
     }
 
     private Particle parseParticle(String name) {

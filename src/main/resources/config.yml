@@ -170,6 +170,9 @@ effects:
     enabled: true
     # Show lava level in action bar
     show-lava-level: true
+    # How often (ticks) to refresh the per-player HUD + lava warning.
+    # Raise this (e.g. 20) on high-population servers to protect TPS.
+    update-interval: 10
 
   # Scoreboard sidebar
   scoreboard:
@@ -182,6 +185,8 @@ effects:
     type: LAVA
     # Density: particles per block (lower = better performance)
     density: 2
+    # How often (ticks) to emit surface particles. Raise/disable on big servers.
+    interval: 10
 
   # Sound effects
   sounds:

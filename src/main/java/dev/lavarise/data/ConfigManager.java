@@ -77,10 +77,12 @@ public final class ConfigManager {
     private String bossBarColor;
     private String bossBarStyle;
     private boolean actionBarEnabled;
+    private int hudIntervalTicks;
     private boolean scoreboardEnabled;
     private boolean particlesEnabled;
     private String particleType;
     private int particleDensity;
+    private int particleIntervalTicks;
     private boolean soundsEnabled;
     private String soundLavaRise;
     private String soundGameStart;
@@ -174,10 +176,12 @@ public final class ConfigManager {
         this.bossBarColor = config.getString("effects.bossbar.color", "RED");
         this.bossBarStyle = config.getString("effects.bossbar.style", "SEGMENTED_10");
         this.actionBarEnabled = config.getBoolean("effects.actionbar.enabled", true);
+        this.hudIntervalTicks = Math.max(1, config.getInt("effects.actionbar.update-interval", 10));
         this.scoreboardEnabled = config.getBoolean("effects.scoreboard.enabled", true);
         this.particlesEnabled = config.getBoolean("effects.particles.enabled", true);
         this.particleType = config.getString("effects.particles.type", "LAVA");
         this.particleDensity = config.getInt("effects.particles.density", 2);
+        this.particleIntervalTicks = Math.max(1, config.getInt("effects.particles.interval", 10));
         this.soundsEnabled = config.getBoolean("effects.sounds.enabled", true);
         this.soundLavaRise = config.getString("effects.sounds.lava-rise", "block.lava.ambient");
         this.soundGameStart = config.getString("effects.sounds.game-start", "entity.ender_dragon.growl");
@@ -271,10 +275,12 @@ public final class ConfigManager {
     public String getBossBarColor() { return bossBarColor; }
     public String getBossBarStyle() { return bossBarStyle; }
     public boolean isActionBarEnabled() { return actionBarEnabled; }
+    public int getHudIntervalTicks() { return hudIntervalTicks; }
     public boolean isScoreboardEnabled() { return scoreboardEnabled; }
     public boolean isParticlesEnabled() { return particlesEnabled; }
     public String getParticleType() { return particleType; }
     public int getParticleDensity() { return particleDensity; }
+    public int getParticleIntervalTicks() { return particleIntervalTicks; }
     public boolean isSoundsEnabled() { return soundsEnabled; }
     public String getSoundLavaRise() { return soundLavaRise; }
     public String getSoundGameStart() { return soundGameStart; }

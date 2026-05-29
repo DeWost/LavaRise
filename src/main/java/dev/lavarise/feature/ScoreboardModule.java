@@ -72,9 +72,24 @@ public class ScoreboardModule {
     }
 
     public void updateScoreboard(ArenaSession session) {
+        // Scoreboard lines are session-global (same text for every player), so
+        // parse the MiniMessage templates ONCE per update and reuse the rendered
+        // components for all players — not players×lines parses per tick.
+        final List<String> lines = configLines();
+        final int count = Math.min(lines.size(), ENTRIES.length);
+        final Component[] rendered = new Component[count];
+        for (int i = 0; i < count; i++) {
+            rendered[i] = render(lines.get(i), session);
+        }
+
         for (UUID uuid : session.getAllPlayerIds()) {
             Player p = Bukkit.getPlayer(uuid);
-            if (p != null && p.isOnline()) renderLines(p, session);
+            if (p == null || !p.isOnline()) continue;
+            final Team[] teams = playerLines.get(p.getUniqueId());
+            if (teams == null) continue;
+            for (int i = 0; i < teams.length && i < rendered.length; i++) {
+                teams[i].prefix(rendered[i]);
+            }
         }
     }
 
