@@ -24,6 +24,7 @@ public final class ConfigManager {
     private boolean debug;
     private boolean updateCheck;
     private int maxBlocksPerTick;
+    private int engineIntervalTicks;
     private boolean preloadChunks;
     private int pvpAfterHeight;
     private boolean autoPickup;
@@ -133,6 +134,7 @@ public final class ConfigManager {
 
         // Performance
         this.maxBlocksPerTick = config.getInt("performance.max-blocks-per-tick", 64);
+        this.engineIntervalTicks = Math.max(1, config.getInt("performance.engine-interval-ticks", 2));
         this.preloadChunks = config.getBoolean("performance.preload-chunks", true);
 
         // Gameplay QoL / rules
@@ -248,6 +250,7 @@ public final class ConfigManager {
     public boolean isDebug() { return debug; }
     public boolean isUpdateCheck() { return updateCheck; }
     public int getMaxBlocksPerTick() { return maxBlocksPerTick; }
+    public int getEngineIntervalTicks() { return engineIntervalTicks; }
     public boolean isPreloadChunks() { return preloadChunks; }
     public int getPvpAfterHeight() { return pvpAfterHeight; }
     public boolean isAutoPickup() { return autoPickup; }

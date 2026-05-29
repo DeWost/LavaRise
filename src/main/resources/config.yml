@@ -23,6 +23,11 @@ performance:
   # For world-wide survival challenges, raise this substantially.
   max-blocks-per-tick: 64
 
+  # Run the fill engine every N ticks (with N× the block budget) instead of every
+  # tick. Same blocks/second, but fewer scheduler passes and chunk packets.
+  # 1 = every tick (smoothest), 2-5 = lighter. Default 2.
+  engine-interval-ticks: 2
+
   # Pre-load arena chunks before game starts
   preload-chunks: true
 

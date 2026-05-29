@@ -46,6 +46,7 @@ public final class ActiveState implements GameState {
     private int tickCounter = 0;
     private int graceTicksLeft = 0;
     private int currentInterval;
+    private int engineInterval = 1;
 
     // World border state to restore on exit.
     private boolean borderModified = false;
@@ -74,7 +75,11 @@ public final class ActiveState implements GameState {
 
         this.currentInterval = Math.max(1, arena.getConfig().lavaRiseInterval());
         this.graceTicksLeft = Math.max(0, cfg.getGracePeriod()) * 20;
-        this.lavaEngine = new LavaEngine(plugin, arena.getConfig(), session, cfg.getMaxBlocksPerTick());
+        // Run the fill engine every N ticks with N× the budget — same blocks/sec,
+        // but fewer scheduler passes and chunk packets.
+        this.engineInterval = cfg.getEngineIntervalTicks();
+        this.lavaEngine = new LavaEngine(plugin, arena.getConfig(), session,
+                cfg.getMaxBlocksPerTick() * engineInterval);
 
         setupWorldBorder();
 
@@ -204,7 +209,11 @@ public final class ActiveState implements GameState {
             }
         }
 
-        lavaEngine.processBatch();
+        // Fill lava + flush chunk packets on the engine cadence (every N ticks,
+        // N× budget) — same blocks/sec with fewer passes and packets.
+        if (tickCounter % engineInterval == 0) {
+            lavaEngine.processBatch();
+        }
 
         // Cosmetic updates at configurable cadences (raise the intervals to
         // protect TPS on high-population servers).

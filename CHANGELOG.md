@@ -4,6 +4,16 @@ All notable changes to LavaRise are documented here.
 This project follows [Conventional Commits](https://www.conventionalcommits.org/)
 and roughly [Semantic Versioning](https://semver.org/).
 
+## [1.4.1]
+
+### Changed — performance
+- **One damage listener.** Merged `EntityDamageByEntityEvent` handling into the
+  single `EntityDamageEvent` handler — a PvP hit no longer fires two listeners
+  (two arena lookups) for the same blow.
+- **Engine cadence.** The fill engine now runs every `performance.engine-interval-ticks`
+  ticks with an N× budget (same blocks/second), cutting scheduler passes and
+  chunk-update packets vs. running every tick.
+
 ## [1.4.0]
 
 ### Added — KteRising parity pack

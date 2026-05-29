@@ -83,54 +83,53 @@ public class ArenaEventRouter implements Listener {
         }
     }
 
+    /**
+     * Single damage handler. {@link EntityDamageByEntityEvent} is itself an
+     * {@link EntityDamageEvent}, so handling both in one method avoids two event
+     * dispatches + two arena lookups per PvP hit (previously two listeners ran
+     * for every player-vs-player blow).
+     */
     @EventHandler(ignoreCancelled = true)
     public void onDamage(EntityDamageEvent event) {
-        if (!(event.getEntity() instanceof Player player)) return;
+        if (!(event.getEntity() instanceof Player victim)) return;
 
-        final Arena arena = plugin.getGameManager().getArenaForPlayer(player.getUniqueId());
+        final Arena arena = plugin.getGameManager().getArenaForPlayer(victim.getUniqueId());
         if (arena == null) return;
-
         final ArenaSession session = arena.getSession();
         if (session == null) return;
 
-        // Before the game starts (lobby / countdown), shield players from
-        // environmental lava and fire so a pre-placed pool can't kill them.
-        if (!session.getCurrentState().isGameRunning()) {
+        final boolean running = session.getCurrentState().isGameRunning();
+
+        // Pre-game (lobby/countdown): shield from environmental lava/fire.
+        if (!running) {
             final EntityDamageEvent.DamageCause cause = event.getCause();
             if (cause == EntityDamageEvent.DamageCause.LAVA
                     || cause == EntityDamageEvent.DamageCause.FIRE
                     || cause == EntityDamageEvent.DamageCause.FIRE_TICK) {
                 event.setCancelled(true);
             }
+            return;
         }
-        // While the game is running: damage applies normally. Players burn in
-        // the lava for real and, on death, drop their items (handled by the
-        // vanilla death + PlayerListener#onPlayerDeath).
-    }
 
-    @EventHandler
-    public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
-        if (event.getEntity() instanceof Player victim && event.getDamager() instanceof Player attacker) {
-            Arena arena = plugin.getGameManager().getArenaForPlayer(victim.getUniqueId());
-            if (arena != null) {
-                if (!arena.getConfig().pvpEnabled()) {
-                    event.setCancelled(true);
-                    return;
-                }
-                ArenaSession session = arena.getSession();
-                // Height-gated PvP: no fighting until the lava has risen enough.
-                final int pvpAfter = plugin.getConfigManager().getPvpAfterHeight();
-                if (session != null && pvpAfter > 0
-                        && session.getCurrentState().isGameRunning()
-                        && session.getLavaHeight() < pvpAfter) {
-                    event.setCancelled(true);
-                    return;
-                }
-                // Mode rules (e.g. teams disable friendly fire).
-                if (session != null && !session.getModeHandler().allowFriendlyFire(session, attacker, victim)) {
-                    event.setCancelled(true);
-                }
+        // PvP rules — only for player-vs-player blows.
+        if (event instanceof EntityDamageByEntityEvent byEntity
+                && byEntity.getDamager() instanceof Player attacker) {
+            if (!arena.getConfig().pvpEnabled()) {
+                event.setCancelled(true);
+                return;
+            }
+            // Height-gated PvP: no fighting until the lava has risen enough.
+            final int pvpAfter = plugin.getConfigManager().getPvpAfterHeight();
+            if (pvpAfter > 0 && session.getLavaHeight() < pvpAfter) {
+                event.setCancelled(true);
+                return;
+            }
+            // Mode rules (e.g. teams disable friendly fire).
+            if (!session.getModeHandler().allowFriendlyFire(session, attacker, victim)) {
+                event.setCancelled(true);
             }
         }
+        // Otherwise (lava/fall/etc. during the game): damage applies; on death,
+        // PlayerListener#onPlayerDeath handles drops + elimination.
     }
 }
