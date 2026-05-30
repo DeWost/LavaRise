@@ -5,8 +5,10 @@ import dev.lavarise.arena.ArenaSession;
 import dev.lavarise.core.LavaRisePlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
-import org.bukkit.Sound;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.time.Duration;
 
@@ -61,6 +63,17 @@ public final class LobbyState implements GameState {
         
         plugin.getScoreboardModule().setupScoreboard(player, session);
         plugin.getScoreboardModule().updateScoreboard(session);
+
+        // Lobby compass — right-click opens the kit-vote menu.
+        if (plugin.getKitManager() != null && plugin.getKitManager().hasKits()) {
+            final ItemStack compass = new ItemStack(Material.COMPASS);
+            final ItemMeta meta = compass.getItemMeta();
+            if (meta != null) {
+                meta.displayName(plugin.getMiniMessage().deserialize("<yellow><bold>Vote / Kit Menu</bold></yellow>"));
+                compass.setItemMeta(meta);
+            }
+            player.getInventory().setItem(4, compass);
+        }
 
         // Check if we have enough players to start countdown
         checkMinPlayers();
