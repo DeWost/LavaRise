@@ -1,5 +1,5 @@
 [versions]
-paper-api = "1.21.11-R0.1-SNAPSHOT"
+paper-api = "26.1.2.build.66-stable"
 adventure-api = "4.17.0"
 adventure-minimessage = "4.17.0"
 shadow = "9.4.1"
