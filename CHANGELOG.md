@@ -6,7 +6,7 @@ and roughly [Semantic Versioning](https://semver.org/).
 
 ## [1.7.2]
 
-### Changed — hot-path allocation (java-pro / performance-engineer review)
+### Changed — hot-path allocation 
 - **No per-tick Set allocation.** `LavaEngine.processBatch` and `WorldResetter`
   reuse a cleared `Set<Long>` field instead of allocating a `HashSet` every tick
   during fill/reset — less GC pressure on the main thread.
