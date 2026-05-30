@@ -1,0 +1,25 @@
+version: 2
+updates:
+  # Gradle dependencies (Paper API, Adventure, JUnit, Mockito, bStats…)
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      # Batch test-only bumps into a single PR to cut review noise.
+      test-dependencies:
+        patterns:
+          - "org.junit*"
+          - "org.mockito*"
+
+  # GitHub Actions used in CI / release workflows.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(ci)"

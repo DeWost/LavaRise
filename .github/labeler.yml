@@ -1,0 +1,55 @@
+# Path-based PR labels for actions/labeler@v5.
+# Labels are created on first use; tweak globs as the codebase grows.
+
+engine:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/main/java/dev/lavarise/engine/**'
+
+arena:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/main/java/dev/lavarise/arena/**'
+
+game-mode:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/main/java/dev/lavarise/mode/**'
+          - 'src/main/java/dev/lavarise/state/**'
+
+storage:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/main/java/dev/lavarise/data/**'
+
+command:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/main/java/dev/lavarise/command/**'
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/test/**'
+
+config:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/main/resources/**'
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.md'
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**'
+
+build:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'build.gradle.kts'
+          - 'settings.gradle.kts'
+          - 'gradle/**'

@@ -1,17 +1,28 @@
 plugins {
     java
     jacoco
+    checkstyle
     alias(libs.plugins.shadow)
     alias(libs.plugins.run.task)
     alias(libs.plugins.paperweight)
 }
 
 group = "dev.lavarise"
-version = "1.7.2"
+version = "1.7.2" // x-release-please-version
 description = "Premium Rising Lava minigame plugin — 3 game modes, batch block engine, zero dependencies."
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+}
+
+checkstyle {
+    toolVersion = "10.21.1"
+    configFile = file("config/checkstyle/checkstyle.xml")
+    // Report style issues without breaking the build for now; the ruleset is
+    // a curated starting point. Flip to false once the codebase is clean.
+    isIgnoreFailures = true
+    // Only the main sources — generated/test code is out of scope for style.
+    sourceSets = listOf(project.sourceSets["main"])
 }
 
 repositories {

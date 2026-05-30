@@ -1,0 +1,51 @@
+name: Checkstyle Review
+
+# Runs Checkstyle on PRs and posts any violations as inline review comments
+# via reviewdog. Non-blocking (fail-level: none) and only annotates lines the
+# PR actually changed (filter-mode: added), so it nudges the 198-warning
+# backlog down without gating merges.
+on:
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  checkstyle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Run Checkstyle
+        run: ./gradlew checkstyleMain
+
+      - name: Set up reviewdog
+        uses: reviewdog/action-setup@v1
+        with:
+          reviewdog_version: latest
+
+      - name: Report violations to PR
+        if: always()
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          reviewdog \
+            -f=checkstyle \
+            -name="checkstyle" \
+            -reporter=github-pr-review \
+            -filter-mode=added \
+            -level=warning \
+            -fail-level=none \
+            < build/reports/checkstyle/main.xml
