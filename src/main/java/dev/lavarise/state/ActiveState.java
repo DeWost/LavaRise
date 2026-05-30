@@ -459,35 +459,51 @@ public final class ActiveState implements GameState {
     }
 
     private void takeSnapshot() {
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            int minX = arena.getConfig().minX();
-            int maxX = arena.getConfig().maxX();
-            int minZ = arena.getConfig().minZ();
-            int maxZ = arena.getConfig().maxZ();
-            int startY = arena.getConfig().lavaStartY();
-            int maxY = arena.getConfig().lavaMaxY();
+        final int minX = arena.getConfig().minX();
+        final int maxX = arena.getConfig().maxX();
+        final int minZ = arena.getConfig().minZ();
+        final int maxZ = arena.getConfig().maxZ();
+        final int startY = arena.getConfig().lavaStartY();
+        final int maxY = arena.getConfig().lavaMaxY();
+        final World world = arena.getConfig().world();
 
+        // Capture chunk snapshots on the MAIN thread — reading the live world off
+        // the main thread throws "Asynchronous block access!" on Paper. A
+        // ChunkSnapshot is a thread-safe copy that we can read from the async task.
+        final java.util.Map<Long, org.bukkit.ChunkSnapshot> snapshots = new java.util.HashMap<>();
+        for (int cx = minX >> 4; cx <= maxX >> 4; cx++) {
+            for (int cz = minZ >> 4; cz <= maxZ >> 4; cz++) {
+                if (world.isChunkLoaded(cx, cz)) {
+                    snapshots.put(org.bukkit.Chunk.getChunkKey(cx, cz),
+                            world.getChunkAt(cx, cz).getChunkSnapshot());
+                }
+            }
+        }
+
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             // Growable primitive index buffer (no Integer boxing) paired with BlockData refs.
             int[] indices = new int[1024];
             BlockData[] blocks = new BlockData[1024];
             int n = 0;
-
             int index = 0;
-            World world = arena.getConfig().world();
 
             try {
                 for (int y = startY; y <= maxY; y++) {
                     for (int z = minZ; z <= maxZ; z++) {
                         for (int x = minX; x <= maxX; x++) {
-                            BlockData data = world.getBlockData(x, y, z);
-                            if (!data.getMaterial().isAir()) {
-                                if (n == indices.length) {
-                                    indices = java.util.Arrays.copyOf(indices, n * 2);
-                                    blocks = java.util.Arrays.copyOf(blocks, n * 2);
+                            final org.bukkit.ChunkSnapshot cs =
+                                    snapshots.get(org.bukkit.Chunk.getChunkKey(x >> 4, z >> 4));
+                            if (cs != null) {
+                                final BlockData data = cs.getBlockData(x & 15, y, z & 15);
+                                if (!data.getMaterial().isAir()) {
+                                    if (n == indices.length) {
+                                        indices = java.util.Arrays.copyOf(indices, n * 2);
+                                        blocks = java.util.Arrays.copyOf(blocks, n * 2);
+                                    }
+                                    indices[n] = index;
+                                    blocks[n] = data;
+                                    n++;
                                 }
-                                indices[n] = index;
-                                blocks[n] = data;
-                                n++;
                             }
                             index++;
                         }
@@ -500,7 +516,7 @@ public final class ActiveState implements GameState {
             }
 
             session.setSnapshot(java.util.Arrays.copyOf(indices, n), java.util.Arrays.copyOf(blocks, n));
-            plugin.debug("Arena " + arena.getName() + " snapshot taken async! Size: "
+            plugin.debug("Arena " + arena.getName() + " snapshot taken (chunk-snapshot, async)! Size: "
                     + n + " non-air blocks out of " + index + " total.");
         });
     }
