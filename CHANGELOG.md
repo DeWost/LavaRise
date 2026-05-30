@@ -26,7 +26,7 @@ and roughly [Semantic Versioning](https://semver.org/).
 
 ## [1.7.0]
 
-### Added — KteRising command/UX parity
+### Added — command/UX parity
 - **`/lr skip <arena>`** — jump a waiting lobby straight to a 3-second countdown.
 - **`/lr freeze <arena>`** — toggle freezing/resuming the lava mid-game.
 - **Lobby compass** — players get a compass in the lobby; right-click opens the
@@ -34,7 +34,7 @@ and roughly [Semantic Versioning](https://semver.org/).
 
 ## [1.6.0]
 
-### Added — surpass KteRising on its own turf
+### Added — surpass  on its own turf
 - **Enchanted kit presets.** Kit items now parse enchantments
   (`MATERIAL:AMOUNT:ENCHANT:LEVEL...`, levels may exceed vanilla caps). Ships
   with KteRising-style presets: Classic, OP, Elytra, Trident, UltraOP.
@@ -46,7 +46,7 @@ and roughly [Semantic Versioning](https://semver.org/).
 
 ## [1.5.0]
 
-### Added — full KteRising parity
+### Added — full  parity
 - **MySQL stats backend.** New `StatsStorage` abstraction with YAML (default) and
   **MySQL** implementations, selected by `storage.type`. MySQL uses the JDK
   `java.sql` API (driver auto-provided via `plugin.yml libraries:`), an in-memory
@@ -75,7 +75,7 @@ and roughly [Semantic Versioning](https://semver.org/).
 
 ## [1.4.0]
 
-### Added — KteRising parity pack
+### Added —  parity pack
 - **Multiple kits + selector GUI** — define any number of loadouts under `kits`
   in config; players pick one with `/lr kit` (falls back to the single legacy kit).
 - **Height-gated PvP** (`gameplay.pvp-after-height`) — no fighting until the lava
