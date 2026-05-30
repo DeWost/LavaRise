@@ -28,9 +28,11 @@ public final class ArenaSession {
 
     /** Active players still alive */
     private final Set<UUID> alivePlayers = ConcurrentHashMap.newKeySet();
+    private final Set<UUID> alivePlayersView = Collections.unmodifiableSet(alivePlayers);
 
     /** Eliminated players watching as spectators */
     private final Set<UUID> spectators = ConcurrentHashMap.newKeySet();
+    private final Set<UUID> spectatorsView = Collections.unmodifiableSet(spectators);
 
     /** Current game state (FSM) */
     private GameState currentState;
@@ -244,11 +246,11 @@ public final class ArenaSession {
     }
 
     public Set<UUID> getAlivePlayers() {
-        return Collections.unmodifiableSet(alivePlayers);
+        return alivePlayersView;
     }
 
     public Set<UUID> getSpectators() {
-        return Collections.unmodifiableSet(spectators);
+        return spectatorsView;
     }
 
     public boolean isAlive(UUID playerId) {

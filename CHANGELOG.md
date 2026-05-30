@@ -4,6 +4,34 @@ All notable changes to LavaRise are documented here.
 This project follows [Conventional Commits](https://www.conventionalcommits.org/)
 and roughly [Semantic Versioning](https://semver.org/).
 
+## [1.7.2]
+
+### Changed — hot-path allocation (java-pro / performance-engineer review)
+- **No per-tick Set allocation.** `LavaEngine.processBatch` and `WorldResetter`
+  reuse a cleared `Set<Long>` field instead of allocating a `HashSet` every tick
+  during fill/reset — less GC pressure on the main thread.
+- **Cached unmodifiable views.** `ArenaSession.getAlivePlayers/getSpectators`
+  return cached `unmodifiableSet` views instead of wrapping on every call (these
+  are iterated frequently in HUD/sound/particle loops).
+
+## [1.7.1]
+
+### Fixed — Bukkit/Paper correctness (minecraft-bukkit-pro review)
+- **Async world access.** The arena snapshot read the live world off the main
+  thread (`world.getBlockData`), which Paper rejects ("Asynchronous block
+  access!"). Now chunk snapshots are captured on the main thread and read from
+  the async task — the safe Paper pattern.
+- **Compass double-fire.** `PlayerInteractEvent` fires once per hand; the lobby
+  compass now only opens the vote menu on the main hand.
+
+## [1.7.0]
+
+### Added — KteRising command/UX parity
+- **`/lr skip <arena>`** — jump a waiting lobby straight to a 3-second countdown.
+- **`/lr freeze <arena>`** — toggle freezing/resuming the lava mid-game.
+- **Lobby compass** — players get a compass in the lobby; right-click opens the
+  kit-vote menu (like KteRising's join compass).
+
 ## [1.6.0]
 
 ### Added — surpass KteRising on its own turf

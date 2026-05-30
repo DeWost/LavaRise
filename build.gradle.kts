@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "dev.lavarise"
-version = "1.6.0" // x-release-please-version
+version = "1.7.2" // x-release-please-version
 description = "Premium Rising Lava minigame plugin — 3 game modes, batch block engine, zero dependencies."
 
 java {

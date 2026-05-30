@@ -4,12 +4,15 @@ import dev.lavarise.arena.Arena;
 import dev.lavarise.arena.ArenaSession;
 import dev.lavarise.core.LavaRisePlugin;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
@@ -121,6 +124,26 @@ public class PlayerListener implements Listener {
                 resolved = resolved.replace(replacements[i], replacements[i + 1]);
             }
             plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), resolved);
+        }
+    }
+
+    /**
+     * Right-clicking the lobby compass opens the kit-vote menu.
+     */
+    @EventHandler
+    public void onCompassUse(PlayerInteractEvent event) {
+        // PlayerInteractEvent fires once per hand — only act on the main hand.
+        if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) return;
+        if (event.getItem() == null || event.getItem().getType() != Material.COMPASS) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+
+        final Player player = event.getPlayer();
+        final Arena arena = plugin.getGameManager().getArenaForPlayer(player.getUniqueId());
+        if (arena == null) return;
+        final ArenaSession session = arena.getSession();
+        if (session != null && session.isJoinable()) {
+            event.setCancelled(true);
+            plugin.getVoteGUI().open(player);
         }
     }
 
