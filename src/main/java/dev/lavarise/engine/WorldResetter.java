@@ -44,6 +44,9 @@ public class WorldResetter {
         private int cx, cy, cz;
         private int snapshotPointer = 0;
 
+        /** Reused per tick to avoid allocating a Set every reset pass. */
+        private final Set<Long> modifiedChunks = new HashSet<>();
+
         public ResetTask(LavaRisePlugin plugin, Arena arena) {
             this.plugin = plugin;
             this.arena = arena;
@@ -66,7 +69,7 @@ public class WorldResetter {
         public void run() {
             int processed = 0;
             World world = config.world();
-            Set<Long> modifiedChunks = new HashSet<>();
+            modifiedChunks.clear();
 
             while (processed < maxBlocksPerTick) {
                 if (cy > config.lavaMaxY()) {

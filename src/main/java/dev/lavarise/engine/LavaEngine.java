@@ -30,6 +30,9 @@ public class LavaEngine {
     private int targetY;
     private long lastWarnedSkip = 0L;
 
+    /** Reused per tick to avoid allocating a Set every fill pass. */
+    private final Set<Long> modifiedChunks = new HashSet<>();
+
     public LavaEngine(LavaRisePlugin plugin, ArenaConfig config, ArenaSession session, int maxBlocksPerTick) {
         this.plugin = plugin;
         this.config = config;
@@ -65,7 +68,7 @@ public class LavaEngine {
 
         int processed = 0;
         World world = config.world();
-        Set<Long> modifiedChunks = new HashSet<>();
+        modifiedChunks.clear();
 
         while (processed < maxBlocksPerTick) {
             if (currentFillY >= targetY) {

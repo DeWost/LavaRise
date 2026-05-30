@@ -4,6 +4,16 @@ All notable changes to LavaRise are documented here.
 This project follows [Conventional Commits](https://www.conventionalcommits.org/)
 and roughly [Semantic Versioning](https://semver.org/).
 
+## [1.7.2]
+
+### Changed — hot-path allocation (java-pro / performance-engineer review)
+- **No per-tick Set allocation.** `LavaEngine.processBatch` and `WorldResetter`
+  reuse a cleared `Set<Long>` field instead of allocating a `HashSet` every tick
+  during fill/reset — less GC pressure on the main thread.
+- **Cached unmodifiable views.** `ArenaSession.getAlivePlayers/getSpectators`
+  return cached `unmodifiableSet` views instead of wrapping on every call (these
+  are iterated frequently in HUD/sound/particle loops).
+
 ## [1.7.1]
 
 ### Fixed — Bukkit/Paper correctness (minecraft-bukkit-pro review)
