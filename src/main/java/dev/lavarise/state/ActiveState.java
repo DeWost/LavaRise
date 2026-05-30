@@ -155,6 +155,14 @@ public final class ActiveState implements GameState {
                 Title.Times.times(Duration.ofMillis(200), Duration.ofSeconds(2), Duration.ofMillis(500))));
         playSound(player, "entity.blaze.death", 1.0f, 0.5f);
 
+        // Tell the player where they finished. They've already been removed from
+        // the alive set, so their placement is one ahead of the survivors left.
+        final int alive = session.getAliveCount();
+        player.sendMessage(plugin.getMiniMessage().deserialize(
+                plugin.getConfigManager().getMessage("player.placement")
+                        .replace("{place}", String.valueOf(alive + 1))
+                        .replace("{alive}", String.valueOf(alive))));
+
         plugin.getScoreboardModule().updateScoreboard(session);
         broadcastToArena(plugin.getMiniMessage().deserialize(
                 "<red>☠ " + player.getName() + " <gray>eliminated! <dark_gray>(" + session.getAliveCount() + " alive)"));
