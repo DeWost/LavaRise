@@ -48,7 +48,7 @@
 | ♻️ | **O(1) Smart Resets** | Async map snapshot + sequential-pointer restore. No schematics, no binary search — huge maps revert in milliseconds. |
 | 🎮 | **Three Game Modes** | **Minigame** (FFA / Teams), admin-controlled **Events**, and world-wide **Survival Challenge**. |
 | 🎲 | **Random & Procedural Arenas** | Quick-join random matchmaking, random map rotation, and on-the-fly arenas generated at random world locations. |
-| 🛡️ | **Real Elimination** | Players actually burn in the lava and drop their loot (PvP too); the eliminated become spectators. |
+| 🛡️ | **Real Elimination** | Players actually burn in the lava and drop their loot (PvP too); the eliminated become spectators and see their finishing placement. |
 | 📊 | **Stats & Leaderboards** | Persistent wins / games / kills / best survival time, `/lr top`, and PlaceholderAPI placeholders. |
 | 🎒 | **Kits & Loadouts** | Define any number of kits in config; players pick one with `/lr kit` via a GUI. |
 | 🧰 | **In-Game Setup Wizard** | Build arenas without touching YAML (`/lr create … save`). |
@@ -126,6 +126,7 @@ Base command `/lavarise` — aliases **`/lr`**, **`/lava`**.
 | `/lr join [arena]` | Join an arena — **no name = quick-join a random open game** |
 | `/lr random` | Generate & join a fresh random (procedural) arena |
 | `/lr kit` | Choose your kit / loadout (GUI) |
+| `/lr vote` | Vote for the kit the whole round will use (lobby GUI) |
 | `/lr leave` | Leave your current game |
 | `/lr list` | Open the arena browser GUI |
 | `/lr stats [player]` | View statistics |
@@ -137,6 +138,8 @@ Base command `/lavarise` — aliases **`/lr`**, **`/lava`**.
 | `/lr create · pos1 · pos2 · setlobby · setgamespawn · setspectator · save` | Arena setup wizard |
 | `/lr delete <arena>` | Delete an arena |
 | `/lr start \| stop <arena>` | Force-start / reset a game |
+| `/lr skip <arena>` | Skip a waiting lobby straight to a 3-second countdown |
+| `/lr freeze <arena>` | Toggle freezing / resuming the lava mid-game |
 | `/lr event <start\|pause\|resume\|stop> <arena>` | Admin-event control |
 | `/lr survival <start\|stop> [world]` | World-wide survival challenge |
 | `/lr reload` | Reload configuration |

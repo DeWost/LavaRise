@@ -38,6 +38,7 @@ state:
 # ─── Player Events ───────────────────────────────────────────
 player:
   eliminated: "<red>☠ <gray>You were eliminated by the lava!"
+  placement: "<gray>You finished in <yellow><bold>#{place}</bold></yellow> place! <dark_gray>({alive} still alive)"
   spectator-join: "<gray>You are now spectating. Use <yellow>/lava leave</yellow> to exit."
   warning-lava-close: "<red><bold>⚠ WARNING!</bold> <yellow>Lava is {blocks} blocks below you!"
 

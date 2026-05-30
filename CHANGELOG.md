@@ -4,6 +4,15 @@ All notable changes to LavaRise are documented here.
 This project follows [Conventional Commits](https://www.conventionalcommits.org/)
 and roughly [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- **Finishing placement.** Eliminated players now get a personal
+  "You finished in **#N** place!" message the moment the lava takes them,
+  alongside the existing `ELIMINATED!` title — placement is the number of
+  survivors still alive plus one. Configurable via the new `player.placement`
+  key in `messages.yml`.
+
 ## [1.7.2]
 
 ### Changed — hot-path allocation 
