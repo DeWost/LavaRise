@@ -132,6 +132,8 @@ public class PlayerListener implements Listener {
      */
     @EventHandler
     public void onCompassUse(PlayerInteractEvent event) {
+        // PlayerInteractEvent fires once per hand — only act on the main hand.
+        if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) return;
         if (event.getItem() == null || event.getItem().getType() != Material.COMPASS) return;
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 

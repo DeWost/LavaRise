@@ -4,6 +4,16 @@ All notable changes to LavaRise are documented here.
 This project follows [Conventional Commits](https://www.conventionalcommits.org/)
 and roughly [Semantic Versioning](https://semver.org/).
 
+## [1.7.1]
+
+### Fixed — Bukkit/Paper correctness (minecraft-bukkit-pro review)
+- **Async world access.** The arena snapshot read the live world off the main
+  thread (`world.getBlockData`), which Paper rejects ("Asynchronous block
+  access!"). Now chunk snapshots are captured on the main thread and read from
+  the async task — the safe Paper pattern.
+- **Compass double-fire.** `PlayerInteractEvent` fires once per hand; the lobby
+  compass now only opens the vote menu on the main hand.
+
 ## [1.7.0]
 
 ### Added — KteRising command/UX parity
