@@ -9,6 +9,7 @@ import dev.lavarise.data.StatsManager;
 import dev.lavarise.engine.nms.FastBlockSetter;
 import dev.lavarise.mode.SurvivalChallengeMode;
 import dev.lavarise.state.ActiveState;
+import dev.lavarise.state.CountdownState;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -68,6 +69,8 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             case "stats" -> handleStats(sender, args);
             case "top" -> handleTop(sender, args);
             case "start", "forcestart" -> handleStart(sender, args);
+            case "skip" -> handleSkip(sender, args);
+            case "freeze" -> handleFreeze(sender, args);
             case "stop" -> handleStop(sender, args);
             case "reload" -> handleReload(sender);
             case "survival" -> handleSurvival(sender, args);
@@ -208,6 +211,37 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         if (session.getAliveCount() < 1) { msg(sender, "<red>No players in that arena."); return true; }
         session.transitionTo(new ActiveState(plugin, arena, session));
         msg(sender, "<green>Force-started <yellow>" + arena.getName() + "</yellow>.");
+        return true;
+    }
+
+    private boolean handleSkip(CommandSender sender, String[] args) {
+        if (notAdmin(sender)) return true;
+        if (args.length < 2) { msg(sender, "<red>Usage: /lavarise skip <arena>"); return true; }
+        Arena arena = plugin.getArenaRepository().getArena(args[1]).orElse(null);
+        if (arena == null) { msg(sender, "<red>Arena not found."); return true; }
+        ArenaSession session = arena.getSession();
+        if (session == null) { msg(sender, "<red>That arena has no active session."); return true; }
+        if (session.getCurrentState().isGameRunning()) { msg(sender, "<red>That game is already running."); return true; }
+        if (session.getAliveCount() < 1) { msg(sender, "<red>No players in that arena."); return true; }
+        session.transitionTo(new CountdownState(plugin, arena, session, 3));
+        msg(sender, "<green>Skipped to a 3-second countdown for <yellow>" + arena.getName() + "</yellow>.");
+        return true;
+    }
+
+    private boolean handleFreeze(CommandSender sender, String[] args) {
+        if (notAdmin(sender)) return true;
+        if (args.length < 2) { msg(sender, "<red>Usage: /lavarise freeze <arena>"); return true; }
+        Arena arena = plugin.getArenaRepository().getArena(args[1]).orElse(null);
+        if (arena == null) { msg(sender, "<red>Arena not found."); return true; }
+        ArenaSession session = arena.getSession();
+        if (session == null || !session.getCurrentState().isGameRunning()) {
+            msg(sender, "<red>That game is not running.");
+            return true;
+        }
+        boolean frozen = !session.isPaused();
+        session.setPaused(frozen);
+        msg(sender, frozen ? "<yellow>❄ Lava frozen in <white>" + arena.getName()
+                : "<green>🔥 Lava resumed in <white>" + arena.getName());
         return true;
     }
 
@@ -469,7 +503,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         msg(sender, "<yellow>/lr top [wins|kills|time] <gray>- Leaderboard");
         if (sender.hasPermission("lavarise.admin")) {
             msg(sender, "<gold>Admin: <yellow>create/pos1/pos2/setlobby/setgamespawn/setspectator/save/delete");
-            msg(sender, "<gold>Admin: <yellow>start/stop/reload/stress");
+            msg(sender, "<gold>Admin: <yellow>start/skip/freeze/stop/reload/stress");
             msg(sender, "<gold>Admin: <yellow>survival <start|stop> [world]");
             msg(sender, "<gold>Admin: <yellow>event <start|pause|resume|stop> <arena>");
         }
@@ -494,12 +528,12 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             completions.addAll(List.of("join", "random", "kit", "vote", "leave", "list", "stats", "top"));
             if (sender.hasPermission("lavarise.admin")) {
                 completions.addAll(List.of("create", "pos1", "pos2", "setlobby", "setgamespawn",
-                        "setspectator", "save", "delete", "start", "stop", "reload", "stress",
+                        "setspectator", "save", "delete", "start", "skip", "freeze", "stop", "reload", "stress",
                         "survival", "event"));
             }
         } else if (args.length == 2) {
             String sub = args[0].toLowerCase();
-            if (List.of("join", "start", "stop", "delete", "stress").contains(sub)) {
+            if (List.of("join", "start", "skip", "freeze", "stop", "delete", "stress").contains(sub)) {
                 plugin.getArenaRepository().getArenas().forEach(a -> completions.add(a.getName()));
             } else if (sub.equals("top")) {
                 completions.addAll(List.of("wins", "kills", "time"));

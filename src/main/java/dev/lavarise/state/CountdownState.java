@@ -34,6 +34,12 @@ public final class CountdownState implements GameState {
         this.countdown = arena.getConfig().gameCountdown();
     }
 
+    /** Start with a custom countdown length (used by {@code /lr skip}). */
+    public CountdownState(LavaRisePlugin plugin, Arena arena, ArenaSession session, int seconds) {
+        this(plugin, arena, session);
+        this.countdown = Math.max(1, seconds);
+    }
+
     @Override
     public void onEnter() {
         plugin.debug("Arena " + arena.getName() + " entered COUNTDOWN state. " + countdown + "s");
