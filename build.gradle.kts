@@ -38,7 +38,7 @@ dependencies {
     compileOnly("com.github.MilkBowl:VaultAPI:1.7") { // economy API only, never shaded
         exclude(group = "org.bukkit", module = "bukkit") // drop ancient transitive
     }
-    implementation("org.bstats:bstats-bukkit:3.1.0") // shaded + relocated below
+    implementation("org.bstats:bstats-bukkit:3.2.1") // shaded + relocated below
     // Adventure is bundled with Paper, no need to shade.
     // The MySQL driver is provided at runtime via plugin.yml `libraries:` —
     // MySqlStatsStorage only uses the JDK java.sql API, so no compile dep is needed.
