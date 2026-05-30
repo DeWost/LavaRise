@@ -1,0 +1,42 @@
+name: PR Automation
+
+# Two lightweight PR helpers:
+#  1. Lint the PR title against Conventional Commits (the squash-merge commit
+#     uses the PR title, so this keeps the history / release-please clean).
+#  2. Auto-label the PR based on which files it touches.
+on:
+  pull_request_target:
+    types: [ opened, edited, synchronize, reopened, ready_for_review ]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  title-lint:
+    name: Conventional PR title
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            perf
+            refactor
+            docs
+            chore
+            test
+            ci
+            build
+
+  labeler:
+    name: Auto-label by path
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/labeler@v5
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          sync-labels: true
