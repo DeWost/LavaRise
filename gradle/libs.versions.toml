@@ -1,6 +1,6 @@
 [versions]
 paper-api = "1.21.11-R0.1-SNAPSHOT"
-adventure-api = "4.17.0"
+adventure-api = "5.1.1"
 adventure-minimessage = "4.17.0"
 shadow = "9.4.1"
 run-task = "2.3.1"
