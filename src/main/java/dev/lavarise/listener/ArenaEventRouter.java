@@ -9,6 +9,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
@@ -34,6 +35,22 @@ public class ArenaEventRouter implements Listener {
 
     public ArenaEventRouter(LavaRisePlugin plugin) {
         this.plugin = plugin;
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onCreatureSpawn(CreatureSpawnEvent event) {
+        if (!plugin.getConfigManager().isDenyMobSpawns()) return;
+        // Block world/natural spawns inside an arena; allow player-driven ones
+        // (eggs, breeding, commands, custom).
+        switch (event.getSpawnReason()) {
+            case NATURAL, SPAWNER, CHUNK_GEN, JOCKEY, PATROL, RAID,
+                 REINFORCEMENTS, VILLAGE_INVASION, NETHER_PORTAL, TRAP -> {
+                if (plugin.getGameManager().isInArenaBounds(event.getLocation())) {
+                    event.setCancelled(true);
+                }
+            }
+            default -> { }
+        }
     }
 
     @EventHandler

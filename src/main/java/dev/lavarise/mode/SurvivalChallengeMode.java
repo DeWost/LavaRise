@@ -48,7 +48,8 @@ public final class SurvivalChallengeMode {
         final Location spawn = world.getSpawnLocation();
         final int cx = spawn.getBlockX();
         final int cz = spawn.getBlockZ();
-        final int minY = world.getMinHeight();
+        // Lava rises from the surface upward (not from bedrock through the ground).
+        final int minY = world.getHighestBlockYAt(cx, cz);
         final int maxY = world.getMaxHeight() - 1;
 
         final ArenaConfig cfg = new ArenaConfig(
