@@ -170,6 +170,17 @@ procedural:
   # If quick-join finds no open arena, generate a fresh random one.
   auto-on-quickjoin: true
 
+# ─── Autonomous Auto-Arena ───────────────────────────────────
+# When enabled, the plugin always keeps one open random arena ready and
+# rotates automatically: generate → players join → auto-start → reset →
+# remove → generate the next. No admin commands needed. Requires procedural.
+auto-arena:
+  enabled: false
+  # How often (seconds) to ensure an open arena exists.
+  check-interval: 15
+  # Also pull online players who aren't in a game into the open arena.
+  auto-join: false
+
 # ─── Kits / Loadouts ─────────────────────────────────────────
 # Players choose a kit with /lr kit; the chosen kit is given at game start.
 # If this section is empty, the single gameplay.kit above is used instead.

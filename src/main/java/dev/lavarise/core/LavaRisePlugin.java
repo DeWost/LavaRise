@@ -48,6 +48,7 @@ public final class LavaRisePlugin extends JavaPlugin {
     private KitSelectorGUI kitSelectorGUI;
     private VoteGUI voteGUI;
     private dev.lavarise.hook.VaultHook vaultHook;
+    private AutoArenaController autoArena;
 
     @Override
     public void onEnable() {
@@ -129,6 +130,10 @@ public final class LavaRisePlugin extends JavaPlugin {
             if (statsManager != null) statsManager.save();
         }, syncTicks, syncTicks);
 
+        // Autonomous arena rotation (opt-in via auto-arena.enabled)
+        this.autoArena = new AutoArenaController(this);
+        this.autoArena.start();
+
         // ── 7. Done ─────────────────────────────────────────
         final long elapsed = System.currentTimeMillis() - start;
         getLogger().info("LavaRise v" + getPluginMeta().getVersion() + " enabled in " + elapsed + "ms");
@@ -137,6 +142,10 @@ public final class LavaRisePlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (autoArena != null) {
+            autoArena.stop();
+        }
+
         // Gracefully end all running games
         if (gameManager != null) {
             gameManager.shutdownAll();

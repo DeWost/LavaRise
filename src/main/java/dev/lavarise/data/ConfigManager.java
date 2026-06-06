@@ -99,6 +99,10 @@ public final class ConfigManager {
     private int proceduralLavaMaxY;
     private int proceduralSpawnArea;
     private boolean proceduralAutoQuickjoin;
+    // Auto-arena
+    private boolean autoArenaEnabled;
+    private int autoArenaCheckInterval;
+    private boolean autoArenaAutoJoin;
 
     // ── Effects ─────────────────────────────────────────────
     private boolean bossBarEnabled;
@@ -229,6 +233,9 @@ public final class ConfigManager {
         this.proceduralLavaMaxY = config.getInt("procedural.lava-max-y", 150);
         this.proceduralSpawnArea = Math.max(0, config.getInt("procedural.spawn-area", 2000));
         this.proceduralAutoQuickjoin = config.getBoolean("procedural.auto-on-quickjoin", true);
+        this.autoArenaEnabled = config.getBoolean("auto-arena.enabled", false);
+        this.autoArenaCheckInterval = Math.max(5, config.getInt("auto-arena.check-interval", 15));
+        this.autoArenaAutoJoin = config.getBoolean("auto-arena.auto-join", false);
 
         // Effects
         this.bossBarEnabled = config.getBoolean("effects.bossbar.enabled", true);
@@ -356,6 +363,9 @@ public final class ConfigManager {
     public int getProceduralLavaMaxY() { return proceduralLavaMaxY; }
     public int getProceduralSpawnArea() { return proceduralSpawnArea; }
     public boolean isProceduralAutoQuickjoin() { return proceduralAutoQuickjoin; }
+    public boolean isAutoArenaEnabled() { return autoArenaEnabled; }
+    public int getAutoArenaCheckInterval() { return autoArenaCheckInterval; }
+    public boolean isAutoArenaAutoJoin() { return autoArenaAutoJoin; }
 
     // ── Getters: effects ────────────────────────────────────
 
