@@ -345,7 +345,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         String name = args[1];
         // Arena names become file names — reject anything that could escape the
         // arenas directory (path traversal) or break YAML keys.
-        if (!name.matches("[A-Za-z0-9_-]{1,32}")) {
+        if (!dev.lavarise.arena.ArenaNames.isValid(name)) {
             msg(player, "<red>Invalid name. Use 1-32 letters, digits, '_' or '-' only.");
             return true;
         }
