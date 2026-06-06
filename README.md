@@ -126,6 +126,7 @@ Base command `/lavarise` — aliases **`/lr`**, **`/lava`**.
 | `/lr join [arena]` | Join an arena — **no name = quick-join a random open game** |
 | `/lr random` | Generate & join a fresh random (procedural) arena |
 | `/lr kit` | Choose your kit / loadout (GUI) |
+| `/lr vote` | Vote for the lobby's kit (GUI) |
 | `/lr leave` | Leave your current game |
 | `/lr list` | Open the arena browser GUI |
 | `/lr stats [player]` | View statistics |
@@ -137,6 +138,8 @@ Base command `/lavarise` — aliases **`/lr`**, **`/lava`**.
 | `/lr create · pos1 · pos2 · setlobby · setgamespawn · setspectator · save` | Arena setup wizard |
 | `/lr delete <arena>` | Delete an arena |
 | `/lr start \| stop <arena>` | Force-start / reset a game |
+| `/lr skip <arena>` | Skip a waiting lobby to a 3-second countdown |
+| `/lr freeze <arena>` | Freeze / resume the lava mid-game |
 | `/lr event <start\|pause\|resume\|stop> <arena>` | Admin-event control |
 | `/lr survival <start\|stop> [world]` | World-wide survival challenge |
 | `/lr reload` | Reload configuration |
@@ -160,16 +163,30 @@ Three layers of "never play the same game twice":
 
 Tune it under the `procedural` section of `config.yml` (`radius`, `spawn-area`, lava range, `auto-on-quickjoin`).
 
+## 🤖 Autonomous Auto-Arena
+
+Set `auto-arena.enabled: true` and the plugin runs **hands-free**: it always keeps one
+open random arena ready and rotates forever — *generate → players join → auto-start →
+reset → remove → generate the next* — with no admin commands.
+
+- `auto-arena.check-interval` — how often (seconds) to ensure an open arena exists.
+- `auto-arena.auto-join` — also pull online players who aren't in a game into the open arena.
+
+Lava rises from the **surface** (top block) upward, mobs/animals don't spawn inside
+arenas (`gameplay.deny-mob-spawns`), and the terrain is fully restored after each round.
+
 ## ⚙️ Configuration Highlights
 
 Everything lives in `config.yml` (fully commented). Key sections:
 
-- **`general`** — language, debug, `update-check` (async GitHub release notice).
-- **`performance`** — `max-blocks-per-tick`, `preload-chunks`.
+- **`general`** — language, debug, `update-check` (async GitHub release notice), `bstats` (anonymous metrics toggle).
+- **`storage`** — stats backend: `yaml` (zero-setup, default) or `mysql` (network-wide, shared across a proxy) with `sync-interval` and connection settings; auto-falls back to YAML if MySQL is unreachable.
+- **`performance`** — `max-blocks-per-tick`, `engine-interval-ticks`, `preload-chunks`.
 - **`arena-defaults`** — defaults for new arenas (players, countdowns, lava Y-range, pvp, keep-inventory, hunger).
-- **`gameplay`** — `grace-period`, `pvp-after-height` (height-gated PvP), `auto-pickup`, `auto-smelt`, `acceleration`, `dynamic-speed`, `sudden-death`, `world-border`, `block-give`.
-- **`kits`** — any number of selectable loadouts (`icon` + `items`), chosen with `/lr kit`.
-- **`procedural`** — random/procedural arena generation.
+- **`gameplay`** — `grace-period`, `pvp-after-height` (height-gated PvP), `auto-pickup`, `auto-smelt`, `deny-mob-spawns` (block natural mob spawns in active arenas), `acceleration`, `dynamic-speed`, `sudden-death`, `world-border`, `block-give`.
+- **`kits`** — any number of selectable loadouts (`icon` + enchantable `items`), chosen with `/lr kit` or voted with `/lr vote`.
+- **`procedural`** — random/procedural arena generation (surface-rising lava, biome-aware placement).
+- **`auto-arena`** — fully autonomous rotation: `enabled`, `check-interval`, `auto-join`. Keeps one open arena ready at all times and recycles it after each match (requires `procedural`).
 - **`rewards`** — `win-commands` (`{winner}`,`{arena}`), `kill-commands` (`{killer}`,`{victim}`), `death-commands` (`{player}`).
 - **`modes`** — teams, survival radius/worlds, event broadcasts & Vault reward amount.
 - **`effects`** — boss bar, action bar, scoreboard, particles, sounds — each toggleable, with `update-interval` / `interval` cadence knobs.
