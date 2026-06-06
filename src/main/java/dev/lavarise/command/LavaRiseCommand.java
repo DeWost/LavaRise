@@ -343,6 +343,12 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
         if (args.length < 2) { msg(player, "<red>Usage: /lavarise create <name>"); return true; }
         String name = args[1];
+        // Arena names become file names — reject anything that could escape the
+        // arenas directory (path traversal) or break YAML keys.
+        if (!name.matches("[A-Za-z0-9_-]{1,32}")) {
+            msg(player, "<red>Invalid name. Use 1-32 letters, digits, '_' or '-' only.");
+            return true;
+        }
         if (plugin.getArenaRepository().getArena(name).isPresent()) {
             msg(player, "<red>An arena named <yellow>" + name + "</yellow> already exists.");
             return true;
