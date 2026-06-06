@@ -97,6 +97,8 @@ gameplay:
   # Quality-of-life: send mined drops straight to the inventory / auto-smelt ores.
   auto-pickup: false
   auto-smelt: false
+  # Block natural mob/animal spawns inside active arenas
+  deny-mob-spawns: true
 
   # Lava rises faster the longer the game runs.
   acceleration:

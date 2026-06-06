@@ -40,6 +40,7 @@ public final class ConfigManager {
     private int pvpAfterHeight;
     private boolean autoPickup;
     private boolean autoSmelt;
+    private boolean denyMobSpawns;
     private List<String> killCommands;
     private List<String> deathCommands;
     private int lavaRiseInterval;
@@ -164,6 +165,7 @@ public final class ConfigManager {
         this.pvpAfterHeight = config.getInt("gameplay.pvp-after-height", 0);
         this.autoPickup = config.getBoolean("gameplay.auto-pickup", false);
         this.autoSmelt = config.getBoolean("gameplay.auto-smelt", false);
+        this.denyMobSpawns = config.getBoolean("gameplay.deny-mob-spawns", true);
         this.killCommands = config.getStringList("rewards.kill-commands");
         this.deathCommands = config.getStringList("rewards.death-commands");
 
@@ -289,6 +291,7 @@ public final class ConfigManager {
     public int getPvpAfterHeight() { return pvpAfterHeight; }
     public boolean isAutoPickup() { return autoPickup; }
     public boolean isAutoSmelt() { return autoSmelt; }
+    public boolean isDenyMobSpawns() { return denyMobSpawns; }
     public List<String> getKillCommands() { return Collections.unmodifiableList(killCommands); }
     public List<String> getDeathCommands() { return Collections.unmodifiableList(deathCommands); }
     public int getLavaRiseInterval() { return lavaRiseInterval; }

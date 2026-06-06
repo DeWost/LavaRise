@@ -46,12 +46,16 @@ public final class ProceduralArenaFactory {
         final int cx = tx;
         final int cz = tz;
         final int r = cfg.getProceduralRadius();
-        final int startY = cfg.getProceduralLavaStartY();
-        final int maxY = cfg.getProceduralLavaMaxY();
 
-        // Spawn players on the surface above the random centre.
-        final int surfaceY = world.getHighestBlockYAt(cx, cz) + 1;
-        final Location spawn = new Location(world, cx + 0.5, Math.max(surfaceY, startY + 1), cz + 0.5);
+        // Lava rises from the TOP block (surface) upward — not from bedrock — so
+        // it threatens players immediately and the scoreboard height matches what
+        // they see. The rise span comes from the configured start/max distance.
+        final int surfaceY = world.getHighestBlockYAt(cx, cz);
+        final int riseHeight = Math.max(16, cfg.getProceduralLavaMaxY() - cfg.getProceduralLavaStartY());
+        final int startY = surfaceY;
+        final int maxY = Math.min(world.getMaxHeight() - 1, surfaceY + riseHeight);
+
+        final Location spawn = new Location(world, cx + 0.5, surfaceY + 1, cz + 0.5);
         final Location spectator = new Location(world, cx + 0.5, maxY + 5, cz + 0.5);
 
         final ArenaConfig config = new ArenaConfig(

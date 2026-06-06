@@ -111,6 +111,19 @@ public final class GameManager {
     }
 
     /**
+     * True if the location is horizontally inside any arena that has an active
+     * session (used to deny mob spawns inside arenas).
+     */
+    public boolean isInArenaBounds(org.bukkit.Location loc) {
+        for (Arena arena : arenas.values()) {
+            if (arena.getSession() != null && arena.getConfig().containsHorizontal(loc)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Check if a player is in any game.
      */
     public boolean isInGame(UUID playerId) {
