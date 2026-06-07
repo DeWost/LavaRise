@@ -31,6 +31,7 @@
 - [Quick Start](#-quick-start--create-an-arena)
 - [Commands](#-commands)
 - [Game Modes](#%EF%B8%8F-game-modes)
+- [The Match Flow](#-the-match-flow)
 - [Random & Procedural Arenas](#-random--procedural-arenas)
 - [Configuration](#%EF%B8%8F-configuration-highlights)
 - [PlaceholderAPI](#-placeholderapi)
@@ -152,6 +153,17 @@ Set per-arena via `game-mode`:
 - **`minigame`** — classic free-for-all, last player standing. Set `modes.minigame.teams-enabled: true` for **last-team-standing** play (auto-balanced teams, friendly fire off, every winning member credited).
 - **`admin_event`** — staff-run: `start / pause / resume / stop`, server-wide broadcasts, and an optional **Vault** reward for the winner. Pausing freezes the lava with continuous timing.
 - **`survival_challenge`** — world-wide rising lava around spawn (configurable radius); no arena needed, started with `/lr survival start`.
+
+## 🎬 The Match Flow
+
+Every match runs through a fully-signposted flow — each phase has its own HUD and feedback:
+
+1. **Lobby (fill phase)** — players join and get a **kit-vote compass** in hand. Once minimum players are present a **boss bar** counts down (`Starting in Ns — X/max`), letting latecomers in. It **fast-forwards when the arena fills** and aborts back to waiting if players drop below the minimum.
+2. **Countdown** — a tense per-second title + sound countdown; the boss-bar number flows straight into it (no jump).
+3. **Grace window** — players are teleported in, given the winning **kit**, and the arena is **sealed** (a per-player border keeps everyone inside). A green **`🛡 Grace: Xs`** boss bar counts down; lava is frozen and **PvP is locked** so everyone can gear up untouched.
+4. **Rising lava** — PvP opens with an announcement, the boss bar switches to the **lava height** bar, and the engine floods the arena from the surface up. Living players get a lava/alive/time **action bar** + a proximity warning; falling below the floor eliminates you (**void guard**).
+5. **Spectating** — eliminated players fly as spectators with their own **`👁 Spectating`** HUD, following the match live.
+6. **Results & reset** — a **top-3 podium** is broadcast and every player sees their **placement, survival time and kills**; fireworks for the winner; then the terrain is restored and the next match begins.
 
 ## 🎲 Random & Procedural Arenas
 

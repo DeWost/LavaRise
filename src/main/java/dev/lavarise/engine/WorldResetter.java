@@ -5,14 +5,12 @@ import dev.lavarise.arena.ArenaConfig;
 import dev.lavarise.core.LavaRisePlugin;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.scheduler.BukkitRunnable;
 import dev.lavarise.engine.nms.FastBlockSetter;
 import org.bukkit.Chunk;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.Arrays;
 
 /**
  * Handles clearing the lava from the arena after the game ends.
