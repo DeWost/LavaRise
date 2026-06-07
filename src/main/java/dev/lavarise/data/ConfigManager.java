@@ -70,6 +70,9 @@ public final class ConfigManager {
     private int suddenDeathInterval;
     private boolean worldBorderEnabled;
     private int worldBorderMinSize;
+    private boolean arenaBorderEnabled;
+    private boolean voidEliminationEnabled;
+    private int voidBuffer;
     private boolean blockGiveEnabled;
     private int blockGiveIntervalSeconds;
     private String blockGiveMaterial;
@@ -206,6 +209,11 @@ public final class ConfigManager {
         this.suddenDeathInterval = config.getInt("gameplay.sudden-death.interval", 10);
         this.worldBorderEnabled = config.getBoolean("gameplay.world-border.enabled", false);
         this.worldBorderMinSize = config.getInt("gameplay.world-border.min-size", 20);
+        // Per-arena containment: a per-player world border keeps players inside the
+        // arena bounds (works independently for every arena in the same world).
+        this.arenaBorderEnabled = config.getBoolean("gameplay.arena-border", true);
+        this.voidEliminationEnabled = config.getBoolean("gameplay.void-elimination", true);
+        this.voidBuffer = Math.max(0, config.getInt("gameplay.void-buffer", 5));
         this.blockGiveEnabled = config.getBoolean("gameplay.block-give.enabled", false);
         this.blockGiveIntervalSeconds = config.getInt("gameplay.block-give.interval", 15);
         this.blockGiveMaterial = config.getString("gameplay.block-give.material", "COBBLESTONE");
@@ -335,6 +343,9 @@ public final class ConfigManager {
     public int getSuddenDeathInterval() { return suddenDeathInterval; }
     public boolean isWorldBorderEnabled() { return worldBorderEnabled; }
     public int getWorldBorderMinSize() { return worldBorderMinSize; }
+    public boolean isArenaBorderEnabled() { return arenaBorderEnabled; }
+    public boolean isVoidEliminationEnabled() { return voidEliminationEnabled; }
+    public int getVoidBuffer() { return voidBuffer; }
     public boolean isBlockGiveEnabled() { return blockGiveEnabled; }
     public int getBlockGiveIntervalSeconds() { return blockGiveIntervalSeconds; }
     public String getBlockGiveMaterial() { return blockGiveMaterial; }

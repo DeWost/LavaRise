@@ -128,8 +128,23 @@ gameplay:
     # Rise interval during sudden death (ticks).
     interval: 10
 
+  # Keep players inside their arena. Each player gets a PER-PLAYER world border
+  # matching the arena footprint, so they physically can't walk out — and it
+  # works independently for every arena in the same world (unlike the shrinking
+  # world-border below, which is per-world). Strongly recommended: leave on.
+  arena-border: true
+
+  # Eliminate a player who drops below the arena floor (dug out, knocked into the
+  # void, or otherwise escaped under the map) so nobody can hide outside the arena.
+  void-elimination: true
+  # Blocks below the arena floor before the void guard triggers (fall-trajectory
+  # grace; protects against lag spikes at floor level).
+  void-buffer: 5
+
   # Shrink the world border toward the arena centre as the lava rises.
-  # Best on dedicated arena worlds (the border is per-world).
+  # Best on dedicated arena worlds (the border is per-world). NOTE: when
+  # arena-border is on, that per-player border is what contains players; this
+  # shrinking border is an additional effect for single-arena worlds.
   world-border:
     enabled: false
     # Smallest border size (blocks).

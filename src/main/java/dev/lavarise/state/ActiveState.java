@@ -55,6 +55,12 @@ public final class ActiveState implements GameState {
     private double originalBorderSize;
     private Location originalBorderCenter;
 
+    // Per-arena containment border (per-player) + void floor.
+    private double containCenterX;
+    private double containCenterZ;
+    private double containSize;
+    private int floorY;
+
     public ActiveState(LavaRisePlugin plugin, Arena arena, ArenaSession session) {
         this.plugin = plugin;
         this.arena = arena;
@@ -89,6 +95,15 @@ public final class ActiveState implements GameState {
 
         setupWorldBorder();
 
+        // Per-arena containment geometry: a square per-player border covering the
+        // whole arena footprint, and the void floor (the lowest corner, minus the
+        // configured buffer).
+        final var bounds = arena.getConfig();
+        this.containCenterX = (bounds.minX() + bounds.maxX()) / 2.0 + 0.5;
+        this.containCenterZ = (bounds.minZ() + bounds.maxZ()) / 2.0 + 0.5;
+        this.containSize = Math.max(bounds.width(), bounds.depth());
+        this.floorY = Math.min(bounds.corner1().getBlockY(), bounds.corner2().getBlockY());
+
         for (UUID uuid : session.getAlivePlayers()) {
             Player p = plugin.getServer().getPlayer(uuid);
             if (p == null || !p.isOnline()) continue;
@@ -98,6 +113,7 @@ public final class ActiveState implements GameState {
             if (arena.getConfig().gameSpawn() != null) {
                 p.teleport(arena.getConfig().gameSpawn());
             }
+            applyArenaBorder(p);
             p.setFireTicks(0);
             p.setHealth(p.getMaxHealth());
             p.setFoodLevel(20);
@@ -144,6 +160,7 @@ public final class ActiveState implements GameState {
 
     @Override
     public void onPlayerLeave(Player player) {
+        clearArenaBorder(player);
         plugin.getBossBarModule().removeFor(player);
         plugin.getScoreboardModule().cleanup(player);
         plugin.getScoreboardModule().updateScoreboard(session);
@@ -385,9 +402,26 @@ public final class ActiveState implements GameState {
         }
         final String warnTemplate = plugin.getConfigManager().getMessage("player.warning-lava-close");
 
+        // Vertical containment: anyone who drops below the arena floor (dug out or
+        // knocked into the void) is eliminated so they can't hide under the map.
+        final boolean voidGuard = cfg.isVoidEliminationEnabled();
+        final double voidY = floorY - cfg.getVoidBuffer();
+
         for (UUID uuid : session.getAlivePlayers()) {
             Player p = plugin.getServer().getPlayer(uuid);
             if (p == null || !p.isOnline()) continue;
+
+            if (voidGuard && p.getLocation().getY() < voidY) {
+                session.eliminatePlayer(p);
+                // Distinct from the lava-death title so players know why (shown
+                // last, overriding the generic elimination title from the same tick).
+                p.showTitle(net.kyori.adventure.title.Title.title(
+                        plugin.getMiniMessage().deserialize("<red><bold>OUT OF BOUNDS!</bold>"),
+                        plugin.getMiniMessage().deserialize("<gray>You fell out of the arena!"),
+                        net.kyori.adventure.title.Title.Times.times(
+                                Duration.ofMillis(200), Duration.ofSeconds(2), Duration.ofMillis(500))));
+                continue;
+            }
 
             if (warnDistance > 0) {
                 int delta = p.getLocation().getBlockY() - lavaY;
@@ -459,6 +493,30 @@ public final class ActiveState implements GameState {
         if (originalBorderCenter != null) border.setCenter(originalBorderCenter);
         border.setSize(originalBorderSize);
         borderModified = false;
+    }
+
+    // ── Per-arena containment ───────────────────────────────
+
+    /**
+     * Give the player a per-player world border matching the arena footprint, so
+     * they physically cannot walk out of the arena. Per-player borders are
+     * independent, so every arena in the same world is contained separately.
+     */
+    private void applyArenaBorder(Player p) {
+        if (!cfg.isArenaBorderEnabled()) return;
+        final WorldBorder wb = plugin.getServer().createWorldBorder();
+        wb.setCenter(containCenterX, containCenterZ);
+        wb.setSize(containSize);
+        wb.setWarningDistance(2);
+        wb.setDamageAmount(0.0); // the border just blocks movement; no edge damage
+        wb.setDamageBuffer(0.0);
+        p.setWorldBorder(wb);
+    }
+
+    /** Restore the player's view of the world's own border. */
+    private void clearArenaBorder(Player p) {
+        if (!cfg.isArenaBorderEnabled()) return;
+        p.setWorldBorder(null);
     }
 
     // ── Helpers ─────────────────────────────────────────────

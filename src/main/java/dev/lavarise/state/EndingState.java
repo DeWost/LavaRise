@@ -106,6 +106,7 @@ public final class EndingState implements GameState {
         for (UUID uuid : session.getAllPlayerIds()) {
             Player p = plugin.getServer().getPlayer(uuid);
             if (p != null && p.isOnline()) {
+                p.setWorldBorder(null); // restore the world's own border
                 p.setGameMode(GameMode.SURVIVAL);
                 if (arena.getConfig().lobbySpawn() != null) {
                     p.teleport(arena.getConfig().lobbySpawn());
