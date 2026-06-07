@@ -61,6 +61,10 @@ class LobbyStateTest {
         when(arenaConfig.maxPlayers()).thenReturn(10);
         when(arenaConfig.minPlayers()).thenReturn(2);
         when(session.getAllPlayerIds()).thenReturn(Collections.emptySet());
+        // The lobby boss bar is created via the server; stub it.
+        when(plugin.getServer()).thenReturn(server);
+        when(server.createBossBar(any(), any(), any()))
+                .thenReturn(mock(org.bukkit.boss.BossBar.class));
 
         lobbyState.onPlayerJoin(player);
         
