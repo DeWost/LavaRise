@@ -47,6 +47,8 @@ public final class ActiveState implements GameState {
     private int graceTicksLeft = 0;
     private int currentInterval;
     private int engineInterval = 1;
+    /** Last lava height pushed to the HUD; drives flicker-free, in-sync refreshes. */
+    private int lastDisplayedLavaY = Integer.MIN_VALUE;
 
     // World border state to restore on exit.
     private boolean borderModified = false;
@@ -108,6 +110,9 @@ public final class ActiveState implements GameState {
 
         session.getModeHandler().onGameStart(arena, session);
 
+        // Seed the HUD baseline so the first in-tick refresh only fires once the
+        // lava actually rises (no spurious "height 0" pulse when the game starts).
+        this.lastDisplayedLavaY = session.getCurrentLavaY();
         plugin.getScoreboardModule().updateScoreboard(session);
         plugin.getBossBarModule().updateFor(session);
 
@@ -192,10 +197,28 @@ public final class ActiveState implements GameState {
 
         currentInterval = computeInterval();
 
+        // Commit the next rise on schedule — this advances the engine's target
+        // only; session.currentLavaY does not move until the fill catches up.
         if (tickCounter % currentInterval == 0) {
             lavaEngine.riseLava();
-            int lavaY = session.getCurrentLavaY();
+        }
 
+        // Fill lava + flush chunk packets on the engine cadence (every N ticks,
+        // N× budget) — same blocks/sec with fewer passes and packets. This is the
+        // step that actually advances session.currentLavaY.
+        if (tickCounter % engineInterval == 0) {
+            lavaEngine.processBatch();
+        }
+
+        // Refresh the lava HUD the instant the *real* height changes — after the
+        // fill, never before it. Driving this off the actual height (rather than
+        // the rise-schedule tick) keeps the scoreboard / boss bar in exact lockstep
+        // with the blocks just placed, no matter how the rise and fill cadences
+        // line up. Previously the HUD updated before processBatch ran, so it sat a
+        // full level behind the lava players could see.
+        final int lavaY = session.getCurrentLavaY();
+        if (lavaY != lastDisplayedLavaY) {
+            lastDisplayedLavaY = lavaY;
             plugin.getScoreboardModule().updateScoreboard(session);
             plugin.getBossBarModule().updateFor(session);
             shrinkWorldBorder();
@@ -207,12 +230,6 @@ public final class ActiveState implements GameState {
                 Player p = plugin.getServer().getPlayer(uuid);
                 if (p != null) playSound(p, cfg.getSoundLavaRise(), 0.5f, 0.8f);
             }
-        }
-
-        // Fill lava + flush chunk packets on the engine cadence (every N ticks,
-        // N× budget) — same blocks/sec with fewer passes and packets.
-        if (tickCounter % engineInterval == 0) {
-            lavaEngine.processBatch();
         }
 
         // Cosmetic updates at configurable cadences (raise the intervals to
