@@ -5,7 +5,6 @@ import dev.lavarise.arena.ArenaSession;
 import dev.lavarise.core.LavaRisePlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
@@ -103,9 +102,12 @@ public final class LobbyState implements GameState {
             playSound(player, "block.note_block.pling");
         }
 
-        // Latecomer joins the running lobby bar; otherwise (re)evaluate the start.
-        if (lobbyBar != null) lobbyBar.addPlayer(player);
+        // Show the lobby bar to the joiner, then (re)evaluate the start. While
+        // still below the minimum the bar shows a "waiting for players" status.
+        ensureBar();
+        lobbyBar.addPlayer(player);
         checkMinPlayers();
+        if (lobbyTicks < 0) showWaiting();
     }
 
     @Override
@@ -120,9 +122,14 @@ public final class LobbyState implements GameState {
 
         // Dropped below the minimum mid-countdown → abort and keep waiting.
         if (lobbyTicks >= 0 && session.getAliveCount() < arena.getConfig().minPlayers()) {
-            stopLobbyCountdown();
+            stopCounting();
             broadcastToArena(plugin.getMiniMessage().deserialize(
                     "<yellow>Not enough players — waiting again..."));
+        }
+        if (session.getAliveCount() == 0) {
+            stopLobbyCountdown();
+        } else if (lobbyTicks < 0) {
+            showWaiting();
         }
     }
 
@@ -152,11 +159,8 @@ public final class LobbyState implements GameState {
 
     private void startLobbyCountdown() {
         this.lobbyTicks = Math.max(1, arena.getConfig().lobbyCountdown());
-        this.lobbyBar = Bukkit.createBossBar("Starting…", BarColor.GREEN, BarStyle.SOLID);
-        for (var uuid : session.getAllPlayerIds()) {
-            final Player p = plugin.getServer().getPlayer(uuid);
-            if (p != null && p.isOnline()) lobbyBar.addPlayer(p);
-        }
+        ensureBar();
+        lobbyBar.setColor(BarColor.GREEN);
 
         final int lobbyTotal = lobbyTicks;
         final int gameCountdown = Math.max(1, arena.getConfig().gameCountdown());
@@ -191,16 +195,39 @@ public final class LobbyState implements GameState {
         lobbyTask.runTaskTimer(plugin, 0L, 20L);
     }
 
-    private void stopLobbyCountdown() {
+    /** Lazily create the shared lobby boss bar (reused across waiting → counting). */
+    private void ensureBar() {
+        if (lobbyBar == null) {
+            lobbyBar = plugin.getServer().createBossBar("Waiting…", BarColor.YELLOW, BarStyle.SOLID);
+        }
+    }
+
+    /** Ambient "waiting for players" bar shown before the minimum is reached. */
+    private void showWaiting() {
+        ensureBar();
+        final int min = Math.max(1, arena.getConfig().minPlayers());
+        final int alive = session.getAliveCount();
+        lobbyBar.setColor(BarColor.YELLOW);
+        lobbyBar.setTitle("Waiting for players — " + alive + "/" + min + " to start");
+        lobbyBar.setProgress(Math.max(0.0, Math.min(1.0, (double) alive / min)));
+    }
+
+    /** Stop the filling countdown but keep the bar (we may fall back to waiting). */
+    private void stopCounting() {
         if (lobbyTask != null) {
             lobbyTask.cancel();
             lobbyTask = null;
         }
+        lobbyTicks = -1;
+    }
+
+    /** Full teardown — stop counting and remove the bar (state exit / empty lobby). */
+    private void stopLobbyCountdown() {
+        stopCounting();
         if (lobbyBar != null) {
             lobbyBar.removeAll();
             lobbyBar = null;
         }
-        lobbyTicks = -1;
     }
 
     private void broadcastToArena(Component message) {
