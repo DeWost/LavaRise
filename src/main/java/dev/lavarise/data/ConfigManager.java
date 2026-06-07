@@ -38,6 +38,7 @@ public final class ConfigManager {
     private int engineIntervalTicks;
     private boolean preloadChunks;
     private int pvpAfterHeight;
+    private boolean pvpDuringGrace;
     private boolean autoPickup;
     private boolean autoSmelt;
     private boolean denyMobSpawns;
@@ -167,6 +168,8 @@ public final class ConfigManager {
 
         // Gameplay QoL / rules
         this.pvpAfterHeight = config.getInt("gameplay.pvp-after-height", 0);
+        // PvP stays locked through the start-of-game grace window unless explicitly allowed.
+        this.pvpDuringGrace = config.getBoolean("gameplay.pvp-during-grace", false);
         this.autoPickup = config.getBoolean("gameplay.auto-pickup", false);
         this.autoSmelt = config.getBoolean("gameplay.auto-smelt", false);
         this.denyMobSpawns = config.getBoolean("gameplay.deny-mob-spawns", true);
@@ -296,6 +299,7 @@ public final class ConfigManager {
     public int getEngineIntervalTicks() { return engineIntervalTicks; }
     public boolean isPreloadChunks() { return preloadChunks; }
     public int getPvpAfterHeight() { return pvpAfterHeight; }
+    public boolean isPvpDuringGrace() { return pvpDuringGrace; }
     public boolean isAutoPickup() { return autoPickup; }
     public boolean isAutoSmelt() { return autoSmelt; }
     public boolean isDenyMobSpawns() { return denyMobSpawns; }

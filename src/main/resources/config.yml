@@ -87,8 +87,13 @@ arena-defaults:
 # ─── Gameplay Rules ──────────────────────────────────────────
 gameplay:
   # Seconds at the start of a game before the lava begins to rise.
-  # Lets players gear up and build. 0 = disabled.
-  grace-period: 10
+  # Lets players gear up and build. 0 = disabled. PvP stays locked for this whole
+  # window (see pvp-during-grace) and opens with an announcement when it ends.
+  grace-period: 30
+
+  # Allow PvP during the grace period above. false (default) = players can't fight
+  # until the grace window ends and the lava starts rising — a fair gear-up phase.
+  pvp-during-grace: false
 
   # PvP is only enabled once the lava has risen this many blocks (KteRising-style
   # height gate). 0 = PvP follows the arena's pvp flag with no height gate.

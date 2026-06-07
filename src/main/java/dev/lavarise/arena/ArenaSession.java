@@ -50,6 +50,9 @@ public final class ArenaSession {
     private volatile boolean paused = false;
     private long pauseStart = 0L;
 
+    /** Whether PvP is currently allowed. Locked during the start-of-game grace window. */
+    private volatile boolean pvpUnlocked = true;
+
     /** Current lava Y-level */
     private int currentLavaY;
 
@@ -109,6 +112,16 @@ public final class ArenaSession {
         kitVotes.put(playerId, kitKey);
     }
 
+    /** The kit key this player voted for, or null if they haven't voted. */
+    public String getVote(UUID playerId) {
+        return kitVotes.get(playerId);
+    }
+
+    /** Total number of players who have cast a vote. */
+    public int voteCount() {
+        return kitVotes.size();
+    }
+
     public Map<String, Integer> voteTally() {
         final Map<String, Integer> tally = new HashMap<>();
         for (String kit : kitVotes.values()) tally.merge(kit, 1, Integer::sum);
@@ -125,6 +138,17 @@ public final class ArenaSession {
             if (e.getValue() == max) winners.add(e.getKey());
         }
         return winners.get(java.util.concurrent.ThreadLocalRandom.current().nextInt(winners.size()));
+    }
+
+    // ── PvP gate (grace window) ─────────────────────────────
+
+    /** True once the start-of-game grace window has elapsed (or if PvP isn't gated). */
+    public boolean isPvpUnlocked() {
+        return pvpUnlocked;
+    }
+
+    public void setPvpUnlocked(boolean unlocked) {
+        this.pvpUnlocked = unlocked;
     }
 
     // ── Pause (admin event) ─────────────────────────────────

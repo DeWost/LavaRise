@@ -64,15 +64,30 @@ public final class LobbyState implements GameState {
         plugin.getScoreboardModule().setupScoreboard(player, session);
         plugin.getScoreboardModule().updateScoreboard(session);
 
-        // Lobby compass — right-click opens the kit-vote menu.
+        // Lobby compass — right-click opens the kit-vote menu. Put it in the
+        // player's hand and prompt them so voting is impossible to miss.
         if (plugin.getKitManager() != null && plugin.getKitManager().hasKits()) {
             final ItemStack compass = new ItemStack(Material.COMPASS);
             final ItemMeta meta = compass.getItemMeta();
             if (meta != null) {
-                meta.displayName(plugin.getMiniMessage().deserialize("<yellow><bold>Vote / Kit Menu</bold></yellow>"));
+                meta.displayName(plugin.getMiniMessage().deserialize(
+                        "<gradient:yellow:gold><bold>✦ Kit Voting ✦</bold></gradient>"));
+                meta.lore(java.util.List.of(
+                        plugin.getMiniMessage().deserialize("<gray>Right-click to <yellow>vote</yellow> for the"),
+                        plugin.getMiniMessage().deserialize("<gray>kit the whole lobby will play."),
+                        plugin.getMiniMessage().deserialize("<dark_gray>The winning kit is given to everyone.")));
+                meta.addEnchant(org.bukkit.enchantments.Enchantment.UNBREAKING, 1, true);
+                meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS,
+                        org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES);
                 compass.setItemMeta(meta);
             }
             player.getInventory().setItem(4, compass);
+            player.getInventory().setHeldItemSlot(4);
+
+            player.sendMessage(plugin.getMiniMessage().deserialize(
+                    "<gold>✦ <yellow>Kit voting is open!</yellow> Right-click the "
+                            + "<gold>compass</gold> to pick your loadout."));
+            playSound(player, "block.note_block.pling");
         }
 
         // Check if we have enough players to start countdown
@@ -119,6 +134,14 @@ public final class LobbyState implements GameState {
             if (p != null && p.isOnline()) {
                 p.sendMessage(message);
             }
+        }
+    }
+
+    private void playSound(Player player, String sound) {
+        try {
+            player.playSound(player.getLocation(), sound, 0.7f, 1.4f);
+        } catch (Exception ignored) {
+            // Invalid sound key — ignore.
         }
     }
 }

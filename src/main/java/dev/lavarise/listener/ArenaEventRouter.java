@@ -135,6 +135,11 @@ public class ArenaEventRouter implements Listener {
                 event.setCancelled(true);
                 return;
             }
+            // Grace-window gate: no fighting until the start-of-game grace ends.
+            if (!session.isPvpUnlocked()) {
+                event.setCancelled(true);
+                return;
+            }
             // Height-gated PvP: no fighting until the lava has risen enough.
             final int pvpAfter = plugin.getConfigManager().getPvpAfterHeight();
             if (pvpAfter > 0 && session.getLavaHeight() < pvpAfter) {
