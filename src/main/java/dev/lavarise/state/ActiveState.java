@@ -49,6 +49,8 @@ public final class ActiveState implements GameState {
     private int engineInterval = 1;
     /** Last lava height pushed to the HUD; drives flicker-free, in-sync refreshes. */
     private int lastDisplayedLavaY = Integer.MIN_VALUE;
+    /** True once the final-showdown climax has fired (only once per game). */
+    private boolean showdownTriggered = false;
 
     // World border state to restore on exit.
     private boolean borderModified = false;
@@ -202,7 +204,32 @@ public final class ActiveState implements GameState {
         plugin.getScoreboardModule().updateScoreboard(session);
         broadcastToArena(plugin.getMiniMessage().deserialize(
                 "<red>☠ " + player.getName() + " <gray>eliminated! <dark_gray>(" + session.getAliveCount() + " alive)"));
+        maybeTriggerShowdown();
         checkWinCondition();
+    }
+
+    /**
+     * Fire the final-showdown climax once, when the field narrows to the configured
+     * count (default 2): announce it, make the survivors glow so they can find each
+     * other for the finish, and play a dramatic cue.
+     */
+    private void maybeTriggerShowdown() {
+        if (showdownTriggered || !cfg.isFinalShowdownEnabled()) return;
+        final int alive = session.getAliveCount();
+        if (alive < 2 || alive > cfg.getFinalShowdownPlayers()) return;
+        showdownTriggered = true;
+
+        final java.util.List<String> names = new java.util.ArrayList<>();
+        for (UUID uuid : session.getAlivePlayers()) {
+            Player p = plugin.getServer().getPlayer(uuid);
+            if (p == null || !p.isOnline()) continue;
+            p.setGlowing(true);
+            playSound(p, "entity.ender_dragon.growl", 1.0f, 0.8f);
+            names.add(p.getName());
+        }
+        broadcastToArena(plugin.getMiniMessage().deserialize("<red><bold>⚔ FINAL SHOWDOWN! ⚔</bold>"));
+        broadcastToArena(plugin.getMiniMessage().deserialize(
+                "<gray>Last standing: <yellow>" + String.join(" <gray>vs <yellow>", names)));
     }
 
     @Override public boolean isJoinable() { return false; }

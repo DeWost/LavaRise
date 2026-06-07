@@ -45,6 +45,8 @@ public final class ConfigManager {
     private boolean killstreaksEnabled;
     private boolean combatLogProtect;
     private int combatTagSeconds;
+    private boolean finalShowdownEnabled;
+    private int finalShowdownPlayers;
     private boolean supplyDropsEnabled;
     private int supplyDropInterval;
     private int supplyDropFirstDelay;
@@ -190,6 +192,8 @@ public final class ConfigManager {
         this.killstreaksEnabled = config.getBoolean("gameplay.killstreaks", true);
         this.combatLogProtect = config.getBoolean("gameplay.combat-log-protect", true);
         this.combatTagSeconds = Math.max(1, config.getInt("gameplay.combat-tag-seconds", 10));
+        this.finalShowdownEnabled = config.getBoolean("gameplay.final-showdown.enabled", true);
+        this.finalShowdownPlayers = Math.max(2, config.getInt("gameplay.final-showdown.players", 2));
         this.supplyDropsEnabled = config.getBoolean("gameplay.supply-drops.enabled", false);
         this.supplyDropInterval = Math.max(5, config.getInt("gameplay.supply-drops.interval", 45));
         this.supplyDropFirstDelay = Math.max(0, config.getInt("gameplay.supply-drops.first-delay", 30));
@@ -335,6 +339,8 @@ public final class ConfigManager {
     public boolean isKillstreaksEnabled() { return killstreaksEnabled; }
     public boolean isCombatLogProtect() { return combatLogProtect; }
     public int getCombatTagSeconds() { return combatTagSeconds; }
+    public boolean isFinalShowdownEnabled() { return finalShowdownEnabled; }
+    public int getFinalShowdownPlayers() { return finalShowdownPlayers; }
     public boolean isSupplyDropsEnabled() { return supplyDropsEnabled; }
     public int getSupplyDropInterval() { return supplyDropInterval; }
     public int getSupplyDropFirstDelay() { return supplyDropFirstDelay; }
