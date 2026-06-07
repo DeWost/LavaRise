@@ -298,7 +298,53 @@ public final class ActiveState implements GameState {
             giveBlocks();
         }
 
+        // Supply drops (battle-royale loot) on a fixed cadence after the first delay.
+        if (cfg.isSupplyDropsEnabled()) {
+            final int firstTicks = cfg.getSupplyDropFirstDelay() * 20;
+            final int intervalTicks = Math.max(20, cfg.getSupplyDropInterval() * 20);
+            if (tickCounter >= firstTicks && (tickCounter - firstTicks) % intervalTicks == 0) {
+                dropSupply();
+            }
+        }
+
         if (session.isLavaAtMax()) endGame(null);
+    }
+
+    /**
+     * Drop a single supply chest at a random reachable spot above the lava, fill
+     * it with the configured loot and announce it. Isolated in a try/catch so a
+     * placement failure can never break the game loop; the chest is tracked on the
+     * session and removed when the game ends.
+     */
+    private void dropSupply() {
+        final java.util.List<String> loot = cfg.getSupplyDropItems();
+        if (loot.isEmpty()) return;
+        try {
+            final var c = arena.getConfig();
+            final World world = c.world();
+            final int x = java.util.concurrent.ThreadLocalRandom.current().nextInt(c.minX(), c.maxX() + 1);
+            final int z = java.util.concurrent.ThreadLocalRandom.current().nextInt(c.minZ(), c.maxZ() + 1);
+            final int y = Math.min(c.lavaMaxY() - 1, session.getCurrentLavaY() + 2);
+            final Location loc = new Location(world, x, y, z);
+            final org.bukkit.block.Block block = world.getBlockAt(loc);
+            block.setType(Material.CHEST, false);
+            if (block.getState() instanceof org.bukkit.block.Chest chest) {
+                for (String entry : loot) {
+                    ItemStack item = parseItem(entry);
+                    if (item != null) chest.getInventory().addItem(item);
+                }
+                chest.update();
+            }
+            session.addSupplyDrop(loc);
+            broadcastToArena(plugin.getMiniMessage().deserialize(
+                    "<aqua>📦 <white>A supply drop landed at <yellow>" + x + ", " + y + ", " + z + "</yellow>!"));
+            for (UUID uuid : session.getAlivePlayers()) {
+                Player p = plugin.getServer().getPlayer(uuid);
+                if (p != null) playSound(p, "entity.firework_rocket.large_blast", 0.8f, 1.0f);
+            }
+        } catch (Throwable t) {
+            plugin.getLogger().warning("Supply drop failed: " + t.getMessage());
+        }
     }
 
     /**

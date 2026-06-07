@@ -69,6 +69,10 @@ public final class ArenaSession {
     /** Combat tag expiry per player — for combat-log protection. */
     private final Map<UUID, Long> combatTagUntil = new ConcurrentHashMap<>();
 
+    /** Live supply-drop chest locations, cleaned up when the game ends. */
+    private final List<org.bukkit.Location> supplyDrops =
+            java.util.Collections.synchronizedList(new ArrayList<>());
+
     /** Whether the game loop is paused (admin event mode). */
     private volatile boolean paused = false;
     private long pauseStart = 0L;
@@ -216,6 +220,19 @@ public final class ArenaSession {
     public boolean isCombatTagged(UUID playerId) {
         final Long until = combatTagUntil.get(playerId);
         return until != null && until > System.currentTimeMillis();
+    }
+
+    // ── Supply drops ────────────────────────────────────────
+
+    public void addSupplyDrop(org.bukkit.Location loc) {
+        supplyDrops.add(loc);
+    }
+
+    /** Snapshot copy of live supply-drop locations (for cleanup at game end). */
+    public List<org.bukkit.Location> getSupplyDrops() {
+        synchronized (supplyDrops) {
+            return new ArrayList<>(supplyDrops);
+        }
     }
 
     /** Seconds the player survived (their elimination time, or the live elapsed

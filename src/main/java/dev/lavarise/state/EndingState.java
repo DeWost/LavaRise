@@ -162,6 +162,16 @@ public final class EndingState implements GameState {
             plugin.getGameManager().unmapPlayer(uuid);
         }
 
+        // Remove any live supply-drop chests (block-entities) before the bulk
+        // reset so no chest leaks past the game.
+        for (org.bukkit.Location drop : session.getSupplyDrops()) {
+            try {
+                if (drop.getWorld() != null) drop.getBlock().setType(org.bukkit.Material.AIR, false);
+            } catch (Throwable ignored) {
+                // Chunk unloaded / already cleared — fine.
+            }
+        }
+
         // Reset world blocks (skipped for world-wide survival, which is not snapshotted)
         if (session.getModeHandler().shouldSnapshot()) {
             WorldResetter.resetArena(plugin, arena);
