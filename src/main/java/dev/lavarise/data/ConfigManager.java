@@ -45,6 +45,10 @@ public final class ConfigManager {
     private boolean killstreaksEnabled;
     private boolean combatLogProtect;
     private int combatTagSeconds;
+    private boolean supplyDropsEnabled;
+    private int supplyDropInterval;
+    private int supplyDropFirstDelay;
+    private List<String> supplyDropItems;
     private int bountyThreshold;
     private int bountyPerStreak;
     private List<String> bountyCommands;
@@ -186,6 +190,10 @@ public final class ConfigManager {
         this.killstreaksEnabled = config.getBoolean("gameplay.killstreaks", true);
         this.combatLogProtect = config.getBoolean("gameplay.combat-log-protect", true);
         this.combatTagSeconds = Math.max(1, config.getInt("gameplay.combat-tag-seconds", 10));
+        this.supplyDropsEnabled = config.getBoolean("gameplay.supply-drops.enabled", false);
+        this.supplyDropInterval = Math.max(5, config.getInt("gameplay.supply-drops.interval", 45));
+        this.supplyDropFirstDelay = Math.max(0, config.getInt("gameplay.supply-drops.first-delay", 30));
+        this.supplyDropItems = config.getStringList("gameplay.supply-drops.items");
         this.bountyThreshold = Math.max(2, config.getInt("gameplay.bounty.threshold", 3));
         this.bountyPerStreak = Math.max(0, config.getInt("gameplay.bounty.per-streak", 100));
         this.bountyCommands = config.getStringList("gameplay.bounty.commands");
@@ -327,6 +335,10 @@ public final class ConfigManager {
     public boolean isKillstreaksEnabled() { return killstreaksEnabled; }
     public boolean isCombatLogProtect() { return combatLogProtect; }
     public int getCombatTagSeconds() { return combatTagSeconds; }
+    public boolean isSupplyDropsEnabled() { return supplyDropsEnabled; }
+    public int getSupplyDropInterval() { return supplyDropInterval; }
+    public int getSupplyDropFirstDelay() { return supplyDropFirstDelay; }
+    public List<String> getSupplyDropItems() { return Collections.unmodifiableList(supplyDropItems); }
     public int getBountyThreshold() { return bountyThreshold; }
     public int getBountyPerStreak() { return bountyPerStreak; }
     public List<String> getBountyCommands() { return Collections.unmodifiableList(bountyCommands); }

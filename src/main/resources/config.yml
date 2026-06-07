@@ -112,6 +112,20 @@ gameplay:
   # keeps you tagged.
   combat-log-protect: true
   combat-tag-seconds: 10
+
+  # Supply drops: periodically drop a loot chest just above the lava (battle-royale
+  # style) to create reasons to fight. Chests are auto-removed when the game ends.
+  supply-drops:
+    enabled: false
+    # Seconds before the first drop, then between drops.
+    first-delay: 30
+    interval: 45
+    # Loot placed in each chest. Format: MATERIAL:AMOUNT[:ENCHANT:LEVEL...]
+    items:
+      - "GOLDEN_APPLE:2"
+      - "DIAMOND_SWORD:1:sharpness:2"
+      - "COBBLESTONE:64"
+      - "ARROW:16"
   # Bounties: a player who reaches this many kills has a bounty on their head;
   # whoever eliminates them claims it (announced to the arena).
   bounty:
