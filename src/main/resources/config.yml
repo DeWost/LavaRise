@@ -389,6 +389,12 @@ effects:
   scoreboard:
     enabled: true
 
+  # A particle burst where a player is eliminated.
+  death-effect:
+    enabled: true
+    # Particle: LAVA, FLAME, EXPLOSION, SMOKE, CLOUD, …
+    particle: LAVA
+
   # Particle effects on lava surface
   particles:
     enabled: true
