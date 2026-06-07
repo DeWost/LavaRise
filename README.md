@@ -229,6 +229,8 @@ With PlaceholderAPI installed:
 |---|---|
 | `%lavarise_wins%` · `%lavarise_games%` · `%lavarise_kills%` · `%lavarise_deaths%` | Player stats |
 | `%lavarise_best_time%` · `%lavarise_winrate%` | Best survival time · win-rate % |
+| `%lavarise_session_kills%` · `%lavarise_session_survived%` | **This match:** the player's kills · seconds survived |
+| `%lavarise_session_status%` | This match: `Alive` / `Spectating` (empty if not in a game) |
 | `%lavarise_players_alive_<arena>%` | Players alive in an arena |
 | `%lavarise_state_<arena>%` | Arena state (Waiting / Active / …) |
 | `%lavarise_lava_level_<arena>%` | Lava **height** (blocks risen) |
