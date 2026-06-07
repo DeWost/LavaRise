@@ -5,7 +5,6 @@ import dev.lavarise.arena.ArenaSession;
 import dev.lavarise.core.LavaRisePlugin;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import dev.lavarise.engine.nms.FastBlockSetter;
 import org.bukkit.Chunk;
