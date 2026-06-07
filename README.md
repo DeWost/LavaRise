@@ -190,7 +190,7 @@ Everything lives in `config.yml` (fully commented). Key sections:
 - **`storage`** — stats backend: `yaml` (zero-setup, default) or `mysql` (network-wide, shared across a proxy) with `sync-interval` and connection settings; auto-falls back to YAML if MySQL is unreachable.
 - **`performance`** — `max-blocks-per-tick`, `engine-interval-ticks`, `preload-chunks`.
 - **`arena-defaults`** — defaults for new arenas (players, countdowns, lava Y-range, pvp, keep-inventory, hunger).
-- **`gameplay`** — `grace-period`, `pvp-after-height` (height-gated PvP), `auto-pickup`, `auto-smelt`, `deny-mob-spawns` (block natural mob spawns in active arenas), `acceleration`, `dynamic-speed`, `sudden-death`, `world-border`, `block-give`.
+- **`gameplay`** — `grace-period`, `pvp-during-grace`, `pvp-after-height` (height-gated PvP), `auto-pickup`, `auto-smelt`, `deny-mob-spawns`, `arena-border` (per-player border that keeps players inside each arena — works independently per arena), `void-elimination` + `void-buffer` (out-of-bounds guard), `acceleration`, `dynamic-speed`, `sudden-death`, `world-border`, `block-give`.
 - **`kits`** — any number of selectable loadouts (`icon` + enchantable `items`), chosen with `/lr kit` or voted with `/lr vote`.
 - **`procedural`** — random/procedural arena generation (surface-rising lava, biome-aware placement).
 - **`auto-arena`** — fully autonomous rotation: `enabled`, `check-interval`, `auto-join`. Keeps one open arena ready at all times and recycles it after each match (requires `procedural`).
