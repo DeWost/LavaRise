@@ -53,7 +53,10 @@ public final class KitManager {
                 ItemStack item = parseItem(entry);
                 if (item != null) items.add(item);
             }
-            kits.put(key, new Kit(key, label, icon, items));
+            // KteRising-style per-kit countdown (seconds before the lava rises).
+            // -1 = use the global gameplay.grace-period.
+            final int countdown = plugin.getConfig().getInt(base + ".countdown", -1);
+            kits.put(key, new Kit(key, label, icon, items, countdown));
             order.add(key);
         }
         plugin.debug("Loaded " + kits.size() + " kit(s).");
@@ -145,6 +148,7 @@ public final class KitManager {
         return m != null ? m : fallback;
     }
 
-    /** An immutable kit definition. */
-    public record Kit(String name, String label, Material icon, List<ItemStack> items) {}
+    /** An immutable kit definition. {@code countdown} = seconds before the lava
+     * rises (KteRising style); -1 means use the global grace period. */
+    public record Kit(String name, String label, Material icon, List<ItemStack> items, int countdown) {}
 }

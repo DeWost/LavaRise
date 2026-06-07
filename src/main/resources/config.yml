@@ -201,57 +201,88 @@ auto-arena:
   # Also pull online players who aren't in a game into the open arena.
   auto-join: false
 
-# ─── Kits / Loadouts ─────────────────────────────────────────
-# Players choose a kit with /lr kit; the chosen kit is given at game start.
-# If this section is empty, the single gameplay.kit above is used instead.
-# Each kit: icon (GUI item) + items (MATERIAL:AMOUNT). label is optional.
-# Item format: MATERIAL:AMOUNT[:ENCHANT:LEVEL...]  (levels may exceed vanilla caps)
+# ─── Kits / Loadouts (KteRising parity) ──────────────────────
+# Players vote for a kit in the lobby (/lr vote or the compass); the winning kit
+# is given to everyone at game start. KteRising's 7 kits are reproduced below.
+#   icon      — GUI item shown in the vote menu
+#   countdown — seconds before the lava rises for this kit (KteRising style):
+#               "fair" kits get a long build (600), OP kits start fast (30).
+#               -1 = use the global gameplay.grace-period instead.
+#   items     — MATERIAL:AMOUNT[:ENCHANT:LEVEL...] (levels may exceed vanilla caps)
 kits:
   classic:
     label: "<gray>Classic"
     icon: NETHERITE_PICKAXE
+    countdown: 600
     items:
-      - "NETHERITE_PICKAXE:1:efficiency:3:unbreaking:3"
-      - "COBBLESTONE:64"
-      - "OAK_LOG:64"
+      - "NETHERITE_PICKAXE:1:efficiency:5"
       - "COOKED_BEEF:16"
+      - "OAK_LOG:16"
   op:
     label: "<red><bold>OP"
     icon: DIAMOND
+    countdown: 30
     items:
-      - "DIAMOND_PICKAXE:1:efficiency:5:unbreaking:3"
+      - "NETHERITE_PICKAXE:1:efficiency:5"
+      - "COOKED_BEEF:64"
       - "DIAMOND:64"
       - "IRON_INGOT:64"
-      - "COBBLESTONE:128"
-      - "COOKED_BEEF:32"
+      - "COBBLESTONE:576"
+      - "OAK_LOG:64"
   elytra:
     label: "<aqua>Elytra"
     icon: ELYTRA
+    countdown: 600
     items:
+      - "NETHERITE_PICKAXE:1:efficiency:5"
+      - "COOKED_BEEF:16"
+      - "OAK_LOG:16"
+      - "ELYTRA:1"
+      - "FIREWORK_ROCKET:6"
+  elytraop:
+    label: "<aqua><bold>ElytraOP"
+    icon: ELYTRA
+    countdown: 30
+    items:
+      - "NETHERITE_PICKAXE:1:efficiency:5"
+      - "COOKED_BEEF:64"
+      - "DIAMOND:64"
+      - "IRON_INGOT:64"
       - "ELYTRA:1"
       - "FIREWORK_ROCKET:16"
-      - "DIAMOND_PICKAXE:1:efficiency:4"
-      - "COBBLESTONE:64"
-      - "COOKED_BEEF:16"
+      - "COBBLESTONE:576"
   trident:
     label: "<blue>Trident"
     icon: TRIDENT
+    countdown: 600
     items:
+      - "NETHERITE_PICKAXE:1:efficiency:5"
+      - "COOKED_BEEF:16"
+      - "OAK_LOG:16"
+      - "TRIDENT:1:riptide:3"
+      - "TRIDENT:1:loyalty:3"
+  tridentop:
+    label: "<blue><bold>TridentOP"
+    icon: TRIDENT
+    countdown: 30
+    items:
+      - "NETHERITE_PICKAXE:1:efficiency:5"
+      - "COOKED_BEEF:64"
+      - "DIAMOND:64"
+      - "IRON_INGOT:64"
       - "TRIDENT:1:riptide:3"
       - "TRIDENT:1:loyalty:3:channeling:1"
-      - "COBBLESTONE:64"
-      - "COOKED_BEEF:16"
+      - "COBBLESTONE:576"
   ultraop:
     label: "<gold><bold>UltraOP"
-    icon: NETHERITE_SWORD
+    icon: GOLDEN_APPLE
+    countdown: 30
     items:
-      - "NETHERITE_PICKAXE:1:efficiency:10:unbreaking:5"
-      - "NETHERITE_SWORD:1:sharpness:5"
-      - "BOW:1:power:5:infinity:1"
-      - "ARROW:1"
+      - "NETHERITE_PICKAXE:1:efficiency:10"
+      - "BOW:1:power:5"
+      - "ARROW:64"
       - "GOLDEN_APPLE:4"
       - "GOLDEN_CARROT:24"
-      - "COBBLESTONE:128"
 
 # ─── Rewards ─────────────────────────────────────────────────
 rewards:
