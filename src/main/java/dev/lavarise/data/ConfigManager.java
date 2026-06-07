@@ -42,6 +42,10 @@ public final class ConfigManager {
     private boolean autoPickup;
     private boolean autoSmelt;
     private boolean denyMobSpawns;
+    private boolean killstreaksEnabled;
+    private int bountyThreshold;
+    private int bountyPerStreak;
+    private List<String> bountyCommands;
     private List<String> killCommands;
     private List<String> deathCommands;
     private int lavaRiseInterval;
@@ -176,6 +180,11 @@ public final class ConfigManager {
         this.autoPickup = config.getBoolean("gameplay.auto-pickup", false);
         this.autoSmelt = config.getBoolean("gameplay.auto-smelt", false);
         this.denyMobSpawns = config.getBoolean("gameplay.deny-mob-spawns", true);
+        // Battle-royale combat hype (killstreak/multi-kill announcements + bounties).
+        this.killstreaksEnabled = config.getBoolean("gameplay.killstreaks", true);
+        this.bountyThreshold = Math.max(2, config.getInt("gameplay.bounty.threshold", 3));
+        this.bountyPerStreak = Math.max(0, config.getInt("gameplay.bounty.per-streak", 100));
+        this.bountyCommands = config.getStringList("gameplay.bounty.commands");
         this.killCommands = config.getStringList("rewards.kill-commands");
         this.deathCommands = config.getStringList("rewards.death-commands");
 
@@ -311,6 +320,10 @@ public final class ConfigManager {
     public boolean isAutoPickup() { return autoPickup; }
     public boolean isAutoSmelt() { return autoSmelt; }
     public boolean isDenyMobSpawns() { return denyMobSpawns; }
+    public boolean isKillstreaksEnabled() { return killstreaksEnabled; }
+    public int getBountyThreshold() { return bountyThreshold; }
+    public int getBountyPerStreak() { return bountyPerStreak; }
+    public List<String> getBountyCommands() { return Collections.unmodifiableList(bountyCommands); }
     public List<String> getKillCommands() { return Collections.unmodifiableList(killCommands); }
     public List<String> getDeathCommands() { return Collections.unmodifiableList(deathCommands); }
     public int getLavaRiseInterval() { return lavaRiseInterval; }
