@@ -62,6 +62,10 @@ public final class ArenaSession {
     /** Seconds each player had survived at the moment they were eliminated. */
     private final Map<UUID, Long> survivalSeconds = new ConcurrentHashMap<>();
 
+    /** Multi-kill combo tracking: last kill time + current combo per killer. */
+    private final Map<UUID, Long> lastKillAt = new ConcurrentHashMap<>();
+    private final Map<UUID, Integer> comboCount = new ConcurrentHashMap<>();
+
     /** Whether the game loop is paused (admin event mode). */
     private volatile boolean paused = false;
     private long pauseStart = 0L;
@@ -183,6 +187,21 @@ public final class ArenaSession {
 
     public int getSessionKills(UUID playerId) {
         return sessionKills.getOrDefault(playerId, 0);
+    }
+
+    /**
+     * Record a kill toward the killer's multi-kill combo and return the new combo
+     * level (1 = single, 2 = double, …). The combo continues only if the previous
+     * kill landed within {@code windowMs}.
+     */
+    public int registerCombo(UUID killer, long windowMs) {
+        final long now = System.currentTimeMillis();
+        final Long last = lastKillAt.get(killer);
+        final int combo = (last != null && now - last <= windowMs)
+                ? comboCount.getOrDefault(killer, 1) + 1 : 1;
+        lastKillAt.put(killer, now);
+        comboCount.put(killer, combo);
+        return combo;
     }
 
     /** Seconds the player survived (their elimination time, or the live elapsed

@@ -105,6 +105,18 @@ gameplay:
   # Block natural mob/animal spawns inside active arenas
   deny-mob-spawns: true
 
+  # Battle-royale combat hype: killstreak + multi-kill (double/triple) call-outs.
+  killstreaks: true
+  # Bounties: a player who reaches this many kills has a bounty on their head;
+  # whoever eliminates them claims it (announced to the arena).
+  bounty:
+    threshold: 3
+    # Bounty value = victim's kills × this (passed to the commands below as {bounty}).
+    per-streak: 100
+    # Console commands run when a bounty is claimed. Placeholders: {killer},{victim},{bounty}
+    # e.g. "eco give {killer} {bounty}" with Vault/an economy plugin.
+    commands: []
+
   # Lava rises faster the longer the game runs.
   acceleration:
     enabled: true

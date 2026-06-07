@@ -68,6 +68,43 @@ public class PlayerListener implements Listener {
             }
             runCommands(plugin.getConfigManager().getKillCommands(),
                     "{killer}", killer.getName(), "{victim}", player.getName());
+
+            // ── Battle-royale combat hype ──────────────────────
+            final var cfg = plugin.getConfigManager();
+            if (cfg.isKillstreaksEnabled()) {
+                // Multi-kill: rapid consecutive kills by the same player.
+                final int combo = session.registerCombo(killer.getUniqueId(), 4000L);
+                if (combo >= 2) {
+                    final String label = switch (combo) {
+                        case 2 -> "DOUBLE KILL";
+                        case 3 -> "TRIPLE KILL";
+                        case 4 -> "QUADRA KILL";
+                        default -> combo + "× MULTI KILL";
+                    };
+                    killer.showTitle(net.kyori.adventure.title.Title.title(
+                            plugin.getMiniMessage().deserialize("<gold><bold>" + label + "!</bold>"),
+                            net.kyori.adventure.text.Component.empty(),
+                            net.kyori.adventure.title.Title.Times.times(
+                                    java.time.Duration.ofMillis(150), java.time.Duration.ofSeconds(1),
+                                    java.time.Duration.ofMillis(400))));
+                    try { killer.playSound(killer.getLocation(), "entity.player.levelup", 1.0f, 1.6f); }
+                    catch (Exception ignored) { }
+                }
+                // Killstreak milestones broadcast to the whole arena.
+                if (streak == 3 || streak == 5 || streak == 7 || (streak >= 10 && streak % 5 == 0)) {
+                    broadcast(session, "<gold>⚔ <yellow>" + killer.getName()
+                            + "</yellow> is on a <red>" + streak + "</red> killstreak!");
+                }
+            }
+            // Bounty: the victim was on a streak → the killer claims it.
+            final int victimStreak = session.getSessionKills(player.getUniqueId());
+            if (victimStreak >= cfg.getBountyThreshold()) {
+                final int bounty = victimStreak * cfg.getBountyPerStreak();
+                broadcast(session, "<red>☠ <yellow>" + killer.getName() + "</yellow> claimed <gold>"
+                        + player.getName() + "</gold>'s <yellow>" + bounty + "</yellow> bounty!");
+                runCommands(cfg.getBountyCommands(), "{killer}", killer.getName(),
+                        "{victim}", player.getName(), "{bounty}", String.valueOf(bounty));
+            }
         }
 
         // Run death-reward commands.
@@ -118,6 +155,15 @@ public class PlayerListener implements Listener {
         if (!arena.getConfig().hunger()) {
             event.setCancelled(true);
             player.setFoodLevel(20);
+        }
+    }
+
+    /** Broadcast a MiniMessage line to every player in the session. */
+    private void broadcast(ArenaSession session, String mini) {
+        final var component = plugin.getMiniMessage().deserialize(mini);
+        for (java.util.UUID id : session.getAllPlayerIds()) {
+            Player p = plugin.getServer().getPlayer(id);
+            if (p != null && p.isOnline()) p.sendMessage(component);
         }
     }
 
