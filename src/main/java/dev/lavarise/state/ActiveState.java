@@ -82,7 +82,15 @@ public final class ActiveState implements GameState {
         }
 
         this.currentInterval = Math.max(1, arena.getConfig().lavaRiseInterval());
-        this.graceTicksLeft = Math.max(0, cfg.getGracePeriod()) * 20;
+        // Grace = seconds before the lava rises. KteRising-style: the voted kit can
+        // override it (fair kits get a long build, OP kits start fast).
+        int graceSeconds = cfg.getGracePeriod();
+        final String votedKit = session.getVotedKit();
+        if (votedKit != null && plugin.getKitManager() != null) {
+            final var kit = plugin.getKitManager().get(votedKit);
+            if (kit != null && kit.countdown() >= 0) graceSeconds = kit.countdown();
+        }
+        this.graceTicksLeft = Math.max(0, graceSeconds) * 20;
         // Lock PvP for the grace window so players can gear up untouched; it opens
         // (with an announcement) the moment the lava starts rising. Setting
         // gameplay.pvp-during-grace: true skips the lock.
