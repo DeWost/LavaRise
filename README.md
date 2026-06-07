@@ -175,6 +175,13 @@ reset → remove → generate the next* — with no admin commands.
 Lava rises from the **surface** (top block) upward, mobs/animals don't spawn inside
 arenas (`gameplay.deny-mob-spawns`), and the terrain is fully restored after each round.
 
+The rotation runs as a **self-healing workflow**: each cycle is idempotent (it only
+generates when no open arena exists), generation and auto-join are isolated so one
+can't break the other, and a failing world is retried with **exponential backoff**
+(1→2→4→8→16 cycles) instead of being hammered. After repeated failures the workflow
+**halts with a clear console warning** rather than spamming — run `/lavarise reload`
+to re-arm it once the world/config is fixed.
+
 ## ⚙️ Configuration Highlights
 
 Everything lives in `config.yml` (fully commented). Key sections:
