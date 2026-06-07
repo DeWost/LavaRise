@@ -150,6 +150,7 @@ public final class EndingState implements GameState {
             Player p = plugin.getServer().getPlayer(uuid);
             if (p != null && p.isOnline()) {
                 p.setWorldBorder(null); // restore the world's own border
+                p.setGlowing(false);    // clear any final-showdown glow
                 p.setGameMode(GameMode.SURVIVAL);
                 if (arena.getConfig().lobbySpawn() != null) {
                     p.teleport(arena.getConfig().lobbySpawn());

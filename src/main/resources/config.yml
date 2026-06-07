@@ -113,6 +113,13 @@ gameplay:
   combat-log-protect: true
   combat-tag-seconds: 10
 
+  # Final showdown: when the field narrows to this many players, announce a
+  # dramatic finish and make the survivors glow so they can find each other
+  # before the lava finishes them.
+  final-showdown:
+    enabled: true
+    players: 2
+
   # Supply drops: periodically drop a loot chest just above the lava (battle-royale
   # style) to create reasons to fight. Chests are auto-removed when the game ends.
   supply-drops:
