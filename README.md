@@ -136,7 +136,8 @@ Base command `/lavarise` — aliases **`/lr`**, **`/lava`**.
 ### Admins &nbsp;<sub>`lavarise.admin`</sub>
 | Command | Description |
 |---|---|
-| `/lr create · pos1 · pos2 · setlobby · setgamespawn · setspectator · save` | Arena setup wizard |
+| `/lr setup <name> [radius]` | **One-command arena** — builds a ready-to-play arena centred where you stand |
+| `/lr create · pos1 · pos2 · setlobby · setgamespawn · setspectator · save` | Arena setup wizard (manual, fine-grained) |
 | `/lr delete <arena>` | Delete an arena |
 | `/lr start \| stop <arena>` | Force-start / reset a game |
 | `/lr skip <arena>` | Skip a waiting lobby to a 3-second countdown |
