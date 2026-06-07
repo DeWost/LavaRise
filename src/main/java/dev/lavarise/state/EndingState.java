@@ -65,6 +65,7 @@ public final class EndingState implements GameState {
                     plugin.getMiniMessage().deserialize("<gray>You are the last one standing!"),
                     Title.Times.times(Duration.ofMillis(500), Duration.ofSeconds(3), Duration.ofSeconds(1))));
             winner.playSound(winner.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
+            giveWinItems(winner);
             // Launch fireworks at winner
             launchFireworks(winner);
         } else {
@@ -188,6 +189,25 @@ public final class EndingState implements GameState {
         } else {
             arena.createSession();
             plugin.debug("Arena " + arena.getName() + " reset complete.");
+        }
+    }
+
+    /** Give the winner the configured reward items ({@code MATERIAL:AMOUNT}). */
+    private void giveWinItems(Player winner) {
+        for (String entry : plugin.getConfigManager().getWinItems()) {
+            if (entry == null || entry.isBlank()) continue;
+            final String[] parts = entry.split(":");
+            final org.bukkit.Material mat = org.bukkit.Material.matchMaterial(parts[0].trim());
+            if (mat == null) {
+                plugin.getLogger().warning("Unknown material in rewards.win-items: " + parts[0]);
+                continue;
+            }
+            int amount = 1;
+            if (parts.length > 1) {
+                try { amount = Math.max(1, Integer.parseInt(parts[1].trim())); }
+                catch (NumberFormatException ignored) { }
+            }
+            winner.getInventory().addItem(new org.bukkit.inventory.ItemStack(mat, amount));
         }
     }
 

@@ -93,6 +93,7 @@ public final class ConfigManager {
     private boolean kitEnabled;
     private List<String> kitItems;
     private List<String> winCommands;
+    private List<String> winItems;
 
     // ── Modes ───────────────────────────────────────────────
     private boolean teamsEnabled;
@@ -249,6 +250,7 @@ public final class ConfigManager {
         this.kitEnabled = config.getBoolean("gameplay.kit.enabled", false);
         this.kitItems = config.getStringList("gameplay.kit.items");
         this.winCommands = config.getStringList("rewards.win-commands");
+        this.winItems = config.getStringList("rewards.win-items");
 
         // Modes
         this.teamsEnabled = config.getBoolean("modes.minigame.teams-enabled", false);
@@ -395,6 +397,7 @@ public final class ConfigManager {
     public boolean isKitEnabled() { return kitEnabled; }
     public List<String> getKitItems() { return Collections.unmodifiableList(kitItems); }
     public List<String> getWinCommands() { return Collections.unmodifiableList(winCommands); }
+    public List<String> getWinItems() { return Collections.unmodifiableList(winItems); }
 
     // ── Getters: modes ──────────────────────────────────────
 
