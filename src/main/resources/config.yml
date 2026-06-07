@@ -327,6 +327,8 @@ rewards:
   # Console commands run when a player wins. Placeholders: {winner}, {arena}
   win-commands:
     - "say {winner} won LavaRise in arena {arena}!"
+  # Items given directly to the winner (no economy plugin needed). MATERIAL:AMOUNT
+  win-items: []
   # Run when a player gets a kill. Placeholders: {killer}, {victim}
   kill-commands: []
   # Run when a player dies. Placeholders: {player}
