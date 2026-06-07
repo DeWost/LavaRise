@@ -46,6 +46,15 @@ public final class ArenaSession {
     /** Player UUID → voted kit key (kit voting in the lobby). */
     private final Map<UUID, String> kitVotes = new ConcurrentHashMap<>();
 
+    /** Eliminated players in elimination order (first out = index 0) — for placement. */
+    private final List<UUID> eliminationOrder = Collections.synchronizedList(new ArrayList<>());
+
+    /** Per-match kill counts (reset every game, distinct from career stats). */
+    private final Map<UUID, Integer> sessionKills = new ConcurrentHashMap<>();
+
+    /** Seconds each player had survived at the moment they were eliminated. */
+    private final Map<UUID, Long> survivalSeconds = new ConcurrentHashMap<>();
+
     /** Whether the game loop is paused (admin event mode). */
     private volatile boolean paused = false;
     private long pauseStart = 0L;
@@ -151,6 +160,31 @@ public final class ArenaSession {
         this.pvpUnlocked = unlocked;
     }
 
+    // ── Results / placement ─────────────────────────────────
+
+    /** Elimination order (first eliminated first); snapshot copy, safe to read. */
+    public List<UUID> getEliminationOrder() {
+        synchronized (eliminationOrder) {
+            return new ArrayList<>(eliminationOrder);
+        }
+    }
+
+    /** Credit a kill to a player for this match (separate from career stats). */
+    public void recordSessionKill(UUID killer) {
+        sessionKills.merge(killer, 1, Integer::sum);
+    }
+
+    public int getSessionKills(UUID playerId) {
+        return sessionKills.getOrDefault(playerId, 0);
+    }
+
+    /** Seconds the player survived (their elimination time, or the live elapsed
+     * time if they are still alive). */
+    public long getSurvivalSeconds(UUID playerId) {
+        final Long recorded = survivalSeconds.get(playerId);
+        return recorded != null ? recorded : getElapsedSeconds();
+    }
+
     // ── Pause (admin event) ─────────────────────────────────
 
     public boolean isPaused() {
@@ -232,6 +266,8 @@ public final class ArenaSession {
         if (!alivePlayers.remove(uuid)) return false;
 
         spectators.add(uuid);
+        eliminationOrder.add(uuid);
+        survivalSeconds.put(uuid, getElapsedSeconds());
         currentState.onPlayerEliminated(player);
 
         plugin.debug(player.getName() + " eliminated in " + arena.getName()

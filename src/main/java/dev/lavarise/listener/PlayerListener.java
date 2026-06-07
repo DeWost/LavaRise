@@ -55,6 +55,7 @@ public class PlayerListener implements Listener {
         final Player killer = player.getKiller();
         if (killer != null && !killer.equals(player)) {
             plugin.getStatsManager().recordKill(killer.getUniqueId(), killer.getName());
+            session.recordSessionKill(killer.getUniqueId());
             killer.sendMessage(plugin.getMiniMessage().deserialize(
                     "<gray>You eliminated <red>" + player.getName() + "</red>!"));
             runCommands(plugin.getConfigManager().getKillCommands(),

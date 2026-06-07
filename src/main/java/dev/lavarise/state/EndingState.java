@@ -72,17 +72,61 @@ public final class EndingState implements GameState {
                     "<red><bold>GAME OVER!</bold> <gray>No survivors. Duration: <white>" + elapsed + "s"));
         }
 
+        // Results screen: podium + each player's personal placement / kills.
+        showResults();
+
         // Mode-specific end behaviour (event broadcasts, Vault rewards, team wins).
         session.getModeHandler().onArenaEnd(arena, session, winner);
 
-        // Schedule arena reset after 5 seconds
+        // Schedule arena reset — long enough for players to read the results.
         resetTask = new BukkitRunnable() {
             @Override
             public void run() {
                 resetArena();
             }
         };
-        resetTask.runTaskLater(plugin, 100L); // 5 seconds
+        resetTask.runTaskLater(plugin, 160L); // 8 seconds
+    }
+
+    /**
+     * Builds the final ranking (survivors first, then most-recently eliminated),
+     * broadcasts a top-3 podium, and DMs each player their own placement, survival
+     * time and kills. Works for the no-winner case too (everyone still placed).
+     */
+    private void showResults() {
+        final java.util.List<UUID> ranking = new java.util.ArrayList<>(session.getAlivePlayers());
+        final java.util.List<UUID> elim = session.getEliminationOrder();
+        for (int i = elim.size() - 1; i >= 0; i--) ranking.add(elim.get(i));
+        final int total = ranking.size();
+        if (total == 0) return;
+
+        final String[] medals = {"<yellow>① 1.", "<white>② 2.", "<gold>③ 3."};
+        final StringBuilder podium = new StringBuilder("<gold><bold>── Results ──</bold>");
+        for (int i = 0; i < Math.min(3, total); i++) {
+            final UUID u = ranking.get(i);
+            podium.append("<newline>").append(medals[i]).append(" <white>").append(resolveName(u))
+                    .append(" <dark_gray>(<red>").append(session.getSessionKills(u))
+                    .append("<gray> kills<dark_gray>, <white>").append(session.getSurvivalSeconds(u))
+                    .append("s<dark_gray>)");
+        }
+        broadcastToArena(plugin.getMiniMessage().deserialize(podium.toString()));
+
+        for (int i = 0; i < total; i++) {
+            final Player p = plugin.getServer().getPlayer(ranking.get(i));
+            if (p == null || !p.isOnline()) continue;
+            final UUID u = ranking.get(i);
+            p.sendMessage(plugin.getMiniMessage().deserialize(
+                    "<gray>You placed <yellow><bold>#" + (i + 1) + "</bold></yellow><gray>/<white>" + total
+                            + " <dark_gray>· <gray>survived <white>" + session.getSurvivalSeconds(u)
+                            + "s <dark_gray>· <red>" + session.getSessionKills(u) + "<gray> kills"));
+        }
+    }
+
+    private String resolveName(UUID uuid) {
+        final Player p = plugin.getServer().getPlayer(uuid);
+        if (p != null) return p.getName();
+        final String name = plugin.getServer().getOfflinePlayer(uuid).getName();
+        return name != null ? name : "Player";
     }
 
     @Override
