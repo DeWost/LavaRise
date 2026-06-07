@@ -453,6 +453,20 @@ public final class ActiveState implements GameState {
             }
             if (hud != null) p.sendActionBar(hud);
         }
+
+        // Keep eliminated spectators informed of the live game (one shared
+        // component — spectators see the lava/alive/time, not a warning).
+        if (hudEnabled) {
+            final Component specHud = plugin.getMiniMessage().deserialize(
+                    "<gray>👁 Spectating <dark_gray>| <red>🔥 " + session.getLavaHeight() + "m "
+                            + "<dark_gray>(" + session.getLavaPercent() + "%) <dark_gray>| <green>"
+                            + session.getAliveCount() + " alive <dark_gray>| <white>"
+                            + formatTime(session.getElapsedSeconds()));
+            for (UUID uuid : session.getSpectators()) {
+                Player p = plugin.getServer().getPlayer(uuid);
+                if (p != null && p.isOnline()) p.sendActionBar(specHud);
+            }
+        }
     }
 
     private void spawnParticles() {
