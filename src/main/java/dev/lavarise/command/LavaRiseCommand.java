@@ -159,10 +159,16 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         final UUID target;
         final String name;
         if (args.length >= 2) {
-            Player online = plugin.getServer().getPlayerExact(args[1]);
-            if (online == null) { msg(sender, "<red>Player must be online to look up stats."); return true; }
-            target = online.getUniqueId();
-            name = online.getName();
+            // Look up by name without requiring the player to be online — works for
+            // anyone who has played on this server (resolved from the local cache,
+            // no blocking web request).
+            final org.bukkit.OfflinePlayer off = plugin.getServer().getOfflinePlayerIfCached(args[1]);
+            if (off == null) {
+                msg(sender, "<red>Unknown player — never seen on this server.");
+                return true;
+            }
+            target = off.getUniqueId();
+            name = off.getName() != null ? off.getName() : args[1];
         } else if (sender instanceof Player p) {
             target = p.getUniqueId();
             name = p.getName();
@@ -188,12 +194,18 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             case "time", "best", "survival" -> "best_time";
             default -> "wins";
         };
+        final String label = switch (key) {
+            case "kills" -> "Kills";
+            case "best_time" -> "Best Survival";
+            default -> "Wins";
+        };
         List<StatsManager.Entry> top = plugin.getStatsManager().top(key, 10);
-        msg(sender, "<gradient:red:gold><bold>Top 10 — " + key + "</bold></gradient>");
+        msg(sender, "<gradient:red:gold><bold>Top 10 — " + label + "</bold></gradient>");
         if (top.isEmpty()) { msg(sender, "<gray>No data yet."); return true; }
         int rank = 1;
         for (StatsManager.Entry e : top) {
-            msg(sender, "<yellow>#" + rank++ + " <white>" + e.name() + " <dark_gray>— <gray>" + e.value());
+            final String value = key.equals("best_time") ? e.value() + "s" : String.valueOf(e.value());
+            msg(sender, "<yellow>#" + rank++ + " <white>" + e.name() + " <dark_gray>— <gray>" + value);
         }
         return true;
     }
