@@ -5,18 +5,27 @@ import dev.lavarise.arena.ArenaSession;
 import dev.lavarise.core.LavaRisePlugin;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.time.Duration;
 
 /**
  * Lobby state — waiting for players to join.
  * <p>
- * Transitions to {@link CountdownState} when minimum players reached.
- * Players can freely join and leave.
+ * Once minimum players are present a "filling" countdown runs (the configured
+ * {@code lobby-countdown}), shown as an ambient boss bar so latecomers can still
+ * join. It fast-forwards when the arena fills and aborts if players drop back
+ * below the minimum, then hands off to {@link CountdownState} for the final
+ * tense countdown. The boss bar counts the <i>total</i> remaining pre-game time,
+ * so the handoff into CountdownState's titles is seamless (no number jump).
  * </p>
  */
 public final class LobbyState implements GameState {
@@ -24,6 +33,10 @@ public final class LobbyState implements GameState {
     private final LavaRisePlugin plugin;
     private final Arena arena;
     private final ArenaSession session;
+
+    private BukkitRunnable lobbyTask;
+    private BossBar lobbyBar;
+    private int lobbyTicks = -1; // seconds left in the filling window; -1 = not started
 
     public LobbyState(LavaRisePlugin plugin, Arena arena, ArenaSession session) {
         this.plugin = plugin;
@@ -38,7 +51,7 @@ public final class LobbyState implements GameState {
 
     @Override
     public void onExit() {
-        // Nothing to clean up
+        stopLobbyCountdown();
     }
 
     @Override
@@ -60,7 +73,7 @@ public final class LobbyState implements GameState {
                 "<green>" + player.getName() + " <gray>joined! <dark_gray>("
                         + session.getAliveCount() + "/" + arena.getConfig().maxPlayers() + ")"
         ));
-        
+
         plugin.getScoreboardModule().setupScoreboard(player, session);
         plugin.getScoreboardModule().updateScoreboard(session);
 
@@ -90,7 +103,8 @@ public final class LobbyState implements GameState {
             playSound(player, "block.note_block.pling");
         }
 
-        // Check if we have enough players to start countdown
+        // Latecomer joins the running lobby bar; otherwise (re)evaluate the start.
+        if (lobbyBar != null) lobbyBar.addPlayer(player);
         checkMinPlayers();
     }
 
@@ -98,10 +112,18 @@ public final class LobbyState implements GameState {
     public void onPlayerLeave(Player player) {
         plugin.getScoreboardModule().cleanup(player);
         plugin.getScoreboardModule().updateScoreboard(session);
+        if (lobbyBar != null) lobbyBar.removePlayer(player);
         broadcastToArena(plugin.getMiniMessage().deserialize(
                 "<red>" + player.getName() + " <gray>left! <dark_gray>("
                         + session.getAliveCount() + "/" + arena.getConfig().maxPlayers() + ")"
         ));
+
+        // Dropped below the minimum mid-countdown → abort and keep waiting.
+        if (lobbyTicks >= 0 && session.getAliveCount() < arena.getConfig().minPlayers()) {
+            stopLobbyCountdown();
+            broadcastToArena(plugin.getMiniMessage().deserialize(
+                    "<yellow>Not enough players — waiting again..."));
+        }
     }
 
     @Override
@@ -116,16 +138,69 @@ public final class LobbyState implements GameState {
 
     @Override
     public String getDisplayName() {
-        return "Waiting";
+        return lobbyTicks >= 0 ? "Starting" : "Waiting";
     }
 
-    // ── Private ─────────────────────────────────────────────
+    // ── Lobby countdown ─────────────────────────────────────
 
     private void checkMinPlayers() {
+        if (lobbyTicks >= 0) return; // already filling
         if (session.getAliveCount() >= arena.getConfig().minPlayers()) {
-            // Transition to countdown
-            session.transitionTo(new CountdownState(plugin, arena, session));
+            startLobbyCountdown();
         }
+    }
+
+    private void startLobbyCountdown() {
+        this.lobbyTicks = Math.max(1, arena.getConfig().lobbyCountdown());
+        this.lobbyBar = Bukkit.createBossBar("Starting…", BarColor.GREEN, BarStyle.SOLID);
+        for (var uuid : session.getAllPlayerIds()) {
+            final Player p = plugin.getServer().getPlayer(uuid);
+            if (p != null && p.isOnline()) lobbyBar.addPlayer(p);
+        }
+
+        final int lobbyTotal = lobbyTicks;
+        final int gameCountdown = Math.max(1, arena.getConfig().gameCountdown());
+        lobbyTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                // Fast-forward to launch the moment the arena is full.
+                if (session.getAliveCount() >= arena.getConfig().maxPlayers()) {
+                    lobbyTicks = 0;
+                }
+                if (lobbyTicks <= 0) {
+                    stopLobbyCountdown();
+                    session.transitionTo(new CountdownState(plugin, arena, session));
+                    return;
+                }
+
+                final int totalRemaining = lobbyTicks + gameCountdown;
+                if (lobbyBar != null) {
+                    lobbyBar.setTitle("Starting in " + totalRemaining + "s  —  "
+                            + session.getAliveCount() + "/" + arena.getConfig().maxPlayers() + " players");
+                    lobbyBar.setProgress(Math.max(0.0, Math.min(1.0, (double) lobbyTicks / lobbyTotal)));
+                }
+                if (lobbyTicks % 15 == 0 || lobbyTicks == 5) {
+                    broadcastToArena(plugin.getMiniMessage().deserialize(
+                            "<gold>Game starts in <yellow>" + totalRemaining + "</yellow>s "
+                                    + "<dark_gray>(<gray>" + session.getAliveCount() + "/"
+                                    + arena.getConfig().maxPlayers() + "<dark_gray>)"));
+                }
+                lobbyTicks--;
+            }
+        };
+        lobbyTask.runTaskTimer(plugin, 0L, 20L);
+    }
+
+    private void stopLobbyCountdown() {
+        if (lobbyTask != null) {
+            lobbyTask.cancel();
+            lobbyTask = null;
+        }
+        if (lobbyBar != null) {
+            lobbyBar.removeAll();
+            lobbyBar = null;
+        }
+        lobbyTicks = -1;
     }
 
     private void broadcastToArena(Component message) {
