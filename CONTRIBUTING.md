@@ -12,14 +12,6 @@ First off, thank you for considering contributing to LavaRise! It's people like 
 > **Requirements:** JDK 21. The first build downloads and remaps the Paper
 > 1.21.11 Mojang-mapped dev bundle (a few minutes); subsequent builds are cached.
 
-### Claude Code on the web
-
-This repo ships a **SessionStart hook** (`.claude/hooks/session-start.sh`) that
-warms the Gradle caches and the Paper dev bundle automatically when a
-[Claude Code on the web](https://code.claude.com/docs/en/claude-code-on-the-web)
-session starts, so tests and the linter are ready immediately. It only runs in
-the remote environment (`CLAUDE_CODE_REMOTE=true`) and is a no-op locally.
-
 ## The Development Workflow
 
 ```
@@ -93,7 +85,7 @@ Bigger features are tracked as atomic, PR-sized tasks in [`SPEC.md`](SPEC.md),
 each with explicit acceptance criteria. That file doubles as the input to the
 optional [AgentFlow](https://github.com/UrRhb/agentflow) pipeline
 (`/spec-to-board`), which can decompose it onto a Kanban board and dispatch
-Claude Code workers. The deterministic gate for every task is the same
+worker tasks. The deterministic gate for every task is the same
 `./gradlew build`. You don't need AgentFlow to contribute — `SPEC.md` is just
 the shared source of truth for what's planned.
 

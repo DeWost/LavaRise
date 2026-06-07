@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Guards the critical invariant from CLAUDE.md: {@link ArenaIndex#index} must
+ * Guards the engine's critical invariant: {@link ArenaIndex#index} must
  * match, byte-for-byte, the running counter used by the snapshot's y→z→x walk.
  * If these ever diverge, arena resets corrupt blocks.
  */
