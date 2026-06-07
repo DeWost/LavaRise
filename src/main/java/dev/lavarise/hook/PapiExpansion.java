@@ -1,6 +1,7 @@
 package dev.lavarise.hook;
 
 import dev.lavarise.arena.Arena;
+import dev.lavarise.arena.ArenaSession;
 import dev.lavarise.core.LavaRisePlugin;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;
@@ -46,6 +47,23 @@ public class PapiExpansion extends PlaceholderExpansion {
                 case "deaths": return String.valueOf(stats.getDeaths(player.getUniqueId()));
                 case "best_time": return String.valueOf(stats.getBestTime(player.getUniqueId()));
                 case "winrate": return String.format("%.1f", stats.getWinRate(player.getUniqueId()) * 100);
+                default: break;
+            }
+        }
+
+        // ── Current-match (session) stats for the requesting player ──
+        if (player != null && params.startsWith("session_")) {
+            final Arena arena = plugin.getGameManager().getArenaForPlayer(player.getUniqueId());
+            final ArenaSession session = arena != null ? arena.getSession() : null;
+            final java.util.UUID id = player.getUniqueId();
+            if (session == null) {
+                return params.equals("session_status") ? "" : "0";
+            }
+            switch (params) {
+                case "session_kills": return String.valueOf(session.getSessionKills(id));
+                case "session_survived": return String.valueOf(session.getSurvivalSeconds(id));
+                case "session_status":
+                    return session.isAlive(id) ? "Alive" : (session.isSpectator(id) ? "Spectating" : "");
                 default: break;
             }
         }
