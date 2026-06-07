@@ -102,6 +102,14 @@ public final class LobbyState implements GameState {
             playSound(player, "block.note_block.pling");
         }
 
+        // A tagged "Leave" bed so players can quit without typing a command.
+        // Guarded: a cosmetic item must never block a player from joining.
+        try {
+            player.getInventory().setItem(8, dev.lavarise.feature.LeaveItem.create(plugin));
+        } catch (Throwable ignored) {
+            // Item creation unavailable in this context — non-critical.
+        }
+
         // Show the lobby bar to the joiner, then (re)evaluate the start. While
         // still below the minimum the bar shows a "waiting for players" status.
         ensureBar();

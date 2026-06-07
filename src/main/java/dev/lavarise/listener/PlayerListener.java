@@ -216,6 +216,21 @@ public class PlayerListener implements Listener {
     }
 
     /**
+     * Right-clicking the tagged lobby "Leave" bed quits the player's game.
+     */
+    @EventHandler
+    public void onLeaveItem(PlayerInteractEvent event) {
+        if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (!dev.lavarise.feature.LeaveItem.is(plugin, event.getItem())) return;
+        final Player player = event.getPlayer();
+        if (plugin.getGameManager().isInGame(player)) {
+            event.setCancelled(true);
+            plugin.getGameManager().removePlayer(player);
+        }
+    }
+
+    /**
      * Prevent eliminated spectators from picking up dropped items.
      */
     @EventHandler
