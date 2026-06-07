@@ -68,6 +68,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             case "list" -> handleList(sender);
             case "stats" -> handleStats(sender, args);
             case "top" -> handleTop(sender, args);
+            case "info" -> handleInfo(sender, args);
             case "start", "forcestart" -> handleStart(sender, args);
             case "skip" -> handleSkip(sender, args);
             case "freeze" -> handleFreeze(sender, args);
@@ -207,6 +208,37 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         for (StatsManager.Entry e : top) {
             final String value = key.equals("best_time") ? e.value() + "s" : String.valueOf(e.value());
             msg(sender, "<yellow>#" + rank++ + " <white>" + e.name() + " <dark_gray>— <gray>" + value);
+        }
+        return true;
+    }
+
+    /** Read-only arena status — all arenas, or details for one. */
+    private boolean handleInfo(CommandSender sender, String[] args) {
+        if (args.length >= 2) {
+            final Arena arena = plugin.getArenaRepository().getArena(args[1]).orElse(null);
+            if (arena == null) { msg(sender, "<red>Arena not found."); return true; }
+            final ArenaSession s = arena.getSession();
+            msg(sender, "<gradient:red:gold><bold>Arena — " + arena.getName() + "</bold></gradient>");
+            msg(sender, "<gray>World: <yellow>" + (arena.getConfig().world() != null
+                    ? arena.getConfig().world().getName() : "?")
+                    + " <dark_gray>· <gray>Mode: <yellow>" + arena.getConfig().gameMode());
+            if (s == null) { msg(sender, "<gray>State: <red>no session"); return true; }
+            msg(sender, "<gray>State: <yellow>" + s.getCurrentState().getDisplayName());
+            msg(sender, "<gray>Players: <yellow>" + s.getAliveCount() + "<gray>/<yellow>"
+                    + arena.getConfig().maxPlayers() + " <dark_gray>(" + s.getPlayerCount() + " total)");
+            msg(sender, "<gray>Lava: <yellow>" + s.getLavaHeight() + "m <dark_gray>("
+                    + s.getLavaPercent() + "%, y=" + s.getCurrentLavaY() + ")");
+            return true;
+        }
+        final var arenas = plugin.getGameManager().getAllArenas();
+        if (arenas.isEmpty()) { msg(sender, "<gray>No arenas exist."); return true; }
+        msg(sender, "<gradient:red:gold><bold>Arenas (" + arenas.size() + ")</bold></gradient>");
+        for (Arena arena : arenas) {
+            final ArenaSession s = arena.getSession();
+            final String state = s != null ? s.getCurrentState().getDisplayName() : "—";
+            final int alive = s != null ? s.getAliveCount() : 0;
+            msg(sender, "<yellow>" + arena.getName() + " <dark_gray>— <gray>" + state
+                    + " <dark_gray>(" + alive + "/" + arena.getConfig().maxPlayers() + ")");
         }
         return true;
     }
@@ -575,6 +607,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         msg(sender, "<yellow>/lr list <gray>- Browse arenas");
         msg(sender, "<yellow>/lr stats [player] <gray>- View statistics");
         msg(sender, "<yellow>/lr top [wins|kills|time] <gray>- Leaderboard");
+        msg(sender, "<yellow>/lr info [arena] <gray>- Arena status");
         if (sender.hasPermission("lavarise.admin")) {
             msg(sender, "<gold>Admin: <yellow>setup <name> [radius] <gray>- one-command arena where you stand");
             msg(sender, "<gold>Admin: <yellow>create/pos1/pos2/setlobby/setgamespawn/setspectator/save/delete");
@@ -600,7 +633,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         List<String> completions = new ArrayList<>();
         if (args.length == 1) {
-            completions.addAll(List.of("join", "random", "kit", "vote", "leave", "list", "stats", "top"));
+            completions.addAll(List.of("join", "random", "kit", "vote", "leave", "list", "stats", "top", "info"));
             if (sender.hasPermission("lavarise.admin")) {
                 completions.addAll(List.of("setup", "create", "pos1", "pos2", "setlobby", "setgamespawn",
                         "setspectator", "save", "delete", "start", "skip", "freeze", "stop", "reload", "stress",
