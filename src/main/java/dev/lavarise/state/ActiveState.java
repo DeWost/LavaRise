@@ -77,6 +77,10 @@ public final class ActiveState implements GameState {
 
         this.currentInterval = Math.max(1, arena.getConfig().lavaRiseInterval());
         this.graceTicksLeft = Math.max(0, cfg.getGracePeriod()) * 20;
+        // Lock PvP for the grace window so players can gear up untouched; it opens
+        // (with an announcement) the moment the lava starts rising. Setting
+        // gameplay.pvp-during-grace: true skips the lock.
+        session.setPvpUnlocked(graceTicksLeft <= 0 || cfg.isPvpDuringGrace());
         // Run the fill engine every N ticks with N× the budget — same blocks/sec,
         // but fewer scheduler passes and chunk packets.
         this.engineInterval = cfg.getEngineIntervalTicks();
@@ -97,6 +101,9 @@ public final class ActiveState implements GameState {
             p.setFireTicks(0);
             p.setHealth(p.getMaxHealth());
             p.setFoodLevel(20);
+            // Clear the lobby loadout (kit-vote compass etc.) before handing out
+            // the real kit so players start the match with exactly their kit.
+            p.getInventory().clear();
             giveKit(p);
 
             p.showTitle(Title.title(
@@ -190,6 +197,16 @@ public final class ActiveState implements GameState {
                 } else {
                     broadcastToArena(plugin.getMiniMessage().deserialize(
                             "<red><bold>🔥 The lava is now rising!</bold>"));
+                    // Grace over → open PvP (only announce if it was actually gated).
+                    if (!session.isPvpUnlocked()) {
+                        session.setPvpUnlocked(true);
+                        broadcastToArena(plugin.getMiniMessage().deserialize(
+                                "<red><bold>⚔ PvP is now enabled — fight!</bold>"));
+                        for (UUID uuid : session.getAlivePlayers()) {
+                            Player p = plugin.getServer().getPlayer(uuid);
+                            if (p != null) playSound(p, "entity.ender_dragon.growl", 0.6f, 1.4f);
+                        }
+                    }
                 }
             }
             return;
