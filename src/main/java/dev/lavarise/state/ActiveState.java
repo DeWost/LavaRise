@@ -45,6 +45,7 @@ public final class ActiveState implements GameState {
     private BukkitRunnable gameLoop;
     private int tickCounter = 0;
     private int graceTicksLeft = 0;
+    private int graceTotalSeconds = 0;
     private int currentInterval;
     private int engineInterval = 1;
     /** Last lava height pushed to the HUD; drives flicker-free, in-sync refreshes. */
@@ -91,6 +92,7 @@ public final class ActiveState implements GameState {
             if (kit != null && kit.countdown() >= 0) graceSeconds = kit.countdown();
         }
         this.graceTicksLeft = Math.max(0, graceSeconds) * 20;
+        this.graceTotalSeconds = Math.max(0, graceSeconds);
         // Lock PvP for the grace window so players can gear up untouched; it opens
         // (with an announcement) the moment the lava starts rising. Setting
         // gameplay.pvp-during-grace: true skips the lock.
@@ -145,7 +147,13 @@ public final class ActiveState implements GameState {
         // lava actually rises (no spurious "height 0" pulse when the game starts).
         this.lastDisplayedLavaY = session.getCurrentLavaY();
         plugin.getScoreboardModule().updateScoreboard(session);
-        plugin.getBossBarModule().updateFor(session);
+        // Show the grace bar straight away if there's a grace window; otherwise the
+        // lava height bar.
+        if (graceTotalSeconds > 0) {
+            plugin.getBossBarModule().showGrace(session, graceTotalSeconds, graceTotalSeconds);
+        } else {
+            plugin.getBossBarModule().updateFor(session);
+        }
 
         gameLoop = new BukkitRunnable() {
             @Override
@@ -219,9 +227,12 @@ public final class ActiveState implements GameState {
                 if (secs > 0) {
                     broadcastActionBar(plugin.getMiniMessage().deserialize(
                             "<yellow>⏳ Grace period: <bold>" + secs + "s</bold> <gray>— build up!"));
+                    plugin.getBossBarModule().showGrace(session, secs, graceTotalSeconds);
                 } else {
                     broadcastToArena(plugin.getMiniMessage().deserialize(
                             "<red><bold>🔥 The lava is now rising!</bold>"));
+                    // Hand the boss bar back to the lava height display.
+                    plugin.getBossBarModule().updateFor(session);
                     // Grace over → open PvP (only announce if it was actually gated).
                     if (!session.isPvpUnlocked()) {
                         session.setPvpUnlocked(true);
