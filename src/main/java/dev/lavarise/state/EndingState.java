@@ -94,9 +94,8 @@ public final class EndingState implements GameState {
      * time and kills. Works for the no-winner case too (everyone still placed).
      */
     private void showResults() {
-        final java.util.List<UUID> ranking = new java.util.ArrayList<>(session.getAlivePlayers());
-        final java.util.List<UUID> elim = session.getEliminationOrder();
-        for (int i = elim.size() - 1; i >= 0; i--) ranking.add(elim.get(i));
+        final java.util.List<UUID> ranking = dev.lavarise.feature.MatchResults.ranking(
+                session.getAlivePlayers(), session.getEliminationOrder());
         final int total = ranking.size();
         if (total == 0) return;
 

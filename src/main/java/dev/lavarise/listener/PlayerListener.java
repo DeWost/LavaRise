@@ -56,8 +56,16 @@ public class PlayerListener implements Listener {
         if (killer != null && !killer.equals(player)) {
             plugin.getStatsManager().recordKill(killer.getUniqueId(), killer.getName());
             session.recordSessionKill(killer.getUniqueId());
+            final int streak = session.getSessionKills(killer.getUniqueId());
             killer.sendMessage(plugin.getMiniMessage().deserialize(
-                    "<gray>You eliminated <red>" + player.getName() + "</red>!"));
+                    "<gray>You eliminated <red>" + player.getName() + "</red>! "
+                            + "<dark_gray>(<yellow>" + streak + "<gray> kill" + (streak == 1 ? "" : "s")
+                            + "<dark_gray>)"));
+            try {
+                killer.playSound(killer.getLocation(), "entity.experience_orb.pickup", 1.0f, 1.2f);
+            } catch (Exception ignored) {
+                // Invalid sound key — ignore.
+            }
             runCommands(plugin.getConfigManager().getKillCommands(),
                     "{killer}", killer.getName(), "{victim}", player.getName());
         }
