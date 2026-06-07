@@ -31,8 +31,21 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        // Automatically remove a player from their active arena if they disconnect
-        plugin.getGameManager().removePlayer(event.getPlayer());
+        final Player player = event.getPlayer();
+        // Combat-log protection: logging out mid-fight counts as a death, not a
+        // clean escape — record it and announce before removing the player.
+        final Arena arena = plugin.getGameManager().getArenaForPlayer(player.getUniqueId());
+        if (arena != null && arena.getSession() != null
+                && plugin.getConfigManager().isCombatLogProtect()
+                && arena.getSession().getCurrentState().isGameRunning()
+                && arena.getSession().isCombatTagged(player.getUniqueId())
+                && arena.getSession().isAlive(player.getUniqueId())) {
+            plugin.getStatsManager().recordDeath(player.getUniqueId(), player.getName());
+            broadcast(arena.getSession(), "<red>☠ <yellow>" + player.getName()
+                    + "</yellow> combat-logged and was eliminated!");
+        }
+        // Automatically remove a player from their active arena if they disconnect.
+        plugin.getGameManager().removePlayer(player);
     }
 
     /**

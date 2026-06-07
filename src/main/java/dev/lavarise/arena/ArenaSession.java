@@ -66,6 +66,9 @@ public final class ArenaSession {
     private final Map<UUID, Long> lastKillAt = new ConcurrentHashMap<>();
     private final Map<UUID, Integer> comboCount = new ConcurrentHashMap<>();
 
+    /** Combat tag expiry per player — for combat-log protection. */
+    private final Map<UUID, Long> combatTagUntil = new ConcurrentHashMap<>();
+
     /** Whether the game loop is paused (admin event mode). */
     private volatile boolean paused = false;
     private long pauseStart = 0L;
@@ -202,6 +205,17 @@ public final class ArenaSession {
         lastKillAt.put(killer, now);
         comboCount.put(killer, combo);
         return combo;
+    }
+
+    /** Mark a player as in combat for {@code durationMs} (combat-log protection). */
+    public void tagCombat(UUID playerId, long durationMs) {
+        combatTagUntil.put(playerId, System.currentTimeMillis() + durationMs);
+    }
+
+    /** Whether the player is currently combat-tagged. */
+    public boolean isCombatTagged(UUID playerId) {
+        final Long until = combatTagUntil.get(playerId);
+        return until != null && until > System.currentTimeMillis();
     }
 
     /** Seconds the player survived (their elimination time, or the live elapsed

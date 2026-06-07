@@ -107,6 +107,11 @@ gameplay:
 
   # Battle-royale combat hype: killstreak + multi-kill (double/triple) call-outs.
   killstreaks: true
+  # Combat-log protection: leaving while combat-tagged counts as a death (no
+  # escaping a fight by disconnecting). combat-tag-seconds = how long a PvP hit
+  # keeps you tagged.
+  combat-log-protect: true
+  combat-tag-seconds: 10
   # Bounties: a player who reaches this many kills has a bounty on their head;
   # whoever eliminates them claims it (announced to the arena).
   bounty:
