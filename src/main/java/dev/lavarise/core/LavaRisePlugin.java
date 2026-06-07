@@ -227,6 +227,7 @@ public final class LavaRisePlugin extends JavaPlugin {
         configManager.loadAll();
         arenaRepository.loadArenas();
         if (kitManager != null) kitManager.load();
+        if (autoArena != null) autoArena.onReload();
         getLogger().info("LavaRise configuration reloaded.");
     }
 
