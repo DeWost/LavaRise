@@ -129,6 +129,8 @@ public final class ConfigManager {
     private boolean scoreboardEnabled;
     private boolean particlesEnabled;
     private String particleType;
+    private boolean deathEffectEnabled;
+    private String deathParticle;
     private int particleDensity;
     private int particleIntervalTicks;
     private boolean soundsEnabled;
@@ -282,6 +284,8 @@ public final class ConfigManager {
         this.scoreboardEnabled = config.getBoolean("effects.scoreboard.enabled", true);
         this.particlesEnabled = config.getBoolean("effects.particles.enabled", true);
         this.particleType = config.getString("effects.particles.type", "LAVA");
+        this.deathEffectEnabled = config.getBoolean("effects.death-effect.enabled", true);
+        this.deathParticle = config.getString("effects.death-effect.particle", "LAVA");
         this.particleDensity = config.getInt("effects.particles.density", 2);
         this.particleIntervalTicks = Math.max(1, config.getInt("effects.particles.interval", 10));
         this.soundsEnabled = config.getBoolean("effects.sounds.enabled", true);
@@ -429,6 +433,8 @@ public final class ConfigManager {
     public boolean isScoreboardEnabled() { return scoreboardEnabled; }
     public boolean isParticlesEnabled() { return particlesEnabled; }
     public String getParticleType() { return particleType; }
+    public boolean isDeathEffectEnabled() { return deathEffectEnabled; }
+    public String getDeathParticle() { return deathParticle; }
     public int getParticleDensity() { return particleDensity; }
     public int getParticleIntervalTicks() { return particleIntervalTicks; }
     public boolean isSoundsEnabled() { return soundsEnabled; }

@@ -201,6 +201,16 @@ public final class ActiveState implements GameState {
                 Title.Times.times(Duration.ofMillis(200), Duration.ofSeconds(2), Duration.ofMillis(500))));
         playSound(player, "entity.blaze.death", 1.0f, 0.5f);
 
+        // Death burst — a configurable particle puff where they were eliminated.
+        if (cfg.isDeathEffectEnabled() && player.isOnline()) {
+            try {
+                player.getWorld().spawnParticle(parseParticle(cfg.getDeathParticle()),
+                        player.getLocation().add(0, 1, 0), 30, 0.4, 0.6, 0.4, 0.05);
+            } catch (Exception ignored) {
+                // Invalid particle name — skip.
+            }
+        }
+
         plugin.getScoreboardModule().updateScoreboard(session);
         broadcastToArena(plugin.getMiniMessage().deserialize(
                 "<red>☠ " + player.getName() + " <gray>eliminated! <dark_gray>(" + session.getAliveCount() + " alive)"));
