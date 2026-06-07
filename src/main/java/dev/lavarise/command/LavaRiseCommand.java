@@ -76,6 +76,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             case "survival" -> handleSurvival(sender, args);
             case "event" -> handleEvent(sender, args);
             case "create" -> handleCreate(sender, args);
+            case "setup" -> handleQuickSetup(sender, args);
             case "pos1" -> handleSetCorner(sender, 1);
             case "pos2" -> handleSetCorner(sender, 2);
             case "setlobby" -> handleSetSpawn(sender, "lobby");
@@ -371,6 +372,61 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    /**
+     * One-shot arena setup: build a ready-to-play arena centred on where the admin
+     * is standing — no pos1/pos2/spawn steps. {@code /lavarise setup <name> [radius]}.
+     */
+    private boolean handleQuickSetup(CommandSender sender, String[] args) {
+        if (notAdmin(sender)) return true;
+        if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
+        if (args.length < 2) { msg(player, "<red>Usage: /lavarise setup <name> [radius]"); return true; }
+        final String name = args[1];
+        if (!dev.lavarise.arena.ArenaNames.isValid(name)) {
+            msg(player, "<red>Invalid name. Use 1-32 letters, digits, '_' or '-' only.");
+            return true;
+        }
+        if (plugin.getArenaRepository().getArena(name).isPresent()) {
+            msg(player, "<red>An arena named <yellow>" + name + "</yellow> already exists.");
+            return true;
+        }
+        int radius = 30;
+        if (args.length >= 3) {
+            try { radius = Math.max(5, Math.min(200, Integer.parseInt(args[2]))); }
+            catch (NumberFormatException ignored) { }
+        }
+
+        final Location center = player.getLocation();
+        final World world = center.getWorld();
+        final int cx = center.getBlockX();
+        final int cy = center.getBlockY();
+        final int cz = center.getBlockZ();
+        final int floorY = Math.max(world.getMinHeight(), cy - 5);
+        final int ceilY = Math.min(world.getMaxHeight() - 1, cy + 60);
+
+        final Location corner1 = new Location(world, cx - radius, floorY, cz - radius);
+        final Location corner2 = new Location(world, cx + radius, ceilY, cz + radius);
+        final Location spawn = new Location(world, cx + 0.5, cy, cz + 0.5);
+        final Location spectator = new Location(world, cx + 0.5, ceilY, cz + 0.5);
+
+        final var cfg = plugin.getConfigManager();
+        final ArenaConfig config = new ArenaConfig(
+                name, world, corner1, corner2, spawn, spawn, spectator,
+                cfg.getDefaultMinPlayers(), cfg.getDefaultMaxPlayers(),
+                cfg.getDefaultCountdown(), cfg.getDefaultCountdown(),
+                cfg.getLavaRiseInterval(), cfg.getLavaRiseAmount(),
+                cy, ceilY, // lava rises from the admin's feet up to the ceiling
+                cfg.isDefaultPvp(), cfg.isDefaultBlockBreak(), cfg.isDefaultBlockPlace(),
+                cfg.isDefaultKeepInventory(), cfg.isDefaultHunger(), cfg.getDefaultGameMode());
+
+        final Arena arena = new Arena(plugin, config);
+        plugin.getArenaRepository().addArena(arena);
+        arena.createSession();
+        msg(player, "<green>✔ Arena <yellow>" + name + "</yellow> created around you — "
+                + (radius * 2 + 1) + "×" + (radius * 2 + 1) + ", lava <gray>" + cy + "→" + ceilY
+                + "<green>. It's open to join now!");
+        return true;
+    }
+
     private boolean handleSetCorner(CommandSender sender, int corner) {
         if (notAdmin(sender)) return true;
         if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
@@ -520,6 +576,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         msg(sender, "<yellow>/lr stats [player] <gray>- View statistics");
         msg(sender, "<yellow>/lr top [wins|kills|time] <gray>- Leaderboard");
         if (sender.hasPermission("lavarise.admin")) {
+            msg(sender, "<gold>Admin: <yellow>setup <name> [radius] <gray>- one-command arena where you stand");
             msg(sender, "<gold>Admin: <yellow>create/pos1/pos2/setlobby/setgamespawn/setspectator/save/delete");
             msg(sender, "<gold>Admin: <yellow>start/skip/freeze/stop/reload/stress");
             msg(sender, "<gold>Admin: <yellow>survival <start|stop> [world]");
@@ -545,7 +602,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         if (args.length == 1) {
             completions.addAll(List.of("join", "random", "kit", "vote", "leave", "list", "stats", "top"));
             if (sender.hasPermission("lavarise.admin")) {
-                completions.addAll(List.of("create", "pos1", "pos2", "setlobby", "setgamespawn",
+                completions.addAll(List.of("setup", "create", "pos1", "pos2", "setlobby", "setgamespawn",
                         "setspectator", "save", "delete", "start", "skip", "freeze", "stop", "reload", "stress",
                         "survival", "event"));
             }
