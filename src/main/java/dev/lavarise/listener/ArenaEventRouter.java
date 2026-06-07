@@ -149,6 +149,13 @@ public class ArenaEventRouter implements Listener {
             // Mode rules (e.g. teams disable friendly fire).
             if (!session.getModeHandler().allowFriendlyFire(session, attacker, victim)) {
                 event.setCancelled(true);
+                return;
+            }
+            // Combat-tag both fighters for combat-log protection.
+            if (plugin.getConfigManager().isCombatLogProtect()) {
+                final long ms = plugin.getConfigManager().getCombatTagSeconds() * 1000L;
+                session.tagCombat(attacker.getUniqueId(), ms);
+                session.tagCombat(victim.getUniqueId(), ms);
             }
         }
         // Otherwise (lava/fall/etc. during the game): damage applies; on death,

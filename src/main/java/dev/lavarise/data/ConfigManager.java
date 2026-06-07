@@ -43,6 +43,8 @@ public final class ConfigManager {
     private boolean autoSmelt;
     private boolean denyMobSpawns;
     private boolean killstreaksEnabled;
+    private boolean combatLogProtect;
+    private int combatTagSeconds;
     private int bountyThreshold;
     private int bountyPerStreak;
     private List<String> bountyCommands;
@@ -182,6 +184,8 @@ public final class ConfigManager {
         this.denyMobSpawns = config.getBoolean("gameplay.deny-mob-spawns", true);
         // Battle-royale combat hype (killstreak/multi-kill announcements + bounties).
         this.killstreaksEnabled = config.getBoolean("gameplay.killstreaks", true);
+        this.combatLogProtect = config.getBoolean("gameplay.combat-log-protect", true);
+        this.combatTagSeconds = Math.max(1, config.getInt("gameplay.combat-tag-seconds", 10));
         this.bountyThreshold = Math.max(2, config.getInt("gameplay.bounty.threshold", 3));
         this.bountyPerStreak = Math.max(0, config.getInt("gameplay.bounty.per-streak", 100));
         this.bountyCommands = config.getStringList("gameplay.bounty.commands");
@@ -321,6 +325,8 @@ public final class ConfigManager {
     public boolean isAutoSmelt() { return autoSmelt; }
     public boolean isDenyMobSpawns() { return denyMobSpawns; }
     public boolean isKillstreaksEnabled() { return killstreaksEnabled; }
+    public boolean isCombatLogProtect() { return combatLogProtect; }
+    public int getCombatTagSeconds() { return combatTagSeconds; }
     public int getBountyThreshold() { return bountyThreshold; }
     public int getBountyPerStreak() { return bountyPerStreak; }
     public List<String> getBountyCommands() { return Collections.unmodifiableList(bountyCommands); }
