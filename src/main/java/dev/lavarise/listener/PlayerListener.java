@@ -44,8 +44,10 @@ public class PlayerListener implements Listener {
             broadcast(arena.getSession(), "<red>☠ <yellow>" + player.getName()
                     + "</yellow> combat-logged and was eliminated!");
         }
-        // Drop them from the matchmaking queue if they were waiting.
+        // Drop them from the matchmaking queue and their party if they were in one,
+        // so neither map holds a ghost reference to a disconnected player.
         plugin.getQueueManager().remove(player.getUniqueId());
+        plugin.getPartyManager().leave(player.getUniqueId());
         // Automatically remove a player from their active arena if they disconnect.
         plugin.getGameManager().removePlayer(player);
     }
@@ -87,8 +89,13 @@ public class PlayerListener implements Listener {
             // Reward winning a fight with some health back (extinguish fire too).
             final double heal = plugin.getConfigManager().getKillHeal();
             if (heal > 0) {
-                killer.setHealth(Math.min(killer.getMaxHealth(), killer.getHealth() + heal));
-                killer.setFireTicks(0);
+                try {
+                    killer.setHealth(Math.min(killer.getMaxHealth(), killer.getHealth() + heal));
+                    killer.setFireTicks(0);
+                } catch (IllegalArgumentException ignored) {
+                    // Health out of range (e.g. attribute-modified max) — skip the heal
+                    // rather than let it abort the rest of the death handler.
+                }
             }
 
             // ── Battle-royale combat hype ──────────────────────

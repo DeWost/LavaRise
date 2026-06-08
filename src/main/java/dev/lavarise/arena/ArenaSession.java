@@ -478,6 +478,14 @@ public final class ArenaSession {
 
         alivePlayers.clear();
         spectators.clear();
+
+        // Restore the arena terrain too (admin /lr stop, re-entry) so it isn't left
+        // lava-filled — otherwise the next game's snapshot would bake the lava in.
+        // Skipped during plugin disable: the async reset wouldn't finish before the
+        // world unloads. WorldResetter no-ops safely if no snapshot was taken.
+        if (plugin.isEnabled() && getModeHandler().shouldSnapshot()) {
+            dev.lavarise.engine.WorldResetter.resetArena(plugin, arena);
+        }
         plugin.debug("Session force-ended for " + arena.getName());
     }
 

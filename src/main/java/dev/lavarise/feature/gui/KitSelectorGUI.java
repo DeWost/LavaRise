@@ -56,15 +56,17 @@ public class KitSelectorGUI implements Listener {
                 Component.text(autoJoin ? "Pick a kit to play" : "Select your kit"));
         holder.inventory = inv;
 
-        for (String key : order) {
-            final KitManager.Kit kit = km.get(key);
+        // Place by index so slots map 1:1 to the kit order (addItem could stack
+        // two kits that share an icon, shifting the click mapping).
+        for (int i = 0; i < order.size(); i++) {
+            final KitManager.Kit kit = km.get(order.get(i));
             final ItemStack item = new ItemStack(kit.icon());
             final ItemMeta meta = item.getItemMeta();
             if (meta != null) {
                 meta.displayName(plugin.getMiniMessage().deserialize("<yellow><bold>" + kit.label() + "</bold>"));
                 item.setItemMeta(meta);
             }
-            inv.addItem(item);
+            inv.setItem(i, item);
         }
         player.openInventory(inv);
     }
