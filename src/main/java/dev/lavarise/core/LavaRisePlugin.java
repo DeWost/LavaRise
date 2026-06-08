@@ -44,6 +44,7 @@ public final class LavaRisePlugin extends JavaPlugin {
     private StatsManager statsManager;
     private KitManager kitManager;
     private dev.lavarise.party.PartyManager partyManager;
+    private dev.lavarise.party.QueueManager queueManager;
     private KitSelectorGUI kitSelectorGUI;
     private VoteGUI voteGUI;
     private dev.lavarise.hook.VaultHook vaultHook;
@@ -99,6 +100,7 @@ public final class LavaRisePlugin extends JavaPlugin {
         this.kitSelectorGUI = new KitSelectorGUI(this);
         this.voteGUI = new VoteGUI(this);
         this.partyManager = new dev.lavarise.party.PartyManager(this);
+        this.queueManager = new dev.lavarise.party.QueueManager(this);
 
         // ── 6. Integrations ─────────────────────────────────
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
@@ -185,6 +187,10 @@ public final class LavaRisePlugin extends JavaPlugin {
 
     public dev.lavarise.party.PartyManager getPartyManager() {
         return partyManager;
+    }
+
+    public dev.lavarise.party.QueueManager getQueueManager() {
+        return queueManager;
     }
 
     public ArenaRepository getArenaRepository() {

@@ -70,6 +70,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             case "top" -> handleTop(sender, args);
             case "info" -> handleInfo(sender, args);
             case "party", "p" -> handleParty(sender, args);
+            case "queue", "q" -> handleQueue(sender, args);
             case "start", "forcestart" -> handleStart(sender, args);
             case "skip" -> handleSkip(sender, args);
             case "freeze" -> handleFreeze(sender, args);
@@ -259,6 +260,32 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             final int alive = s != null ? s.getAliveCount() : 0;
             msg(sender, "<yellow>" + arena.getName() + " <dark_gray>— <gray>" + state
                     + " <dark_gray>(" + alive + "/" + arena.getConfig().maxPlayers() + ")");
+        }
+        return true;
+    }
+
+    // ── Queue (matchmaking) ─────────────────────────────────
+
+    private boolean handleQueue(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
+        final var qm = plugin.getQueueManager();
+        if (args.length >= 2 && (args[1].equalsIgnoreCase("leave") || args[1].equalsIgnoreCase("quit"))) {
+            if (qm.remove(player.getUniqueId())) msg(player, "<gray>You left the matchmaking queue.");
+            else msg(player, "<red>You are not in the queue.");
+            return true;
+        }
+        if (plugin.getGameManager().isInGame(player)) {
+            msg(player, "<red>You are already in a game. Use <yellow>/lr leave</yellow> first.");
+            return true;
+        }
+        if (qm.isQueued(player.getUniqueId())) {
+            msg(player, "<gray>You are already queued <dark_gray>(" + qm.size() + " waiting)<gray>. <yellow>/lr queue leave");
+            return true;
+        }
+        final int size = qm.enqueue(player);
+        // A match may have formed immediately — only message if they are still waiting.
+        if (qm.isQueued(player.getUniqueId())) {
+            msg(player, "<green>⏳ Queued for matchmaking <dark_gray>(" + size + " waiting)<green>. <gray>Hang tight!");
         }
         return true;
     }
@@ -711,6 +738,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         msg(sender, "<yellow>/lr top [wins|kills|time] <gray>- Leaderboard");
         msg(sender, "<yellow>/lr info [arena] <gray>- Arena status");
         msg(sender, "<yellow>/lr party <gray>- invite/accept/leave/kick/disband; join together");
+        msg(sender, "<yellow>/lr queue [leave] <gray>- matchmaking queue");
         if (sender.hasPermission("lavarise.admin")) {
             msg(sender, "<gold>Admin: <yellow>setup <name> [radius] <gray>- one-command arena where you stand");
             msg(sender, "<gold>Admin: <yellow>create/pos1/pos2/setlobby/setgamespawn/setspectator/save/delete");
@@ -736,7 +764,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         List<String> completions = new ArrayList<>();
         if (args.length == 1) {
-            completions.addAll(List.of("join", "random", "kit", "vote", "leave", "list", "stats", "top", "info", "party"));
+            completions.addAll(List.of("join", "random", "kit", "vote", "leave", "list", "stats", "top", "info", "party", "queue"));
             if (sender.hasPermission("lavarise.admin")) {
                 completions.addAll(List.of("setup", "create", "pos1", "pos2", "setlobby", "setgamespawn",
                         "setspectator", "save", "delete", "start", "skip", "freeze", "stop", "reload", "stress",
