@@ -48,6 +48,19 @@ public final class CountdownState implements GameState {
                 "<gold>Game starting in <yellow>" + countdown + "</yellow> seconds!"
         ));
 
+        // Mandatory kit voting: push the vote screen to everyone for the duration
+        // of the countdown. The lobby's winning kit applies to all, so non-voters
+        // still get a kit.
+        if (mandatoryVotingActive()) {
+            broadcastToArena(plugin.getMiniMessage().deserialize(
+                    "<aqua>🗳 Vote for the kit! <gray>You have <yellow>" + countdown
+                            + "s<gray>. <dark_gray>(the lobby's winning kit applies to all)"));
+            for (var uuid : session.getAllPlayerIds()) {
+                final Player p = plugin.getServer().getPlayer(uuid);
+                if (p != null && p.isOnline()) plugin.getVoteGUI().open(p);
+            }
+        }
+
         // Start countdown timer
         countdownTask = new BukkitRunnable() {
             @Override
@@ -105,6 +118,16 @@ public final class CountdownState implements GameState {
         player.sendMessage(plugin.getMiniMessage().deserialize(
                 "<gold>Game starts in <yellow>" + countdown + "</yellow> seconds!"
         ));
+        if (mandatoryVotingActive()) {
+            plugin.getVoteGUI().open(player);
+        }
+    }
+
+    /** Whether a mandatory kit vote should be enforced (on + kits exist). */
+    private boolean mandatoryVotingActive() {
+        return plugin.getConfigManager().isMandatoryVoting()
+                && plugin.getKitManager() != null
+                && plugin.getKitManager().hasKits();
     }
 
     @Override

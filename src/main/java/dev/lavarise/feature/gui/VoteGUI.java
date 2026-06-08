@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
@@ -160,6 +161,26 @@ public class VoteGUI implements Listener {
         if (event.getInventory().getHolder() instanceof VoteGUIHolder) {
             event.setCancelled(true);
         }
+    }
+
+    /**
+     * Mandatory voting: while the lobby is still waiting, a player who closes the
+     * vote without having voted has it reopened — so they must cast a vote. Stops
+     * the instant they vote or the game starts (session no longer joinable).
+     */
+    @EventHandler
+    public void onClose(InventoryCloseEvent event) {
+        if (!(event.getInventory().getHolder() instanceof VoteGUIHolder)) return;
+        if (!plugin.getConfigManager().isMandatoryVoting()) return;
+        if (!(event.getPlayer() instanceof Player player)) return;
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            if (!player.isOnline()) return;
+            final ArenaSession session = sessionFor(player);
+            if (session != null && session.isJoinable()
+                    && session.getVote(player.getUniqueId()) == null) {
+                open(player);
+            }
+        });
     }
 
     @EventHandler

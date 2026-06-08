@@ -120,6 +120,7 @@ public final class ActiveState implements GameState {
             if (p == null || !p.isOnline()) continue;
 
             plugin.getStatsManager().recordGamePlayed(uuid, p.getName());
+            p.closeInventory(); // dismiss any open lobby vote GUI
 
             if (arena.getConfig().gameSpawn() != null) {
                 p.teleport(arena.getConfig().gameSpawn());
