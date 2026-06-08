@@ -3,8 +3,8 @@
 #  All timings are in ticks (20 ticks = 1 second) unless noted.
 # ============================================================
 
-# Internal config version — do not edit (used for migration warnings).
-config-version: 2
+# Internal config version — do not edit (used for auto-migration on upgrade).
+config-version: 3
 
 # General settings
 general:
