@@ -40,9 +40,13 @@ public class PlayerListener implements Listener {
                 && arena.getSession().getCurrentState().isGameRunning()
                 && arena.getSession().isCombatTagged(player.getUniqueId())
                 && arena.getSession().isAlive(player.getUniqueId())) {
-            plugin.getStatsManager().recordDeath(player.getUniqueId(), player.getName());
             broadcast(arena.getSession(), "<red>☠ <yellow>" + player.getName()
                     + "</yellow> combat-logged and was eliminated!");
+            // Run the full elimination pipeline (records death + survival time,
+            // adds them to the placement ranking, fires PlayerEliminatedEvent and
+            // re-checks the win condition) rather than silently dropping them via
+            // onPlayerLeave — otherwise results omit them and the event never fires.
+            arena.getSession().markEliminated(player);
         }
         // Drop them from the matchmaking queue and their party if they were in one,
         // so neither map holds a ghost reference to a disconnected player.

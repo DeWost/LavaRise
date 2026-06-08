@@ -469,6 +469,10 @@ public final class ArenaSession {
         for (UUID uuid : getAllPlayerIds()) {
             final Player player = plugin.getServer().getPlayer(uuid);
             if (player != null && player.isOnline()) {
+                // Normal end tears these down in EndingState; the force path skips
+                // EndingState entirely, so clear the HUD here or it leaks/freezes.
+                plugin.getBossBarModule().removeFor(player);
+                plugin.getScoreboardModule().cleanup(player);
                 player.setGameMode(GameMode.SURVIVAL);
                 if (arena.getConfig().lobbySpawn() != null) {
                     player.teleport(arena.getConfig().lobbySpawn());

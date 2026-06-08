@@ -93,6 +93,28 @@ public final class ArenaRepository {
 
         final ConfigManager cfg = plugin.getConfigManager();
 
+        // Validate/clamp player + lava bounds so a hand-edited or migrated arena
+        // file can't yield a divide-by-zero, an inverted lava range, or a game
+        // that ends instantly. Warn the admin when a value gets corrected.
+        final int rawInterval = yaml.getInt("lava-rise-interval", cfg.getLavaRiseInterval());
+        final int rawAmount   = yaml.getInt("lava-rise-amount", cfg.getLavaRiseAmount());
+        final int rawMinP     = yaml.getInt("min-players", cfg.getDefaultMinPlayers());
+        final int rawMaxP     = yaml.getInt("max-players", cfg.getDefaultMaxPlayers());
+        final int startY      = yaml.getInt("lava-start-y", cfg.getDefaultLavaStartY());
+        final int rawMaxY     = yaml.getInt("lava-max-y", cfg.getDefaultLavaMaxY());
+
+        final int riseInterval = Math.max(1, rawInterval);
+        final int riseAmount   = Math.max(1, rawAmount);
+        final int minPlayers   = Math.max(1, rawMinP);
+        final int maxPlayers   = Math.max(minPlayers, rawMaxP);
+        final int maxY         = Math.max(startY + 1, rawMaxY);
+        if (riseInterval != rawInterval || riseAmount != rawAmount || minPlayers != rawMinP
+                || maxPlayers != rawMaxP || maxY != rawMaxY) {
+            plugin.getLogger().warning("Arena " + name + ": corrected out-of-range value(s) "
+                    + "(lava-rise-interval/amount must be ≥ 1, max-players ≥ min-players, "
+                    + "lava-max-y > lava-start-y).");
+        }
+
         final ArenaConfig config = new ArenaConfig(
                 name,
                 world,
@@ -101,14 +123,14 @@ public final class ArenaRepository {
                 deserializeLocation(yaml, "lobby-spawn", world),
                 deserializeLocation(yaml, "game-spawn", world),
                 deserializeLocation(yaml, "spectator-spawn", world),
-                yaml.getInt("min-players", cfg.getDefaultMinPlayers()),
-                yaml.getInt("max-players", cfg.getDefaultMaxPlayers()),
+                minPlayers,
+                maxPlayers,
                 yaml.getInt("lobby-countdown", cfg.getDefaultCountdown()),
                 yaml.getInt("game-countdown", cfg.getDefaultCountdown()),
-                yaml.getInt("lava-rise-interval", cfg.getLavaRiseInterval()),
-                yaml.getInt("lava-rise-amount", cfg.getLavaRiseAmount()),
-                yaml.getInt("lava-start-y", cfg.getDefaultLavaStartY()),
-                yaml.getInt("lava-max-y", cfg.getDefaultLavaMaxY()),
+                riseInterval,
+                riseAmount,
+                startY,
+                maxY,
                 yaml.getBoolean("pvp", cfg.isDefaultPvp()),
                 yaml.getBoolean("block-break", cfg.isDefaultBlockBreak()),
                 yaml.getBoolean("block-place", cfg.isDefaultBlockPlace()),
