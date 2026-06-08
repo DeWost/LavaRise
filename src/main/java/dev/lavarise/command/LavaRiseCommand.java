@@ -69,6 +69,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             case "stats" -> handleStats(sender, args);
             case "top" -> handleTop(sender, args);
             case "info" -> handleInfo(sender, args);
+            case "party", "p" -> handleParty(sender, args);
             case "start", "forcestart" -> handleStart(sender, args);
             case "skip" -> handleSkip(sender, args);
             case "freeze" -> handleFreeze(sender, args);
@@ -105,14 +106,33 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
                 msg(player, "<gray>No open arenas — spun up a fresh random one!");
             }
             if (arena == null) { msg(player, "<red>No arenas available to quick-join."); return true; }
-            plugin.getGameManager().addPlayerToArena(player, arena);
+            joinWithParty(player, arena);
             return true;
         }
 
         Arena arena = plugin.getArenaRepository().getArena(args[1]).orElse(null);
         if (arena == null) { msg(player, "<red>Arena not found."); return true; }
-        plugin.getGameManager().addPlayerToArena(player, arena);
+        joinWithParty(player, arena);
         return true;
+    }
+
+    /**
+     * Join an arena, pulling the rest of the player's party in with them when they
+     * are the leader. Members already in a game (or for whom the arena is full) are
+     * skipped quietly.
+     */
+    private void joinWithParty(Player player, Arena arena) {
+        if (!plugin.getGameManager().addPlayerToArena(player, arena)) return;
+        final var party = plugin.getPartyManager().getParty(player.getUniqueId());
+        if (party == null || !party.isLeader(player.getUniqueId())) return;
+        for (UUID id : party.getMembers()) {
+            if (id.equals(player.getUniqueId())) continue;
+            final Player member = plugin.getServer().getPlayer(id);
+            if (member == null || !member.isOnline() || plugin.getGameManager().isInGame(member)) continue;
+            if (plugin.getGameManager().addPlayerToArena(member, arena)) {
+                msg(member, "<aqua>⛺ Joined <yellow>" + arena.getName() + "</yellow> with your party!");
+            }
+        }
     }
 
     private boolean handleKit(CommandSender sender) {
@@ -241,6 +261,88 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
                     + " <dark_gray>(" + alive + "/" + arena.getConfig().maxPlayers() + ")");
         }
         return true;
+    }
+
+    // ── Party ───────────────────────────────────────────────
+
+    private boolean handleParty(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
+        final var pm = plugin.getPartyManager();
+        final String sub = args.length >= 2 ? args[1].toLowerCase() : "list";
+
+        switch (sub) {
+            case "invite", "add" -> {
+                if (args.length < 3) { msg(player, "<red>Usage: /lr party invite <player>"); return true; }
+                final Player target = plugin.getServer().getPlayerExact(args[2]);
+                if (target == null || target.equals(player)) { msg(player, "<red>Player not found."); return true; }
+                final var existing = pm.getParty(player.getUniqueId());
+                if (existing != null && !existing.isLeader(player.getUniqueId())) {
+                    msg(player, "<red>Only the party leader can invite.");
+                    return true;
+                }
+                if (pm.isInParty(target.getUniqueId())) { msg(player, "<red>That player is already in a party."); return true; }
+                final int max = plugin.getConfigManager().getPartyMaxSize();
+                if (existing != null && existing.size() >= max) { msg(player, "<red>Your party is full (" + max + ")."); return true; }
+                pm.invite(player.getUniqueId(), target.getUniqueId());
+                msg(player, "<green>Invited <yellow>" + target.getName() + "</yellow> to your party.");
+                msg(target, "<aqua>" + player.getName() + " <gray>invited you to their party — <yellow>/lr party accept " + player.getName());
+            }
+            case "accept", "join" -> {
+                final UUID inviter = pm.getInviter(player.getUniqueId());
+                if (inviter == null) { msg(player, "<red>You have no pending party invite."); return true; }
+                if (pm.isInParty(player.getUniqueId())) { msg(player, "<red>Leave your current party first."); return true; }
+                final var party = pm.accept(player.getUniqueId());
+                if (party == null) { msg(player, "<red>That invite is no longer valid."); return true; }
+                broadcastParty(party, "<aqua>" + player.getName() + " <gray>joined the party! <dark_gray>(" + party.size() + ")");
+            }
+            case "leave", "quit" -> {
+                final var party = pm.leave(player.getUniqueId());
+                if (party == null) { msg(player, "<red>You are not in a party."); return true; }
+                msg(player, "<gray>You left the party.");
+                broadcastParty(party, "<gray>" + player.getName() + " left the party.");
+            }
+            case "kick", "remove" -> {
+                if (args.length < 3) { msg(player, "<red>Usage: /lr party kick <player>"); return true; }
+                final var party = pm.getParty(player.getUniqueId());
+                if (party == null || !party.isLeader(player.getUniqueId())) { msg(player, "<red>Only the leader can kick."); return true; }
+                final Player target = plugin.getServer().getPlayerExact(args[2]);
+                final UUID targetId = target != null ? target.getUniqueId() : null;
+                if (targetId == null || !party.isMember(targetId)) { msg(player, "<red>That player is not in your party."); return true; }
+                pm.leave(targetId);
+                msg(target, "<red>You were removed from the party.");
+                broadcastParty(party, "<gray>" + target.getName() + " was kicked from the party.");
+            }
+            case "disband" -> {
+                final var party = pm.getParty(player.getUniqueId());
+                if (party == null || !party.isLeader(player.getUniqueId())) { msg(player, "<red>Only the leader can disband."); return true; }
+                broadcastParty(party, "<red>The party was disbanded.");
+                pm.disband(party);
+            }
+            default -> {
+                final var party = pm.getParty(player.getUniqueId());
+                if (party == null) {
+                    msg(player, "<gray>You are not in a party. <yellow>/lr party invite <player>");
+                    return true;
+                }
+                final StringBuilder names = new StringBuilder();
+                for (UUID id : party.getMembers()) {
+                    final Player m = plugin.getServer().getPlayer(id);
+                    final String name = m != null ? m.getName() : id.toString().substring(0, 8);
+                    names.append(party.isLeader(id) ? "<gold>★" + name : "<yellow>" + name).append("<gray>, ");
+                }
+                msg(player, "<gradient:aqua:blue><bold>Party</bold></gradient> <dark_gray>(" + party.size() + ")");
+                msg(player, "  " + names.substring(0, Math.max(0, names.length() - "<gray>, ".length())));
+            }
+        }
+        return true;
+    }
+
+    private void broadcastParty(dev.lavarise.party.Party party, String mini) {
+        final var comp = plugin.getMiniMessage().deserialize(mini);
+        for (UUID id : party.getMembers()) {
+            final Player p = plugin.getServer().getPlayer(id);
+            if (p != null && p.isOnline()) p.sendMessage(comp);
+        }
     }
 
     // ── Admin: lifecycle ────────────────────────────────────
@@ -608,6 +710,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         msg(sender, "<yellow>/lr stats [player] <gray>- View statistics");
         msg(sender, "<yellow>/lr top [wins|kills|time] <gray>- Leaderboard");
         msg(sender, "<yellow>/lr info [arena] <gray>- Arena status");
+        msg(sender, "<yellow>/lr party <gray>- invite/accept/leave/kick/disband; join together");
         if (sender.hasPermission("lavarise.admin")) {
             msg(sender, "<gold>Admin: <yellow>setup <name> [radius] <gray>- one-command arena where you stand");
             msg(sender, "<gold>Admin: <yellow>create/pos1/pos2/setlobby/setgamespawn/setspectator/save/delete");
@@ -633,7 +736,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         List<String> completions = new ArrayList<>();
         if (args.length == 1) {
-            completions.addAll(List.of("join", "random", "kit", "vote", "leave", "list", "stats", "top", "info"));
+            completions.addAll(List.of("join", "random", "kit", "vote", "leave", "list", "stats", "top", "info", "party"));
             if (sender.hasPermission("lavarise.admin")) {
                 completions.addAll(List.of("setup", "create", "pos1", "pos2", "setlobby", "setgamespawn",
                         "setspectator", "save", "delete", "start", "skip", "freeze", "stop", "reload", "stress",

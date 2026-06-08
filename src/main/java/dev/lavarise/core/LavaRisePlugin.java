@@ -43,6 +43,7 @@ public final class LavaRisePlugin extends JavaPlugin {
     private BossBarModule bossBarModule;
     private StatsManager statsManager;
     private KitManager kitManager;
+    private dev.lavarise.party.PartyManager partyManager;
     private KitSelectorGUI kitSelectorGUI;
     private VoteGUI voteGUI;
     private dev.lavarise.hook.VaultHook vaultHook;
@@ -97,6 +98,7 @@ public final class LavaRisePlugin extends JavaPlugin {
         this.kitManager = new KitManager(this);
         this.kitSelectorGUI = new KitSelectorGUI(this);
         this.voteGUI = new VoteGUI(this);
+        this.partyManager = new dev.lavarise.party.PartyManager(this);
 
         // ── 6. Integrations ─────────────────────────────────
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
@@ -179,6 +181,10 @@ public final class LavaRisePlugin extends JavaPlugin {
 
     public GameManager getGameManager() {
         return gameManager;
+    }
+
+    public dev.lavarise.party.PartyManager getPartyManager() {
+        return partyManager;
     }
 
     public ArenaRepository getArenaRepository() {

@@ -337,6 +337,12 @@ rewards:
   # Run when a player dies. Placeholders: {player}
   death-commands: []
 
+# ─── Parties ─────────────────────────────────────────────────
+# Players group up with /lr party and the leader's /lr join pulls everyone
+# into the same arena.
+party:
+  max-size: 8
+
 # ─── Game Mode Specific Settings ─────────────────────────────
 modes:
   # Mini-game mode — structured arena-based matches
