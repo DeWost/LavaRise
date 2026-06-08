@@ -635,8 +635,13 @@ public final class ActiveState implements GameState {
         World world = arena.getConfig().world();
         int start = arena.getConfig().lavaStartY();
         int max = arena.getConfig().lavaMaxY();
-        double progress = Math.min(1.0, Math.max(0.0,
+        double rawProgress = Math.min(1.0, Math.max(0.0,
                 (double) (session.getCurrentLavaY() - start) / Math.max(1, max - start)));
+        // Hold the border at full size until the lava passes the shrink-start
+        // threshold, then ramp from there to the minimum at the top.
+        final double startAt = cfg.getWorldBorderShrinkStartPercent() / 100.0;
+        final double progress = rawProgress <= startAt ? 0.0
+                : (rawProgress - startAt) / Math.max(1e-6, 1.0 - startAt);
         double initial = Math.max(arena.getConfig().width(), arena.getConfig().depth());
         double target = initial - (initial - cfg.getWorldBorderMinSize()) * progress;
         // Interpolate smoothly over the next rise interval.

@@ -190,6 +190,10 @@ gameplay:
     enabled: false
     # Smallest border size (blocks).
     min-size: 20
+    # Hold the border at full size until the lava has risen this % of the way
+    # to the top, then start closing in. 0 = shrink from the start. e.g. 30 =
+    # "let players settle, then begin the squeeze once the lava is 30% up".
+    shrink-start-percent: 0
 
   # Periodically hand out building blocks so players can pillar up.
   block-give:
