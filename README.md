@@ -238,6 +238,11 @@ With PlaceholderAPI installed:
 | `%lavarise_state_<arena>%` | Arena state (Waiting / Active / …) |
 | `%lavarise_lava_level_<arena>%` | Lava **height** (blocks risen) |
 | `%lavarise_lava_percent_<arena>%` · `%lavarise_lava_y_<arena>%` | Progress to max % · raw world Y |
+| `%lavarise_in_party%` · `%lavarise_party_size%` · `%lavarise_party_leader%` | Party: in a party? · size · leader name |
+| `%lavarise_queued%` · `%lavarise_queue_position%` | Matchmaking: queued? · your 1-based position |
+| `%lavarise_playing%` · `%lavarise_active_games%` · `%lavarise_queue_size%` · `%lavarise_arenas%` | **Network totals:** players in games · running games · in queue · configured arenas |
+
+bStats also reports anonymous `active_games`, `players_in_games` and `configured_arenas` charts (toggle with `general.bstats`).
 
 ## 🧠 How it beats the competition
 
