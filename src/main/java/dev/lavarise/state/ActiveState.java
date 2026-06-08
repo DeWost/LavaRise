@@ -341,6 +341,9 @@ public final class ActiveState implements GameState {
         // protect TPS on high-population servers).
         if (tickCounter % cfg.getHudIntervalTicks() == 0) {
             updatePerPlayerHud();
+            // Refresh the sidebar on the HUD cadence so the {time} clock ticks
+            // smoothly between lava rises (cheap on the shared-render fast path).
+            plugin.getScoreboardModule().updateScoreboard(session);
         }
         if (cfg.isParticlesEnabled() && tickCounter % cfg.getParticleIntervalTicks() == 0) {
             spawnParticles();
