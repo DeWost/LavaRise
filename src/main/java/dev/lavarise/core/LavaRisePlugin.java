@@ -43,6 +43,7 @@ public final class LavaRisePlugin extends JavaPlugin {
     private BossBarModule bossBarModule;
     private StatsManager statsManager;
     private KitManager kitManager;
+    private dev.lavarise.feature.CustomKitManager customKitManager;
     private dev.lavarise.party.PartyManager partyManager;
     private dev.lavarise.party.QueueManager queueManager;
     private KitSelectorGUI kitSelectorGUI;
@@ -97,6 +98,7 @@ public final class LavaRisePlugin extends JavaPlugin {
         this.scoreboardModule = new ScoreboardModule(this);
         this.bossBarModule = new BossBarModule(this);
         this.kitManager = new KitManager(this);
+        this.customKitManager = new dev.lavarise.feature.CustomKitManager(this);
         this.kitSelectorGUI = new KitSelectorGUI(this);
         this.voteGUI = new VoteGUI(this);
         this.partyManager = new dev.lavarise.party.PartyManager(this);
@@ -219,6 +221,10 @@ public final class LavaRisePlugin extends JavaPlugin {
 
     public KitManager getKitManager() {
         return kitManager;
+    }
+
+    public dev.lavarise.feature.CustomKitManager getCustomKitManager() {
+        return customKitManager;
     }
 
     public KitSelectorGUI getKitSelectorGUI() {
