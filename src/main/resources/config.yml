@@ -343,6 +343,12 @@ rewards:
 party:
   max-size: 8
 
+# ─── Matchmaking Queue ───────────────────────────────────────
+# /lr queue waits for players, then drops them into an open arena (or a fresh
+# procedural one) together once this many are waiting.
+queue:
+  min-players: 2
+
 # ─── Game Mode Specific Settings ─────────────────────────────
 modes:
   # Mini-game mode — structured arena-based matches

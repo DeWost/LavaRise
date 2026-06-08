@@ -44,6 +44,8 @@ public class PlayerListener implements Listener {
             broadcast(arena.getSession(), "<red>☠ <yellow>" + player.getName()
                     + "</yellow> combat-logged and was eliminated!");
         }
+        // Drop them from the matchmaking queue if they were waiting.
+        plugin.getQueueManager().remove(player.getUniqueId());
         // Automatically remove a player from their active arena if they disconnect.
         plugin.getGameManager().removePlayer(player);
     }
