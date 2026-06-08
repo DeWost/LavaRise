@@ -72,6 +72,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             case "party", "p" -> handleParty(sender, args);
             case "queue", "q" -> handleQueue(sender, args);
             case "play" -> handlePlay(sender);
+            case "customkit", "ckit" -> handleCustomKit(sender, args);
             case "start", "forcestart" -> handleStart(sender, args);
             case "skip" -> handleSkip(sender, args);
             case "freeze" -> handleFreeze(sender, args);
@@ -257,6 +258,32 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             final int alive = s != null ? s.getAliveCount() : 0;
             msg(sender, "<yellow>" + arena.getName() + " <dark_gray>— <gray>" + state
                     + " <dark_gray>(" + alive + "/" + arena.getConfig().maxPlayers() + ")");
+        }
+        return true;
+    }
+
+    // ── Custom kits ─────────────────────────────────────────
+
+    private boolean handleCustomKit(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
+        final var ckm = plugin.getCustomKitManager();
+        final String sub = args.length >= 2 ? args[1].toLowerCase() : "save";
+        switch (sub) {
+            case "save", "set" -> {
+                if (plugin.getGameManager().isInGame(player)) {
+                    msg(player, "<red>Set up your custom kit outside a game (so it's not your lobby items).");
+                    return true;
+                }
+                final int n = ckm.saveFromInventory(player);
+                if (n == 0) { msg(player, "<red>Your inventory is empty — nothing to save."); return true; }
+                msg(player, "<green>Saved your custom kit <dark_gray>(" + n + " item"
+                        + (n == 1 ? "" : "s") + ")<green>. It'll appear in the lobby kit vote!");
+            }
+            case "clear", "delete" -> {
+                ckm.clear(player.getUniqueId());
+                msg(player, "<gray>Your custom kit was cleared.");
+            }
+            default -> msg(player, "<yellow>/lr customkit save <gray>(from your inventory) <yellow>· clear");
         }
         return true;
     }
@@ -752,6 +779,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         msg(sender, "<yellow>/lr join [arena] <gray>- Join (no name = quick-join a random arena)");
         msg(sender, "<yellow>/lr random <gray>- Generate & join a fresh random arena");
         msg(sender, "<yellow>/lr kit <gray>- Choose your kit/loadout");
+        msg(sender, "<yellow>/lr customkit save <gray>- Save your inventory as a personal kit (votable in lobby)");
         msg(sender, "<yellow>/lr vote <gray>- Vote for the lobby's kit");
         msg(sender, "<yellow>/lr leave <gray>- Leave your game");
         msg(sender, "<yellow>/lr list <gray>- Browse arenas");
@@ -786,7 +814,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         List<String> completions = new ArrayList<>();
         if (args.length == 1) {
-            completions.addAll(List.of("join", "random", "kit", "vote", "leave", "list", "stats", "top", "info", "party", "queue"));
+            completions.addAll(List.of("join", "play", "random", "kit", "customkit", "vote", "leave", "list", "stats", "top", "info", "party", "queue"));
             if (sender.hasPermission("lavarise.admin")) {
                 completions.addAll(List.of("setup", "create", "pos1", "pos2", "setlobby", "setgamespawn",
                         "setspectator", "save", "delete", "setkit", "start", "skip", "freeze", "stop", "reload", "stress",
