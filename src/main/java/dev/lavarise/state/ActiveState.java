@@ -452,10 +452,15 @@ public final class ActiveState implements GameState {
             plugin.getKitManager().applyKit(player, arena.getCustomKit());
             return;
         }
+        // A player's custom kit won the lobby vote → everyone gets it.
+        final String voted = session.getVotedKit();
+        if (voted != null && voted.startsWith("custom:")) {
+            giveCustomVotedKit(player, voted);
+            return;
+        }
         // Prefer the multi-kit system. If players voted on a kit, everyone gets
         // the winner; otherwise each player gets their own selected loadout.
         if (plugin.getKitManager() != null && plugin.getKitManager().hasKits()) {
-            final String voted = session.getVotedKit();
             if (voted != null) {
                 plugin.getKitManager().applyKit(player, voted);
             } else {
@@ -467,6 +472,18 @@ public final class ActiveState implements GameState {
         for (String entry : cfg.getKitItems()) {
             ItemStack item = parseItem(entry);
             if (item != null) player.getInventory().addItem(item);
+        }
+    }
+
+    /** Give everyone the items of the custom kit (keyed {@code custom:<uuid>}) that won the vote. */
+    private void giveCustomVotedKit(Player player, String key) {
+        try {
+            final UUID owner = UUID.fromString(key.substring("custom:".length()));
+            for (ItemStack item : plugin.getCustomKitManager().getKit(owner)) {
+                player.getInventory().addItem(item);
+            }
+        } catch (IllegalArgumentException ignored) {
+            // Malformed key — no items.
         }
     }
 

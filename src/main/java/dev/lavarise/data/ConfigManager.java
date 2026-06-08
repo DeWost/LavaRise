@@ -48,6 +48,7 @@ public final class ConfigManager {
     private double killHeal;
     private int partyMaxSize;
     private int queueMinPlayers;
+    private boolean customKitsVotable;
     private boolean finalShowdownEnabled;
     private int finalShowdownPlayers;
     private boolean supplyDropsEnabled;
@@ -202,6 +203,7 @@ public final class ConfigManager {
         this.killHeal = Math.max(0, config.getDouble("gameplay.kill-heal", 0));
         this.partyMaxSize = Math.max(2, config.getInt("party.max-size", 8));
         this.queueMinPlayers = Math.max(2, config.getInt("queue.min-players", 2));
+        this.customKitsVotable = config.getBoolean("custom-kits.votable", true);
         this.finalShowdownEnabled = config.getBoolean("gameplay.final-showdown.enabled", true);
         this.finalShowdownPlayers = Math.max(2, config.getInt("gameplay.final-showdown.players", 2));
         this.supplyDropsEnabled = config.getBoolean("gameplay.supply-drops.enabled", false);
@@ -356,6 +358,7 @@ public final class ConfigManager {
     public double getKillHeal() { return killHeal; }
     public int getPartyMaxSize() { return partyMaxSize; }
     public int getQueueMinPlayers() { return queueMinPlayers; }
+    public boolean isCustomKitsVotable() { return customKitsVotable; }
     public boolean isFinalShowdownEnabled() { return finalShowdownEnabled; }
     public int getFinalShowdownPlayers() { return finalShowdownPlayers; }
     public boolean isSupplyDropsEnabled() { return supplyDropsEnabled; }
