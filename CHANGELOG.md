@@ -4,6 +4,13 @@ All notable changes to LavaRise are documented here.
 This project follows [Conventional Commits](https://www.conventionalcommits.org/)
 and roughly [Semantic Versioning](https://semver.org/).
 
+## [1.8.1](https://github.com/DeWost/LavaRise/compare/v1.8.0...v1.8.1) (2026-06-08)
+
+
+### Bug Fixes
+
+* pre-distribution hardening + marketplace listings & auto-publish CI ([#78](https://github.com/DeWost/LavaRise/issues/78)) ([c935a4c](https://github.com/DeWost/LavaRise/commit/c935a4c8f41a09982d7d0dbc1d91c1238dca2da8))
+
 ## [1.8.0](https://github.com/DeWost/LavaRise/compare/1.7.2...v1.8.0) (2026-06-08)
 
 
