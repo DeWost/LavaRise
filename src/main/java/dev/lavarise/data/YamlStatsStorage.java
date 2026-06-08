@@ -38,13 +38,13 @@ public final class YamlStatsStorage implements StatsStorage {
         this.data = YamlConfiguration.loadConfiguration(file);
     }
 
-    @Override public void recordGamePlayed(UUID id, String name) { setName(id, name); increment(id, "games", 1); }
-    @Override public void recordWin(UUID id, String name)        { setName(id, name); increment(id, "wins", 1); }
-    @Override public void recordKill(UUID id, String name)       { setName(id, name); increment(id, "kills", 1); }
-    @Override public void recordDeath(UUID id, String name)      { setName(id, name); increment(id, "deaths", 1); }
+    @Override public synchronized void recordGamePlayed(UUID id, String name) { setName(id, name); increment(id, "games", 1); }
+    @Override public synchronized void recordWin(UUID id, String name)        { setName(id, name); increment(id, "wins", 1); }
+    @Override public synchronized void recordKill(UUID id, String name)       { setName(id, name); increment(id, "kills", 1); }
+    @Override public synchronized void recordDeath(UUID id, String name)      { setName(id, name); increment(id, "deaths", 1); }
 
     @Override
-    public void recordSurvivalTime(UUID id, String name, long seconds) {
+    public synchronized void recordSurvivalTime(UUID id, String name, long seconds) {
         setName(id, name);
         if (seconds > getBestTime(id)) {
             data.set(path(id, "best_time"), seconds);
@@ -52,15 +52,15 @@ public final class YamlStatsStorage implements StatsStorage {
         }
     }
 
-    @Override public int getWins(UUID id)     { return data.getInt(path(id, "wins"), 0); }
-    @Override public int getGames(UUID id)    { return data.getInt(path(id, "games"), 0); }
-    @Override public int getKills(UUID id)    { return data.getInt(path(id, "kills"), 0); }
-    @Override public int getDeaths(UUID id)   { return data.getInt(path(id, "deaths"), 0); }
-    @Override public long getBestTime(UUID id) { return data.getLong(path(id, "best_time"), 0L); }
-    @Override public String getName(UUID id)  { return data.getString(path(id, "name"), "?"); }
+    @Override public synchronized int getWins(UUID id)     { return data.getInt(path(id, "wins"), 0); }
+    @Override public synchronized int getGames(UUID id)    { return data.getInt(path(id, "games"), 0); }
+    @Override public synchronized int getKills(UUID id)    { return data.getInt(path(id, "kills"), 0); }
+    @Override public synchronized int getDeaths(UUID id)   { return data.getInt(path(id, "deaths"), 0); }
+    @Override public synchronized long getBestTime(UUID id) { return data.getLong(path(id, "best_time"), 0L); }
+    @Override public synchronized String getName(UUID id)  { return data.getString(path(id, "name"), "?"); }
 
     @Override
-    public List<StatsManager.Entry> top(String stat, int limit) {
+    public synchronized List<StatsManager.Entry> top(String stat, int limit) {
         final List<StatsManager.Entry> entries = new ArrayList<>();
         if (data.getConfigurationSection("players") == null) return entries;
         for (String key : data.getConfigurationSection("players").getKeys(false)) {
@@ -74,7 +74,7 @@ public final class YamlStatsStorage implements StatsStorage {
     }
 
     @Override
-    public void flush() {
+    public synchronized void flush() {
         if (!dirty) return;
         try {
             data.save(file);

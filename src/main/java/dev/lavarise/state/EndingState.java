@@ -150,6 +150,7 @@ public final class EndingState implements GameState {
         for (UUID uuid : session.getAllPlayerIds()) {
             Player p = plugin.getServer().getPlayer(uuid);
             if (p != null && p.isOnline()) {
+                plugin.getScoreboardModule().cleanup(p); // drop the sidebar + free its playerLines entry
                 p.setWorldBorder(null); // restore the world's own border
                 p.setGlowing(false);    // clear any final-showdown glow
                 p.resetPlayerTime();    // restore real time/weather
