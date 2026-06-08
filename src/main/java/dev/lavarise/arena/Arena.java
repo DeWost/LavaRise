@@ -19,9 +19,21 @@ public final class Arena {
      *  unregistered after their game ends instead of being recreated. */
     private boolean transientArena;
 
+    /** Optional forced kit for this arena — overrides kit voting/selection. */
+    private String customKit;
+
     public Arena(LavaRisePlugin plugin, ArenaConfig config) {
         this.plugin = plugin;
         this.config = config;
+    }
+
+    /** The kit every player in this arena is forced to use, or {@code null}. */
+    public String getCustomKit() {
+        return customKit;
+    }
+
+    public void setCustomKit(String customKit) {
+        this.customKit = (customKit == null || customKit.isBlank()) ? null : customKit;
     }
 
     public boolean isTransient() {
