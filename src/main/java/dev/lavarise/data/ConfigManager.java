@@ -86,6 +86,7 @@ public final class ConfigManager {
     private int suddenDeathInterval;
     private boolean worldBorderEnabled;
     private int worldBorderMinSize;
+    private int worldBorderShrinkStartPercent;
     private boolean arenaBorderEnabled;
     private boolean voidEliminationEnabled;
     private int voidBuffer;
@@ -246,6 +247,8 @@ public final class ConfigManager {
         this.suddenDeathInterval = config.getInt("gameplay.sudden-death.interval", 10);
         this.worldBorderEnabled = config.getBoolean("gameplay.world-border.enabled", false);
         this.worldBorderMinSize = config.getInt("gameplay.world-border.min-size", 20);
+        this.worldBorderShrinkStartPercent = Math.max(0, Math.min(100,
+                config.getInt("gameplay.world-border.shrink-start-percent", 0)));
         // Per-arena containment: a per-player world border keeps players inside the
         // arena bounds (works independently for every arena in the same world).
         this.arenaBorderEnabled = config.getBoolean("gameplay.arena-border", true);
@@ -400,6 +403,7 @@ public final class ConfigManager {
     public int getSuddenDeathInterval() { return suddenDeathInterval; }
     public boolean isWorldBorderEnabled() { return worldBorderEnabled; }
     public int getWorldBorderMinSize() { return worldBorderMinSize; }
+    public int getWorldBorderShrinkStartPercent() { return worldBorderShrinkStartPercent; }
     public boolean isArenaBorderEnabled() { return arenaBorderEnabled; }
     public boolean isVoidEliminationEnabled() { return voidEliminationEnabled; }
     public int getVoidBuffer() { return voidBuffer; }
