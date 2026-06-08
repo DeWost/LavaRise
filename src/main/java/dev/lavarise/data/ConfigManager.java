@@ -155,20 +155,62 @@ public final class ConfigManager {
         this.plugin = plugin;
     }
 
+    /** Current config.yml schema version — bump whenever new keys are added. */
+    private static final int CURRENT_CONFIG_VERSION = 3;
+
     /**
-     * Load all configuration values from disk.
-     * Called on startup and reload.
+     * Merge new options from the bundled default into the admin's config.yml on
+     * upgrade — without losing their values. The commented default is the base
+     * (so comments survive) and the admin's values are re-applied on top; their
+     * previous file is backed up. No-ops when already current.
+     */
+    private void migrateConfig() {
+        final File configFile = new File(plugin.getDataFolder(), "config.yml");
+        if (!configFile.exists()) return;
+
+        final FileConfiguration user = YamlConfiguration.loadConfiguration(configFile);
+        final int userVersion = user.getInt("config-version", 1);
+
+        final java.io.InputStream in = plugin.getResource("config.yml");
+        if (in == null) return;
+        final YamlConfiguration def = YamlConfiguration.loadConfiguration(
+                new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
+
+        boolean missingKey = false;
+        for (String key : def.getKeys(true)) {
+            if (!user.contains(key)) { missingKey = true; break; }
+        }
+        if (!missingKey && userVersion >= CURRENT_CONFIG_VERSION) return; // already current
+
+        try {
+            final File backup = new File(plugin.getDataFolder(), "config-backup-v" + userVersion + ".yml");
+            java.nio.file.Files.copy(configFile.toPath(), backup.toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+            def.options().parseComments(true);
+            for (String key : user.getKeys(true)) {
+                if (user.isConfigurationSection(key)) continue; // carry over leaf values only
+                if (key.equals("config-version")) continue;
+                def.set(key, user.get(key));
+            }
+            def.set("config-version", CURRENT_CONFIG_VERSION);
+            def.save(configFile);
+            plugin.reloadConfig();
+            plugin.getLogger().info("config.yml upgraded to v" + CURRENT_CONFIG_VERSION
+                    + " — new options merged in; your previous file saved as " + backup.getName() + ".");
+        } catch (Exception e) {
+            plugin.getLogger().warning("Config auto-migration failed (continuing with current values): "
+                    + e.getMessage());
+        }
+    }
+
+    /**
+     * Load all configuration values from disk. Called on startup and reload.
      */
     public void loadAll() {
+        // Merge any new options into an upgraded server's config.yml first.
+        migrateConfig();
         final FileConfiguration config = plugin.getConfig();
-
-        // Config version warning (helps admins notice an outdated config after upgrades).
-        final int CURRENT_CONFIG_VERSION = 2;
-        if (config.contains("config-version") && config.getInt("config-version") < CURRENT_CONFIG_VERSION) {
-            plugin.getLogger().warning("Your config.yml is version " + config.getInt("config-version")
-                    + " but this build expects " + CURRENT_CONFIG_VERSION
-                    + ". New options will use defaults — regenerate or merge config.yml to silence this.");
-        }
 
         // General
         this.debug = config.getBoolean("general.debug", false);
