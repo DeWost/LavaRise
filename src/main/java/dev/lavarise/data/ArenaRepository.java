@@ -117,7 +117,9 @@ public final class ArenaRepository {
                 yaml.getString("game-mode", cfg.getDefaultGameMode())
         );
 
-        return new Arena(plugin, config);
+        final Arena arena = new Arena(plugin, config);
+        arena.setCustomKit(yaml.getString("kit", null));
+        return arena;
     }
 
     // ── Save ────────────────────────────────────────────────
@@ -153,6 +155,7 @@ public final class ArenaRepository {
         yaml.set("keep-inventory", c.keepInventory());
         yaml.set("hunger", c.hunger());
         yaml.set("game-mode", c.gameMode());
+        if (arena.getCustomKit() != null) yaml.set("kit", arena.getCustomKit());
 
         try {
             yaml.save(file);

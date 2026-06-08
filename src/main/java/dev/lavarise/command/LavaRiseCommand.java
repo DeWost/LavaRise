@@ -87,6 +87,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             case "setspectator" -> handleSetSpawn(sender, "spectator");
             case "save" -> handleSave(sender);
             case "delete" -> handleDelete(sender, args);
+            case "setkit" -> handleSetKit(sender, args);
             case "stress" -> handleStress(sender, args);
             default -> { sendHelp(sender); yield true; }
         };
@@ -243,6 +244,9 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             msg(sender, "<gray>World: <yellow>" + (arena.getConfig().world() != null
                     ? arena.getConfig().world().getName() : "?")
                     + " <dark_gray>· <gray>Mode: <yellow>" + arena.getConfig().gameMode());
+            if (arena.getCustomKit() != null) {
+                msg(sender, "<gray>Forced kit: <gold>" + arena.getCustomKit());
+            }
             if (s == null) { msg(sender, "<gray>State: <red>no session"); return true; }
             msg(sender, "<gray>State: <yellow>" + s.getCurrentState().getDisplayName());
             msg(sender, "<gray>Players: <yellow>" + s.getAliveCount() + "<gray>/<yellow>"
@@ -657,6 +661,29 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    /** Force a specific kit on an arena (custom-kit arena), or clear it with "none". */
+    private boolean handleSetKit(CommandSender sender, String[] args) {
+        if (notAdmin(sender)) return true;
+        if (args.length < 3) { msg(sender, "<red>Usage: /lavarise setkit <arena> <kit|none>"); return true; }
+        final Arena arena = plugin.getArenaRepository().getArena(args[1]).orElse(null);
+        if (arena == null) { msg(sender, "<red>Arena not found."); return true; }
+        final String kit = args[2];
+        if (kit.equalsIgnoreCase("none") || kit.equalsIgnoreCase("clear")) {
+            arena.setCustomKit(null);
+            plugin.getArenaRepository().saveArena(arena);
+            msg(sender, "<green>Cleared the forced kit for <yellow>" + arena.getName() + "</yellow>. Voting/selection restored.");
+            return true;
+        }
+        if (plugin.getKitManager() == null || plugin.getKitManager().get(kit) == null) {
+            msg(sender, "<red>Kit <yellow>" + kit + "</yellow> not found. Define it under <yellow>kits:</yellow> in config.");
+            return true;
+        }
+        arena.setCustomKit(kit);
+        plugin.getArenaRepository().saveArena(arena);
+        msg(sender, "<green>Arena <yellow>" + arena.getName() + "</yellow> now forces the <gold>" + kit + "</gold> kit for everyone.");
+        return true;
+    }
+
     private boolean handleDelete(CommandSender sender, String[] args) {
         if (notAdmin(sender)) return true;
         if (args.length < 2) { msg(sender, "<red>Usage: /lavarise delete <arena>"); return true; }
@@ -742,6 +769,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         if (sender.hasPermission("lavarise.admin")) {
             msg(sender, "<gold>Admin: <yellow>setup <name> [radius] <gray>- one-command arena where you stand");
             msg(sender, "<gold>Admin: <yellow>create/pos1/pos2/setlobby/setgamespawn/setspectator/save/delete");
+            msg(sender, "<gold>Admin: <yellow>setkit <arena> <kit|none> <gray>- force a kit (custom-kit arena)");
             msg(sender, "<gold>Admin: <yellow>start/skip/freeze/stop/reload/stress");
             msg(sender, "<gold>Admin: <yellow>survival <start|stop> [world]");
             msg(sender, "<gold>Admin: <yellow>event <start|pause|resume|stop> <arena>");
@@ -767,7 +795,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             completions.addAll(List.of("join", "random", "kit", "vote", "leave", "list", "stats", "top", "info", "party", "queue"));
             if (sender.hasPermission("lavarise.admin")) {
                 completions.addAll(List.of("setup", "create", "pos1", "pos2", "setlobby", "setgamespawn",
-                        "setspectator", "save", "delete", "start", "skip", "freeze", "stop", "reload", "stress",
+                        "setspectator", "save", "delete", "setkit", "start", "skip", "freeze", "stop", "reload", "stress",
                         "survival", "event"));
             }
         } else if (args.length == 2) {

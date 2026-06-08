@@ -446,6 +446,12 @@ public final class ActiveState implements GameState {
     // ── Features ────────────────────────────────────────────
 
     private void giveKit(Player player) {
+        // A custom-kit arena forces one kit on everyone, overriding vote/selection.
+        if (arena.getCustomKit() != null && plugin.getKitManager() != null
+                && plugin.getKitManager().get(arena.getCustomKit()) != null) {
+            plugin.getKitManager().applyKit(player, arena.getCustomKit());
+            return;
+        }
         // Prefer the multi-kit system. If players voted on a kit, everyone gets
         // the winner; otherwise each player gets their own selected loadout.
         if (plugin.getKitManager() != null && plugin.getKitManager().hasKits()) {
