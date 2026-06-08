@@ -71,6 +71,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             case "info" -> handleInfo(sender, args);
             case "party", "p" -> handleParty(sender, args);
             case "queue", "q" -> handleQueue(sender, args);
+            case "play" -> handlePlay(sender);
             case "start", "forcestart" -> handleStart(sender, args);
             case "skip" -> handleSkip(sender, args);
             case "freeze" -> handleFreeze(sender, args);
@@ -98,43 +99,35 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
     private boolean handleJoin(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
 
-        // No arena named → quick-join: a RANDOM open arena, or a fresh
-        // procedural one if none are free (random matchmaking + rotation).
+        // No arena named → MCPvP-style quick-join: dropped into an open arena
+        // (or a fresh procedural one) automatically — no arena picking.
         if (args.length < 2) {
-            Arena arena = plugin.getGameManager().findRandomAvailableArena().orElse(null);
-            final var cfg = plugin.getConfigManager();
-            if (arena == null && cfg.isProceduralEnabled() && cfg.isProceduralAutoQuickjoin()) {
-                arena = ProceduralArenaFactory.create(plugin);
-                msg(player, "<gray>No open arenas — spun up a fresh random one!");
-            }
-            if (arena == null) { msg(player, "<red>No arenas available to quick-join."); return true; }
-            joinWithParty(player, arena);
+            plugin.getGameManager().quickJoin(player);
             return true;
         }
 
         Arena arena = plugin.getArenaRepository().getArena(args[1]).orElse(null);
         if (arena == null) { msg(player, "<red>Arena not found."); return true; }
-        joinWithParty(player, arena);
+        plugin.getGameManager().joinWithParty(player, arena);
         return true;
     }
 
     /**
-     * Join an arena, pulling the rest of the player's party in with them when they
-     * are the leader. Members already in a game (or for whom the arena is full) are
-     * skipped quietly.
+     * MCPvP-style entry point: pick a kit and you're dropped straight into a game.
+     * No kits configured → just quick-join.
      */
-    private void joinWithParty(Player player, Arena arena) {
-        if (!plugin.getGameManager().addPlayerToArena(player, arena)) return;
-        final var party = plugin.getPartyManager().getParty(player.getUniqueId());
-        if (party == null || !party.isLeader(player.getUniqueId())) return;
-        for (UUID id : party.getMembers()) {
-            if (id.equals(player.getUniqueId())) continue;
-            final Player member = plugin.getServer().getPlayer(id);
-            if (member == null || !member.isOnline() || plugin.getGameManager().isInGame(member)) continue;
-            if (plugin.getGameManager().addPlayerToArena(member, arena)) {
-                msg(member, "<aqua>⛺ Joined <yellow>" + arena.getName() + "</yellow> with your party!");
-            }
+    private boolean handlePlay(CommandSender sender) {
+        if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
+        if (plugin.getGameManager().isInGame(player)) {
+            msg(player, "<red>You are already in a game. Use <yellow>/lr leave</yellow> first.");
+            return true;
         }
+        if (plugin.getKitManager() != null && plugin.getKitManager().hasKits()) {
+            plugin.getKitSelectorGUI().openForPlay(player);
+        } else {
+            plugin.getGameManager().quickJoin(player);
+        }
+        return true;
     }
 
     private boolean handleKit(CommandSender sender) {
@@ -755,6 +748,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
 
     private void sendHelp(CommandSender sender) {
         msg(sender, "<gradient:red:gold><bold>LavaRise Commands</bold></gradient>");
+        msg(sender, "<yellow>/lr play <gray>- Pick a kit and drop straight into a game (MCPvP-style)");
         msg(sender, "<yellow>/lr join [arena] <gray>- Join (no name = quick-join a random arena)");
         msg(sender, "<yellow>/lr random <gray>- Generate & join a fresh random arena");
         msg(sender, "<yellow>/lr kit <gray>- Choose your kit/loadout");

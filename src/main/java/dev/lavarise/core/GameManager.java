@@ -178,6 +178,47 @@ public final class GameManager {
     }
 
     /**
+     * Join an arena and, if the player leads a party, pull the rest of the group
+     * into the same arena (members already in a game or for a full arena are
+     * skipped quietly).
+     */
+    public boolean joinWithParty(Player player, Arena arena) {
+        if (!addPlayerToArena(player, arena)) return false;
+        final dev.lavarise.party.Party party = plugin.getPartyManager().getParty(player.getUniqueId());
+        if (party == null || !party.isLeader(player.getUniqueId())) return true;
+        for (UUID id : party.getMembers()) {
+            if (id.equals(player.getUniqueId())) continue;
+            final Player member = plugin.getServer().getPlayer(id);
+            if (member == null || !member.isOnline() || isInGame(member)) continue;
+            if (addPlayerToArena(member, arena)) {
+                member.sendMessage(plugin.getMiniMessage().deserialize(
+                        "<aqua>⛺ Joined <yellow>" + arena.getName() + "</yellow> with your party!"));
+            }
+        }
+        return true;
+    }
+
+    /**
+     * MCPvP-style auto-join: drop the player straight into an open arena (or a
+     * fresh procedural one), no arena picking. Pulls their party along too.
+     */
+    public boolean quickJoin(Player player) {
+        Arena arena = findRandomAvailableArena().orElse(null);
+        final var cfg = plugin.getConfigManager();
+        if (arena == null && cfg.isProceduralEnabled() && cfg.isProceduralAutoQuickjoin()) {
+            arena = dev.lavarise.arena.ProceduralArenaFactory.create(plugin);
+            player.sendMessage(plugin.getMiniMessage().deserialize(
+                    "<gray>No open arenas — spun up a fresh random one!"));
+        }
+        if (arena == null) {
+            player.sendMessage(plugin.getMiniMessage().deserialize(
+                    "<red>No arenas available to join right now."));
+            return false;
+        }
+        return joinWithParty(player, arena);
+    }
+
+    /**
      * Remove a player from their current arena, if any. Safe to call even when
      * the player is not in a game.
      */
