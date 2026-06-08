@@ -34,6 +34,15 @@ public class KitSelectorGUI implements Listener {
     }
 
     public void open(Player player) {
+        open(player, false);
+    }
+
+    /** MCPvP-style: picking a kit also drops the player straight into a game. */
+    public void openForPlay(Player player) {
+        open(player, true);
+    }
+
+    private void open(Player player, boolean autoJoin) {
         final KitManager km = plugin.getKitManager();
         if (km == null || !km.hasKits()) {
             player.sendMessage(plugin.getMiniMessage().deserialize("<red>No kits are configured."));
@@ -42,7 +51,9 @@ public class KitSelectorGUI implements Listener {
         final List<String> order = km.order();
         final int size = Math.max(9, ((order.size() - 1) / 9 + 1) * 9);
         final KitGUIHolder holder = new KitGUIHolder();
-        final Inventory inv = Bukkit.createInventory(holder, size, Component.text("Select your kit"));
+        holder.autoJoin = autoJoin;
+        final Inventory inv = Bukkit.createInventory(holder, size,
+                Component.text(autoJoin ? "Pick a kit to play" : "Select your kit"));
         holder.inventory = inv;
 
         for (String key : order) {
@@ -67,7 +78,7 @@ public class KitSelectorGUI implements Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
-        if (!(event.getInventory().getHolder() instanceof KitGUIHolder)) return;
+        if (!(event.getInventory().getHolder() instanceof KitGUIHolder holder)) return;
         event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof Player player)) return;
 
@@ -80,11 +91,17 @@ public class KitSelectorGUI implements Listener {
         player.closeInventory();
         player.sendMessage(plugin.getMiniMessage().deserialize(
                 "<green>Kit selected: <yellow>" + plugin.getKitManager().get(key).label()));
+
+        // MCPvP flow: the kit pick is the join — drop them straight into a game.
+        if (holder.autoJoin && !plugin.getGameManager().isInGame(player)) {
+            plugin.getGameManager().quickJoin(player);
+        }
     }
 
     /** Distinct holder so this GUI is never confused with the arena selector. */
     private static final class KitGUIHolder implements InventoryHolder {
         private Inventory inventory;
+        private boolean autoJoin;
 
         @Override
         public @NotNull Inventory getInventory() {
