@@ -1,0 +1,62 @@
+[CENTER][SIZE=7][B]🌋 LavaRise[/B][/SIZE]
+[SIZE=4]The Zero-Lag Rising-Lava Minigame Engine for Paper 1.21.11[/SIZE]
+
+[B]Thousands of blocks per tick[/B] • [B]Zero dependencies[/B] • [B]Three game modes + random arenas[/B][/CENTER]
+
+[HR][/HR]
+
+[B]LavaRise[/B] is a next-generation rising-lava minigame plugin built for [B]massive servers and massive arenas[/B]. Where traditional plugins lean on heavy Bukkit calls ([ICODE]Block#setType[/ICODE]) and choke the main thread, LavaRise runs on a [B]zero-lag NMS engine[/B] that writes block states straight into chunk sections — flooding a 429,000-block arena in [B]under 10 ms[/B].
+
+[INDENT][B]No dependencies required.[/B] No WorldEdit, no Multiverse — drop it in and play. PlaceholderAPI and Vault are [I]optional[/I] soft hooks.[/INDENT]
+
+[SIZE=5][B]✨ Features[/B][/SIZE]
+[LIST]
+[*][B]🔥 Zero-Lag NMS Engine[/B] — writes BlockState directly into chunk sections, bypassing physics & lighting; one chunk packet per modified chunk, sent only to nearby players.
+[*][B]♻️ O(1) Smart Resets[/B] — async snapshot + sequential-pointer restore. No schematics — huge maps revert in milliseconds.
+[*][B]🎮 Three Game Modes[/B] — Minigame (FFA / Teams), admin-controlled Events, and world-wide Survival Challenge.
+[*][B]🎲 Random & Procedural Arenas[/B] — quick-join matchmaking, random rotation, and on-the-fly arenas. Set auto-arena for a fully hands-free rotation.
+[*][B]⚔️ Battle-Royale Hype[/B] — killstreaks, multi-kill call-outs, bounties, combat-log protection, a glowing final showdown, and optional supply drops.
+[*][B]🛡️ Real Elimination[/B] — players burn in the lava and drop their loot; the eliminated become spectators with a live HUD.
+[*][B]📊 Stats & Leaderboards[/B] — persistent wins / games / kills / best time, /lr top, and PlaceholderAPI placeholders.
+[*][B]🎒 Kits & Loadouts[/B] — 7 ready-made kits + per-player custom kits; GUI picker or lobby voting.
+[*][B]🧰 One-Command Setup[/B] — /lr setup <name> builds a ready-to-play arena where you stand.
+[*][B]⚙️ Dynamic Difficulty[/B] — grace period, lava acceleration, speed scaling, sudden death, shrinking border.
+[*][B]🌐 Network-Ready[/B] — MySQL storage shared across a proxy, party & matchmaking-queue systems, bStats charts.
+[/LIST]
+
+[SIZE=5][B]📈 Performance[/B][/SIZE]
+Live-tested on a real Paper 1.21.11 server (scales with hardware):
+[LIST]
+[*]Fill a [B]429,000-block[/B] arena in a single tick — [B]< 10 ms[/B]
+[*][B]600 arenas[/B] firing concurrently (~20M writes/tick) — [B]≈ 16–20 TPS[/B]
+[*][B]50 real players[/B] in one active arena — [B]steady 20.0 TPS[/B]
+[*]Main-thread throughput — [B]> 40,000,000 blocks/sec[/B]
+[/LIST]
+
+[SIZE=5][B]🚀 Installation[/B][/SIZE]
+[LIST=1]
+[*]Drop [ICODE]LavaRise-x.y.z.jar[/ICODE] into your server's [ICODE]plugins/[/ICODE] folder.
+[*]Start the server — [B]Paper 1.21.11[/B] and [B]Java 21[/B] required.
+[*]First start generates a fully-commented [ICODE]config.yml[/ICODE].
+[*]Run [ICODE]/lr setup arena1 50[/ICODE] to build an arena, or [ICODE]/lr random[/ICODE] to play instantly.
+[/LIST]
+
+[SIZE=5][B]🎮 Core Commands[/B][/SIZE]
+[LIST]
+[*][ICODE]/lr join [arena][/ICODE] — join an arena (no name quick-joins a random open game)
+[*][ICODE]/lr play[/ICODE] — MCPvP-style: pick a kit, drop straight into a game
+[*][ICODE]/lr random[/ICODE] — generate & join a fresh procedural arena
+[*][ICODE]/lr queue[/ICODE] · [ICODE]/lr party[/ICODE] — matchmaking queue · group up with friends
+[*][ICODE]/lr setup <name> [radius][/ICODE] — one-command arena builder (admin)
+[*][ICODE]/lr top[/ICODE] · [ICODE]/lr stats[/ICODE] — leaderboards · player statistics
+[/LIST]
+Full command, permission, config and PlaceholderAPI reference is on GitHub.
+
+[SIZE=5][B]🔗 Links[/B][/SIZE]
+[LIST]
+[*][B]Source & full docs:[/B] [URL]https://github.com/DeWost/LavaRise[/URL]
+[*][B]Issues & support:[/B] [URL]https://github.com/DeWost/LavaRise/issues[/URL]
+[*][B]License:[/B] MIT
+[/LIST]
+
+[CENTER][I]Crafted with passion for absolute server performance. 🌋[/I][/CENTER]
