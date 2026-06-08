@@ -125,6 +125,11 @@ public final class ActiveState implements GameState {
                 p.teleport(arena.getConfig().gameSpawn());
             }
             applyArenaBorder(p);
+            // Per-player clear daytime sky for visibility (doesn't touch the world).
+            if (cfg.isClearVisibility()) {
+                p.setPlayerTime(6000L, false);
+                p.setPlayerWeather(org.bukkit.WeatherType.CLEAR);
+            }
             p.setFireTicks(0);
             p.setHealth(p.getMaxHealth());
             p.setFoodLevel(20);

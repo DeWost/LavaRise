@@ -134,6 +134,7 @@ public final class ConfigManager {
     private String deathParticle;
     private int particleDensity;
     private int particleIntervalTicks;
+    private boolean clearVisibility;
     private boolean soundsEnabled;
     private String soundLavaRise;
     private String soundGameStart;
@@ -290,6 +291,7 @@ public final class ConfigManager {
         this.deathParticle = config.getString("effects.death-effect.particle", "LAVA");
         this.particleDensity = config.getInt("effects.particles.density", 2);
         this.particleIntervalTicks = Math.max(1, config.getInt("effects.particles.interval", 10));
+        this.clearVisibility = config.getBoolean("effects.clear-visibility", true);
         this.soundsEnabled = config.getBoolean("effects.sounds.enabled", true);
         this.soundLavaRise = config.getString("effects.sounds.lava-rise", "block.lava.ambient");
         this.soundGameStart = config.getString("effects.sounds.game-start", "entity.ender_dragon.growl");
@@ -440,6 +442,7 @@ public final class ConfigManager {
     public String getDeathParticle() { return deathParticle; }
     public int getParticleDensity() { return particleDensity; }
     public int getParticleIntervalTicks() { return particleIntervalTicks; }
+    public boolean isClearVisibility() { return clearVisibility; }
     public boolean isSoundsEnabled() { return soundsEnabled; }
     public String getSoundLavaRise() { return soundLavaRise; }
     public String getSoundGameStart() { return soundGameStart; }
