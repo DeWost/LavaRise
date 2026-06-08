@@ -63,6 +63,21 @@ public final class GameManager {
         return Collections.unmodifiableCollection(arenas.values());
     }
 
+    /** Total players currently in any LavaRise arena (lobby, countdown or game). */
+    public int totalPlayersInGames() {
+        return playerArenaMap.size();
+    }
+
+    /** Number of arenas with a game actively running. */
+    public int activeGames() {
+        int n = 0;
+        for (Arena arena : arenas.values()) {
+            final ArenaSession session = arena.getSession();
+            if (session != null && session.getCurrentState().isGameRunning()) n++;
+        }
+        return n;
+    }
+
     /**
      * Find an arena with available slots for joining.
      */

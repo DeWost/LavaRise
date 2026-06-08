@@ -34,6 +34,16 @@ public class QueueManager {
         return queue.size();
     }
 
+    /** 1-based position of a player in the queue, or 0 if not queued. */
+    public int positionOf(UUID uuid) {
+        int i = 1;
+        for (UUID id : queue) {
+            if (id.equals(uuid)) return i;
+            i++;
+        }
+        return 0;
+    }
+
     /** Remove a player from the queue (e.g. on quit or /lr queue leave). */
     public boolean remove(UUID uuid) {
         return queue.remove(uuid);

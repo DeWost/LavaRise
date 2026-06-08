@@ -122,7 +122,13 @@ public final class LavaRisePlugin extends JavaPlugin {
         // bStats metrics (anonymous; toggle via general.bstats).
         if (configManager.isBstatsEnabled()) {
             try {
-                new org.bstats.bukkit.Metrics(this, BSTATS_PLUGIN_ID);
+                final org.bstats.bukkit.Metrics metrics = new org.bstats.bukkit.Metrics(this, BSTATS_PLUGIN_ID);
+                metrics.addCustomChart(new org.bstats.charts.SingleLineChart(
+                        "active_games", () -> gameManager.activeGames()));
+                metrics.addCustomChart(new org.bstats.charts.SingleLineChart(
+                        "players_in_games", () -> gameManager.totalPlayersInGames()));
+                metrics.addCustomChart(new org.bstats.charts.SimplePie(
+                        "configured_arenas", () -> String.valueOf(arenaRepository.getArenas().size())));
             } catch (Throwable t) {
                 getLogger().warning("bStats init failed: " + t.getMessage());
             }

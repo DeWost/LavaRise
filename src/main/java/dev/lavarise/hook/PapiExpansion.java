@@ -68,6 +68,36 @@ public class PapiExpansion extends PlaceholderExpansion {
             }
         }
 
+        // ── Party / queue (player-scoped) ──
+        if (player != null) {
+            final java.util.UUID id = player.getUniqueId();
+            switch (params) {
+                case "in_party": return plugin.getPartyManager().isInParty(id) ? "Yes" : "No";
+                case "party_size": {
+                    final var party = plugin.getPartyManager().getParty(id);
+                    return party != null ? String.valueOf(party.size()) : "0";
+                }
+                case "party_leader": {
+                    final var party = plugin.getPartyManager().getParty(id);
+                    if (party == null) return "";
+                    final String name = plugin.getServer().getOfflinePlayer(party.getLeader()).getName();
+                    return name != null ? name : "";
+                }
+                case "queued": return plugin.getQueueManager().isQueued(id) ? "Yes" : "No";
+                case "queue_position": return String.valueOf(plugin.getQueueManager().positionOf(id));
+                default: break;
+            }
+        }
+
+        // ── Global counts (no player needed) ──
+        switch (params) {
+            case "playing": return String.valueOf(plugin.getGameManager().totalPlayersInGames());
+            case "active_games": return String.valueOf(plugin.getGameManager().activeGames());
+            case "queue_size": return String.valueOf(plugin.getQueueManager().size());
+            case "arenas": return String.valueOf(plugin.getArenaRepository().getArenas().size());
+            default: break;
+        }
+
         // e.g. %lavarise_players_alive_arena1%
         if (params.startsWith("players_alive_")) {
             String arenaName = params.substring("players_alive_".length());
