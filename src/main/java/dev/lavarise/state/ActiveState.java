@@ -200,10 +200,21 @@ public final class ActiveState implements GameState {
         plugin.getStatsManager().recordSurvivalTime(player.getUniqueId(), player.getName(), session.getElapsedSeconds());
         plugin.getBossBarModule().removeFor(player);
 
+        // Hypixel-style elimination summary: placement, kills and survival time.
+        final int placement = session.getAliveCount() + 1;
+        final int kills = session.getSessionKills(player.getUniqueId());
+        final String survived = formatTime(session.getElapsedSeconds());
+
         player.showTitle(Title.title(
                 plugin.getMiniMessage().deserialize("<red><bold>ELIMINATED!</bold></red>"),
-                plugin.getMiniMessage().deserialize("<gray>You were consumed by lava!"),
+                plugin.getMiniMessage().deserialize("<gray>You placed <yellow>#" + placement + "</yellow>!"),
                 Title.Times.times(Duration.ofMillis(200), Duration.ofSeconds(2), Duration.ofMillis(500))));
+        player.sendMessage(plugin.getMiniMessage().deserialize("<dark_gray><strikethrough>                              </strikethrough>"));
+        player.sendMessage(plugin.getMiniMessage().deserialize(
+                "  <red><bold>ELIMINATED</bold> <dark_gray>— <gray>you placed <yellow>#" + placement));
+        player.sendMessage(plugin.getMiniMessage().deserialize(
+                "  <gray>Kills <yellow>" + kills + " <dark_gray>·<gray> Survived <yellow>" + survived));
+        player.sendMessage(plugin.getMiniMessage().deserialize("<dark_gray><strikethrough>                              </strikethrough>"));
         playSound(player, "entity.blaze.death", 1.0f, 0.5f);
 
         // Death burst — a configurable particle puff where they were eliminated.
