@@ -391,6 +391,10 @@ effects:
   scoreboard:
     enabled: true
 
+  # Give players a clear, daytime sky during games (per-player — doesn't change
+  # the world) so night/storm matches stay well-lit. Reset when the game ends.
+  clear-visibility: true
+
   # A particle burst where a player is eliminated.
   death-effect:
     enabled: true
