@@ -51,6 +51,8 @@ public final class ActiveState implements GameState {
     private int lastDisplayedLavaY = Integer.MIN_VALUE;
     /** True once the final-showdown climax has fired (only once per game). */
     private boolean showdownTriggered = false;
+    /** The kit that won the lobby vote, resolved once at game start (ties are random). */
+    private String resolvedVotedKit;
 
     // World border state to restore on exit.
     private boolean borderModified = false;
@@ -87,9 +89,11 @@ public final class ActiveState implements GameState {
         // Grace = seconds before the lava rises. KteRising-style: the voted kit can
         // override it (fair kits get a long build, OP kits start fast).
         int graceSeconds = cfg.getGracePeriod();
-        final String votedKit = session.getVotedKit();
-        if (votedKit != null && plugin.getKitManager() != null) {
-            final var kit = plugin.getKitManager().get(votedKit);
+        // Resolve the winning kit ONCE — getVotedKit() breaks ties randomly, so
+        // calling it per-player would hand different players different kits.
+        this.resolvedVotedKit = session.getVotedKit();
+        if (resolvedVotedKit != null && plugin.getKitManager() != null) {
+            final var kit = plugin.getKitManager().get(resolvedVotedKit);
             if (kit != null && kit.countdown() >= 0) graceSeconds = kit.countdown();
         }
         this.graceTicksLeft = Math.max(0, graceSeconds) * 20;
@@ -174,6 +178,33 @@ public final class ActiveState implements GameState {
         if (gameLoop != null) { gameLoop.cancel(); gameLoop = null; }
         if (lavaEngine != null) lavaEngine.shutdown();
         restoreWorldBorder();
+        cleanupSessionEffects();
+    }
+
+    /**
+     * Remove supply-drop chests and clear per-player glow/time/weather. Runs on
+     * every exit path — the normal end AND {@code forceEnd()} (admin stop / plugin
+     * disable) — so none of these effects leak past the match.
+     */
+    private void cleanupSessionEffects() {
+        for (Location drop : session.getSupplyDrops()) {
+            try {
+                if (drop.getWorld() != null) drop.getBlock().setType(Material.AIR, false);
+            } catch (Throwable ignored) {
+                // Chunk unloaded / already cleared — fine.
+            }
+        }
+        for (UUID uuid : session.getAllPlayerIds()) {
+            final Player p = plugin.getServer().getPlayer(uuid);
+            if (p == null || !p.isOnline()) continue;
+            try {
+                p.setGlowing(false);
+                p.resetPlayerTime();
+                p.resetPlayerWeather();
+            } catch (Throwable ignored) {
+                // Best-effort per-player cleanup.
+            }
+        }
     }
 
     @Override
@@ -453,16 +484,18 @@ public final class ActiveState implements GameState {
             plugin.getKitManager().applyKit(player, arena.getCustomKit());
             return;
         }
-        // A player's custom kit won the lobby vote → everyone gets it.
-        final String voted = session.getVotedKit();
-        if (voted != null && voted.startsWith("custom:")) {
-            giveCustomVotedKit(player, voted);
+        // A player's custom kit won the lobby vote → everyone gets it, UNLESS the
+        // owner cleared it after voting (empty) — then fall through to a real kit
+        // so the lobby never spawns with nothing.
+        final String voted = resolvedVotedKit;
+        if (voted != null && voted.startsWith("custom:") && giveCustomVotedKit(player, voted)) {
             return;
         }
-        // Prefer the multi-kit system. If players voted on a kit, everyone gets
-        // the winner; otherwise each player gets their own selected loadout.
+        // Prefer the multi-kit system. A non-custom voted kit applies to everyone;
+        // otherwise (no vote, or an empty custom winner) each player gets their own
+        // selected loadout.
         if (plugin.getKitManager() != null && plugin.getKitManager().hasKits()) {
-            if (voted != null) {
+            if (voted != null && !voted.startsWith("custom:")) {
                 plugin.getKitManager().applyKit(player, voted);
             } else {
                 plugin.getKitManager().applyKit(player);
@@ -476,15 +509,22 @@ public final class ActiveState implements GameState {
         }
     }
 
-    /** Give everyone the items of the custom kit (keyed {@code custom:<uuid>}) that won the vote. */
-    private void giveCustomVotedKit(Player player, String key) {
+    /**
+     * Give the player the items of the custom kit (keyed {@code custom:<uuid>}) that
+     * won the vote. Returns {@code false} if the kit is gone/empty so the caller can
+     * fall back to a normal kit.
+     */
+    private boolean giveCustomVotedKit(Player player, String key) {
         try {
             final UUID owner = UUID.fromString(key.substring("custom:".length()));
-            for (ItemStack item : plugin.getCustomKitManager().getKit(owner)) {
+            final java.util.List<ItemStack> items = plugin.getCustomKitManager().getKit(owner);
+            if (items.isEmpty()) return false;
+            for (ItemStack item : items) {
                 player.getInventory().addItem(item);
             }
+            return true;
         } catch (IllegalArgumentException ignored) {
-            // Malformed key — no items.
+            return false; // malformed key
         }
     }
 

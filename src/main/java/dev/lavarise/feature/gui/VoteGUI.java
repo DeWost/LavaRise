@@ -73,11 +73,14 @@ public class VoteGUI implements Listener {
                 mm("<dark_gray>Kit Vote <gray>— <yellow>" + totalVotes + "</yellow> voted"));
         holder.inventory = inv;
 
-        for (String key : keys) {
+        // Place by index, not addItem — addItem would stack two byte-identical
+        // icons into one slot and break the slot→key mapping used on click.
+        for (int i = 0; i < keys.size(); i++) {
+            final String key = keys.get(i);
             final int votes = tally.getOrDefault(key, 0);
             final boolean mine = key.equals(myVote);
             final boolean leading = votes > 0 && votes == leadCount;
-            inv.addItem(buildVoteItem(key, votes, totalVotes, leading, mine));
+            inv.setItem(i, buildVoteItem(key, votes, totalVotes, leading, mine));
         }
         player.openInventory(inv);
     }
@@ -176,7 +179,11 @@ public class VoteGUI implements Listener {
         plugin.getServer().getScheduler().runTask(plugin, () -> {
             if (!player.isOnline()) return;
             final ArenaSession session = sessionFor(player);
-            if (session != null && session.isJoinable()
+            // Only enforce during the COUNTDOWN (the actual vote window) — never
+            // during the open-ended lobby wait, which could trap a player who
+            // merely peeked at the vote while the lobby is still filling.
+            if (session != null
+                    && session.getCurrentState() instanceof dev.lavarise.state.CountdownState
                     && session.getVote(player.getUniqueId()) == null) {
                 open(player);
             }

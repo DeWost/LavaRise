@@ -188,6 +188,9 @@ public final class GameManager {
 
         session.addPlayer(player);
         mapPlayer(player.getUniqueId(), arena);
+        // Joining a game by ANY path (quick-join, /lr play, party pull, named join)
+        // must clear the matchmaking queue, or the player stays stuck in it.
+        plugin.getQueueManager().remove(player.getUniqueId());
         plugin.debug(player.getName() + " joined arena " + arena.getName());
         return true;
     }
