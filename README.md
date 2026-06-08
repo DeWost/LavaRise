@@ -126,8 +126,12 @@ Base command `/lavarise` — aliases **`/lr`**, **`/lava`**.
 | Command | Description |
 |---|---|
 | `/lr join [arena]` | Join an arena — **no name = quick-join a random open game** |
+| `/lr play` | **MCPvP-style** — pick a kit and drop straight into a game (no arena picking) |
 | `/lr random` | Generate & join a fresh random (procedural) arena |
+| `/lr queue [leave]` | Matchmaking queue — dropped into a game with others once enough are waiting |
+| `/lr party <invite\|accept\|leave\|kick\|disband\|list>` | Group up; the leader's join pulls the whole party in |
 | `/lr kit` | Choose your kit / loadout (GUI) |
+| `/lr customkit <save\|clear>` | Save your inventory as a personal kit (votable in the lobby) |
 | `/lr vote` | Vote for the lobby's kit (GUI) |
 | `/lr leave` | Leave your current game |
 | `/lr list` | Open the arena browser GUI |
@@ -140,6 +144,7 @@ Base command `/lavarise` — aliases **`/lr`**, **`/lava`**.
 |---|---|
 | `/lr setup <name> [radius]` | **One-command arena** — builds a ready-to-play arena centred where you stand |
 | `/lr create · pos1 · pos2 · setlobby · setgamespawn · setspectator · save` | Arena setup wizard (manual, fine-grained) |
+| `/lr setkit <arena> <kit\|none>` | Force one kit on an arena (custom-kit arena) |
 | `/lr delete <arena>` | Delete an arena |
 | `/lr start \| stop <arena>` | Force-start / reset a game |
 | `/lr skip <arena>` | Skip a waiting lobby to a 3-second countdown |
