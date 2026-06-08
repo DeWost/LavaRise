@@ -44,10 +44,15 @@ player:
 # ─── Scoreboard ──────────────────────────────────────────────
 scoreboard:
   title: "<gradient:red:gold><bold>🔥 LAVA RISE</bold></gradient>"
+  # Placeholders: {lava_level} {lava_percent} {lava_y} {alive} {total} {mode}
+  # {arena} {time} (match time m:ss). {kills} = the viewer's own kills — note
+  # that adding {kills} switches the board to a per-player render (a little more
+  # work at very high player counts), so it's left out of the default below.
   lines:
     - ""
     - "<gray>Lava Height: <red>{lava_level} <dark_gray>(<red>{lava_percent}<dark_gray>)"
     - "<gray>Players: <yellow>{alive}/{total}"
+    - "<gray>Time: <aqua>{time}"
     - ""
     - "<gray>Mode: <gold>{mode}"
     - "<gray>Arena: <yellow>{arena}"

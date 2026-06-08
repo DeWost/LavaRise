@@ -72,23 +72,38 @@ public class ScoreboardModule {
     }
 
     public void updateScoreboard(ArenaSession session) {
-        // Scoreboard lines are session-global (same text for every player), so
-        // parse the MiniMessage templates ONCE per update and reuse the rendered
-        // components for all players — not players×lines parses per tick.
         final List<String> lines = configLines();
         final int count = Math.min(lines.size(), ENTRIES.length);
-        final Component[] rendered = new Component[count];
-        for (int i = 0; i < count; i++) {
-            rendered[i] = render(lines.get(i), session);
+
+        // Fast path: when no line uses a per-player token ({kills}), the text is
+        // identical for everyone — parse the MiniMessage templates ONCE per update
+        // and reuse the components for all players (not players×lines per tick).
+        final boolean perPlayer = lines.stream().anyMatch(l -> l.contains("{kills}"));
+        if (!perPlayer) {
+            final Component[] rendered = new Component[count];
+            for (int i = 0; i < count; i++) {
+                rendered[i] = render(lines.get(i), session, null);
+            }
+            for (UUID uuid : session.getAllPlayerIds()) {
+                Player p = Bukkit.getPlayer(uuid);
+                if (p == null || !p.isOnline()) continue;
+                final Team[] teams = playerLines.get(p.getUniqueId());
+                if (teams == null) continue;
+                for (int i = 0; i < teams.length && i < rendered.length; i++) {
+                    teams[i].prefix(rendered[i]);
+                }
+            }
+            return;
         }
 
+        // Per-player path: a line references the viewer's own stats.
         for (UUID uuid : session.getAllPlayerIds()) {
             Player p = Bukkit.getPlayer(uuid);
             if (p == null || !p.isOnline()) continue;
             final Team[] teams = playerLines.get(p.getUniqueId());
             if (teams == null) continue;
-            for (int i = 0; i < teams.length && i < rendered.length; i++) {
-                teams[i].prefix(rendered[i]);
+            for (int i = 0; i < teams.length && i < count; i++) {
+                teams[i].prefix(render(lines.get(i), session, p));
             }
         }
     }
@@ -98,21 +113,30 @@ public class ScoreboardModule {
         if (teams == null) return;
         final List<String> lines = configLines();
         for (int i = 0; i < teams.length && i < lines.size(); i++) {
-            teams[i].prefix(render(lines.get(i), session));
+            teams[i].prefix(render(lines.get(i), session, player));
         }
     }
 
-    private Component render(String line, ArenaSession session) {
+    private Component render(String line, ArenaSession session, Player viewer) {
         final var config = session.getArena().getConfig();
-        final String resolved = line
+        String resolved = line
                 .replace("{lava_level}", String.valueOf(session.getLavaHeight()))
                 .replace("{lava_percent}", session.getLavaPercent() + "%")
                 .replace("{lava_y}", String.valueOf(session.getCurrentLavaY()))
                 .replace("{alive}", String.valueOf(session.getAliveCount()))
                 .replace("{total}", String.valueOf(session.getPlayerCount()))
+                .replace("{time}", formatTime(session.getElapsedSeconds()))
                 .replace("{mode}", config.gameMode())
                 .replace("{arena}", config.name());
+        if (line.contains("{kills}")) {
+            final int kills = viewer != null ? session.getSessionKills(viewer.getUniqueId()) : 0;
+            resolved = resolved.replace("{kills}", String.valueOf(kills));
+        }
         return plugin.getMiniMessage().deserialize(resolved);
+    }
+
+    private static String formatTime(long seconds) {
+        return String.format("%d:%02d", seconds / 60, seconds % 60);
     }
 
     private List<String> configLines() {
