@@ -112,6 +112,9 @@ gameplay:
   # keeps you tagged.
   combat-log-protect: true
   combat-tag-seconds: 10
+  # Health restored to a player when they get a PvP kill (2 = 1 heart; 0 = off).
+  # Rewards winning a fight and keeps the pace aggressive.
+  kill-heal: 0
 
   # Final showdown: when the field narrows to this many players, announce a
   # dramatic finish and make the survivors glow so they can find each other

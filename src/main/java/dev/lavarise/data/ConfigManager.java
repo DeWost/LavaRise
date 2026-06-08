@@ -45,6 +45,7 @@ public final class ConfigManager {
     private boolean killstreaksEnabled;
     private boolean combatLogProtect;
     private int combatTagSeconds;
+    private double killHeal;
     private boolean finalShowdownEnabled;
     private int finalShowdownPlayers;
     private boolean supplyDropsEnabled;
@@ -196,6 +197,7 @@ public final class ConfigManager {
         this.killstreaksEnabled = config.getBoolean("gameplay.killstreaks", true);
         this.combatLogProtect = config.getBoolean("gameplay.combat-log-protect", true);
         this.combatTagSeconds = Math.max(1, config.getInt("gameplay.combat-tag-seconds", 10));
+        this.killHeal = Math.max(0, config.getDouble("gameplay.kill-heal", 0));
         this.finalShowdownEnabled = config.getBoolean("gameplay.final-showdown.enabled", true);
         this.finalShowdownPlayers = Math.max(2, config.getInt("gameplay.final-showdown.players", 2));
         this.supplyDropsEnabled = config.getBoolean("gameplay.supply-drops.enabled", false);
@@ -347,6 +349,7 @@ public final class ConfigManager {
     public boolean isKillstreaksEnabled() { return killstreaksEnabled; }
     public boolean isCombatLogProtect() { return combatLogProtect; }
     public int getCombatTagSeconds() { return combatTagSeconds; }
+    public double getKillHeal() { return killHeal; }
     public boolean isFinalShowdownEnabled() { return finalShowdownEnabled; }
     public int getFinalShowdownPlayers() { return finalShowdownPlayers; }
     public boolean isSupplyDropsEnabled() { return supplyDropsEnabled; }

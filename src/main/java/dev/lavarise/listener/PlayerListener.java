@@ -82,6 +82,13 @@ public class PlayerListener implements Listener {
             runCommands(plugin.getConfigManager().getKillCommands(),
                     "{killer}", killer.getName(), "{victim}", player.getName());
 
+            // Reward winning a fight with some health back (extinguish fire too).
+            final double heal = plugin.getConfigManager().getKillHeal();
+            if (heal > 0) {
+                killer.setHealth(Math.min(killer.getMaxHealth(), killer.getHealth() + heal));
+                killer.setFireTicks(0);
+            }
+
             // ── Battle-royale combat hype ──────────────────────
             final var cfg = plugin.getConfigManager();
             if (cfg.isKillstreaksEnabled()) {
