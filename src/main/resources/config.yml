@@ -349,6 +349,14 @@ party:
 queue:
   min-players: 2
 
+# ─── Custom Kits ─────────────────────────────────────────────
+# Players save a personal loadout with /lr customkit save. When votable, a
+# player's custom kit appears in the lobby kit vote once they propose it (vote
+# for it), and the whole lobby can then vote it in. The winner applies to
+# everyone, so it's a symmetric, opt-in bit of fun — turn off for strict balance.
+custom-kits:
+  votable: true
+
 # ─── Game Mode Specific Settings ─────────────────────────────
 modes:
   # Mini-game mode — structured arena-based matches
