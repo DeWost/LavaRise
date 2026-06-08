@@ -2,8 +2,10 @@ name: Release Please
 
 # Automates versioning & changelog from Conventional Commits. On every push to
 # main it maintains a "release PR" that bumps the version (build.gradle.kts +
-# CHANGELOG.md). Merging that PR creates the git tag + GitHub Release, which in
-# turn triggers release.yml to build and attach the plugin jar.
+# CHANGELOG.md). Merging that PR creates the git tag + GitHub Release, and the
+# publish-jar job below builds the plugin jar, attaches it to the release, and
+# (token-gated) pushes it to Modrinth + Hangar — all in this same run, because a
+# release cut by GITHUB_TOKEN can't trigger a separate `on: release` workflow.
 on:
   push:
     branches: [ "main" ]
@@ -55,3 +57,24 @@ jobs:
           files: build/libs/*.jar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Push the same jar to Modrinth + Hangar. Wired here (not in a
+      # release-triggered workflow) because a release published by GITHUB_TOKEN
+      # can't trigger `on: release`. Token-gated: mc-publish warns and skips a
+      # platform whose secret is absent, so this is a no-op until the projects
+      # and secrets exist. See docs/listing/README.md for setup.
+      - name: Publish to Modrinth & Hangar
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          files: build/libs/!(*-sources|*-javadoc).jar
+          name: LavaRise ${{ needs.release-please.outputs.tag_name }}
+          version: ${{ needs.release-please.outputs.tag_name }}
+          version-type: release
+          loaders: paper
+          game-versions: 1.21.11
+          java: 21
+          modrinth-id: lavarise
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          hangar-id: DeWost/LavaRise
+          hangar-token: ${{ secrets.HANGAR_TOKEN }}
+          fail-mode: warn

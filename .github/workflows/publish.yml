@@ -1,7 +1,12 @@
-name: Publish to Marketplaces
+name: Publish to Marketplaces (manual)
 
-# Publishes the release jar to Modrinth and Hangar whenever a GitHub Release
-# is published (release-please cuts the release, then this runs).
+# Manual re-publish of the current build to Modrinth + Hangar.
+#
+# NOTE: Automatic publishing on each release is handled by the publish-jar job
+# in release-please.yml (an `on: release` trigger can't fire from a release cut
+# by GITHUB_TOKEN, so it lives there instead). Use THIS workflow only to re-push
+# the latest build to the marketplaces out-of-band — e.g. after first adding the
+# tokens, or to refresh a listing without cutting a new release.
 #
 # Setup (one-time) — add these repository secrets under Settings → Secrets:
 #   MODRINTH_TOKEN   a Modrinth PAT with "Create versions" scope
@@ -11,9 +16,7 @@ name: Publish to Marketplaces
 # so you can enable Modrinth and Hangar independently.
 
 on:
-  release:
-    types: [published]
-  workflow_dispatch: # allow manual re-publish of the latest build
+  workflow_dispatch: # manual re-publish only
 
 jobs:
   publish:
@@ -43,10 +46,8 @@ jobs:
         with:
           files: build/libs/!(*-sources|*-javadoc).jar
 
-          name: LavaRise ${{ github.event.release.tag_name || github.ref_name }}
-          version: ${{ github.event.release.tag_name || github.ref_name }}
+          # name/version are auto-detected from the jar's plugin.yml.
           version-type: release
-          changelog: ${{ github.event.release.body }}
 
           loaders: paper
           game-versions: 1.21.11
