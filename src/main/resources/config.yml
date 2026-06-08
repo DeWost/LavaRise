@@ -361,6 +361,14 @@ queue:
 custom-kits:
   votable: true
 
+# ─── Kit Voting ──────────────────────────────────────────────
+# When mandatory, the kit-vote screen is pushed to everyone during the start
+# countdown and reopens until they vote (the countdown is the vote window — set
+# game-countdown to e.g. 30 for a 30s vote). The lobby's winning kit applies to
+# everyone, so non-voters still get a kit.
+voting:
+  mandatory: false
+
 # ─── Game Mode Specific Settings ─────────────────────────────
 modes:
   # Mini-game mode — structured arena-based matches
