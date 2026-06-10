@@ -268,6 +268,22 @@ gameplay:
       - STONE_PICKAXE:1
       - COOKED_BEEF:8
 
+  # Double jump: press space twice in the air to boost upward and forward.
+  # Alive in-game players get setAllowFlight(true) so they can trigger it;
+  # the actual flight mode is never engaged — the server intercepts the toggle.
+  double-jump:
+    enabled: true
+    # Seconds before the same player can double-jump again.
+    cooldown: 3
+    # Upward velocity component.
+    power: 0.9
+    # Forward velocity multiplier (based on the player's look direction).
+    forward: 0.6
+    # Particle spawned at the player's feet on each jump. Standard Bukkit Particle name.
+    particle: CLOUD
+    # Sound played on each jump. Standard Bukkit sound key.
+    sound: "entity.bat_takeoff"
+
 # ─── Procedural / Random Arenas ──────────────────────────────
 # Quick-join (/lr join with no arena) sends players to a RANDOM open arena;
 # /lr random always builds a fresh one. When none are free, a new arena is

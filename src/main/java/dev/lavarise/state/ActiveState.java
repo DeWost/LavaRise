@@ -139,6 +139,9 @@ public final class ActiveState implements GameState {
             p.setFireTicks(0);
             p.setHealth(p.getMaxHealth());
             p.setFoodLevel(20);
+            if (plugin.getDoubleJumpModule().isEnabled()) {
+                p.setAllowFlight(true);
+            }
             // Clear the lobby loadout (kit-vote compass etc.) before handing out
             // the real kit so players start the match with exactly their kit.
             p.getInventory().clear();
@@ -203,6 +206,7 @@ public final class ActiveState implements GameState {
                 p.setGlowing(false);
                 p.resetPlayerTime();
                 p.resetPlayerWeather();
+                plugin.getDoubleJumpModule().reset(p);
             } catch (Throwable ignored) {
                 // Best-effort per-player cleanup.
             }
