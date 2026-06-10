@@ -1,0 +1,85 @@
+# ============================================================
+#  LavaRise — Mesajlar (MiniMessage Formatı)
+#  MiniMessage etiketleri: <red>, <bold>, <gradient:red:gold> vb.
+#  Yer tutucular: {player}, {arena}, {lava_level}, {players},
+#                {max_players}, {countdown}, {winner}
+# ============================================================
+
+prefix: "<gradient:red:gold><bold>LavaRise</bold></gradient> <dark_gray>»</dark_gray> "
+
+# ─── Genel ───────────────────────────────────────────────────
+general:
+  no-permission: "<red>Bunu yapmak için yetkin yok!"
+  reload-success: "<green>Yapılandırma başarıyla yeniden yüklendi!"
+  player-only: "<red>Bu komut yalnızca oyuncular tarafından kullanılabilir!"
+  unknown-command: "<red>Bilinmeyen komut. Yardım için <yellow>/lava help</yellow> yaz."
+
+# ─── Arena ───────────────────────────────────────────────────
+arena:
+  not-found: "<red><yellow>{arena}</yellow> arenası bulunamadı!"
+  already-in-game: "<red>Zaten bir oyundasın!"
+  not-in-game: "<red>Herhangi bir oyunda değilsin!"
+  full: "<red><yellow>{arena}</yellow> arenası dolu! ({players}/{max_players})"
+  join: "<green>{player} <gray>oyuna katıldı! <dark_gray>({players}/{max_players})"
+  leave: "<red>{player} <gray>oyundan ayrıldı! <dark_gray>({players}/{max_players})"
+  not-enough-players: "<yellow>Daha fazla oyuncu bekleniyor... <gray>({players}/{max_players})"
+
+# ─── Oyun Durumları ──────────────────────────────────────────
+state:
+  lobby-waiting: "<yellow>Oyuncular bekleniyor... <gray>({players}/{min_players} gerekli)"
+  countdown-start: "<gold>Oyun <yellow>{countdown}</yellow> saniye içinde başlıyor!"
+  countdown-tick: "<gold>{countdown}..."
+  game-start: "<gradient:red:gold><bold>LAV YÜKSELİYOR!</bold></gradient>"
+  lava-rising: "<red>🔥 Lav yüksekliği: <bold>{lava_level}</bold> blok <gray>(<bold>{lava_percent}</bold>)!"
+  game-end: "<gradient:gold:yellow><bold>OYUN BİTTİ!</bold></gradient>"
+  winner: "<gradient:gold:yellow>🏆 <bold>{winner}</bold> kazandı!</gradient>"
+  no-winner: "<gray>Kazanan yok — herkes lava gömüldü!"
+
+# ─── Oyuncu Olayları ─────────────────────────────────────────
+player:
+  eliminated: "<red>☠ <gray>Lav tarafından elendin!"
+  spectator-join: "<gray>Artık izleyicisin. Çıkmak için <yellow>/lava leave</yellow> kullan."
+  warning-lava-close: "<red><bold>⚠ DİKKAT!</bold> <yellow>Lav senin {blocks} blok altında!"
+
+# ─── Skor Tablosu ────────────────────────────────────────────
+scoreboard:
+  title: "<gradient:red:gold><bold>🔥 LAVA RISE</bold></gradient>"
+  # Yer tutucular: {lava_level} {lava_percent} {lava_y} {alive} {total} {mode}
+  # {arena} {time} (maç süresi d:ss). {kills} = izleyenin kendi öldürmesi — not:
+  # {kills} eklemek tabloyu oyuncuya özel çizime geçirir (çok yüksek oyuncu
+  # sayısında biraz daha maliyetli), bu yüzden varsayılanda yok.
+  lines:
+    - ""
+    - "<gray>Lav Yüksekliği: <red>{lava_level} <dark_gray>(<red>{lava_percent}<dark_gray>)"
+    - "<gray>Oyuncular: <yellow>{alive}/{total}"
+    - "<gray>Süre: <aqua>{time}"
+    - ""
+    - "<gray>Mod: <gold>{mode}"
+    - "<gray>Arena: <yellow>{arena}"
+    - ""
+    - "<dark_gray>play.yourserver.com"
+
+# ─── BossBar ─────────────────────────────────────────────────
+bossbar:
+  title: "<red>🔥 Lav: <bold>{lava_percent}</bold> <dark_gray>(<gray>yükseklik {lava_level}<dark_gray>) | <gray>Oyuncular: {alive}"
+
+# ─── ActionBar ───────────────────────────────────────────────
+actionbar:
+  in-game: "<red>🔥 Lav {lava_percent} <dark_gray>| <yellow>⚔ {alive} hayatta <dark_gray>| <gray>⏱ {time}"
+
+# ─── Yönetici Etkinliği ──────────────────────────────────────
+event:
+  broadcast-start: "<gradient:red:gold><bold>⚡ LAV ETKİNLİĞİ BAŞLADI!</bold></gradient> <gray>Lav tüm dünyada yükseliyor!"
+  broadcast-end: "<gradient:gold:yellow><bold>⚡ LAV ETKİNLİĞİ BİTTİ!</bold></gradient> <gray>Dünya güvende... şimdilik."
+  pause: "<yellow>Lav etkinliği duraklatıldı."
+  resume: "<yellow>Lav etkinliği devam ediyor."
+
+# ─── Yönetici Kurulumu ───────────────────────────────────────
+setup:
+  arena-created: "<green><yellow>{arena}</yellow> arenası başarıyla oluşturuldu!"
+  arena-deleted: "<red><yellow>{arena}</yellow> arenası silindi."
+  pos1-set: "<green>1. konum <yellow>{x}, {y}, {z}</yellow> olarak ayarlandı."
+  pos2-set: "<green>2. konum <yellow>{x}, {y}, {z}</yellow> olarak ayarlandı."
+  lobby-set: "<green><yellow>{arena}</yellow> arenası için lobi doğma noktası ayarlandı."
+  spawn-set: "<green><yellow>{arena}</yellow> arenası için oyuncu doğma noktası ayarlandı."
+  saved: "<green><yellow>{arena}</yellow> arenası kaydedildi!"

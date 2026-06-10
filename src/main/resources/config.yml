@@ -8,7 +8,9 @@ config-version: 3
 
 # General settings
 general:
-  # Language for messages (messages.yml)
+  # Language for messages. "en" uses messages.yml; any other code loads
+  # messages_<code>.yml (e.g. "tr" → Turkish). Missing keys fall back to English.
+  # Bundled: en, tr. Add your own by dropping a messages_<code>.yml in this folder.
   language: "en"
   # Debug mode — logs extra info to console
   debug: false
