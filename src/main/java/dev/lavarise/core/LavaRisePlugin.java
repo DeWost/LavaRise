@@ -53,6 +53,7 @@ public final class LavaRisePlugin extends JavaPlugin {
     private dev.lavarise.feature.gui.AdminGUI adminGUI;
     private dev.lavarise.hook.VaultHook vaultHook;
     private AutoArenaController autoArena;
+    private dev.lavarise.feature.DoubleJumpModule doubleJumpModule;
 
     @Override
     public void onEnable() {
@@ -103,6 +104,8 @@ public final class LavaRisePlugin extends JavaPlugin {
         this.bossBarModule = new BossBarModule(this);
         this.powerUpModule = new dev.lavarise.feature.PowerUpModule(this);
         pm.registerEvents(this.powerUpModule, this);
+        this.doubleJumpModule = new dev.lavarise.feature.DoubleJumpModule(this);
+        pm.registerEvents(this.doubleJumpModule, this);
         this.kitManager = new KitManager(this);
         this.customKitManager = new dev.lavarise.feature.CustomKitManager(this);
         this.kitSelectorGUI = new KitSelectorGUI(this);
@@ -241,6 +244,10 @@ public final class LavaRisePlugin extends JavaPlugin {
         return powerUpModule;
     }
 
+    public dev.lavarise.feature.DoubleJumpModule getDoubleJumpModule() {
+        return doubleJumpModule;
+    }
+
     public dev.lavarise.hook.VaultHook getVaultHook() {
         return vaultHook;
     }
@@ -274,6 +281,7 @@ public final class LavaRisePlugin extends JavaPlugin {
         arenaRepository.loadArenas();
         if (achievementManager != null) achievementManager.load();
         if (powerUpModule != null) powerUpModule.load();
+        if (doubleJumpModule != null) doubleJumpModule.load();
         if (kitManager != null) kitManager.load();
         if (autoArena != null) autoArena.onReload();
         getLogger().info("LavaRise configuration reloaded.");
