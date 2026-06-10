@@ -156,7 +156,7 @@ public final class ConfigManager {
     }
 
     /** Current config.yml schema version — bump whenever new keys are added. */
-    private static final int CURRENT_CONFIG_VERSION = 4;
+    private static final int CURRENT_CONFIG_VERSION = 5;
 
     /**
      * Merge new options from the bundled default into the admin's config.yml on

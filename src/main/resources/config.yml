@@ -4,7 +4,7 @@
 # ============================================================
 
 # Internal config version — do not edit (used for auto-migration on upgrade).
-config-version: 4
+config-version: 5
 
 # General settings
 general:
@@ -138,6 +138,56 @@ gameplay:
       - "DIAMOND_SWORD:1:sharpness:2"
       - "COBBLESTONE:64"
       - "ARROW:16"
+  # Power-ups: glowing buff pickups that drop above the lava during the rising
+  # phase. An alive player who grabs one gets a temporary effect (or instant
+  # heal). Outstanding pickups are removed when the game ends.
+  power-ups:
+    enabled: true
+    # Seconds between spawn waves, how many per wave, and how long each lasts.
+    interval: 45
+    per-wave: 1
+    despawn: 20
+    # effect = a Minecraft potion effect id (speed, jump_boost, strength,
+    # resistance, invisibility, ...) or "heal" for an instant 6-heart heal.
+    # duration in seconds, amplifier 0 = level I.
+    types:
+      - id: speed
+        material: SUGAR
+        name: "<aqua>Speed Boost"
+        effect: speed
+        duration: 15
+        amplifier: 1
+      - id: jump
+        material: RABBIT_FOOT
+        name: "<green>Super Jump"
+        effect: jump_boost
+        duration: 15
+        amplifier: 1
+      - id: strength
+        material: BLAZE_POWDER
+        name: "<red>Strength"
+        effect: strength
+        duration: 10
+        amplifier: 0
+      - id: resistance
+        material: NETHERITE_SCRAP
+        name: "<gold>Resistance"
+        effect: resistance
+        duration: 10
+        amplifier: 0
+      - id: invisibility
+        material: FERMENTED_SPIDER_EYE
+        name: "<dark_gray>Invisibility"
+        effect: invisibility
+        duration: 10
+        amplifier: 0
+      - id: heal
+        material: GOLDEN_APPLE
+        name: "<light_purple>Instant Heal"
+        effect: heal
+        duration: 0
+        amplifier: 0
+
   # Bounties: a player who reaches this many kills has a bounty on their head;
   # whoever eliminates them claims it (announced to the arena).
   bounty:

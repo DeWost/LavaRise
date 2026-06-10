@@ -188,6 +188,7 @@ public final class ActiveState implements GameState {
      * disable) — so none of these effects leak past the match.
      */
     private void cleanupSessionEffects() {
+        plugin.getPowerUpModule().cleanup(session); // remove outstanding glowing pickups
         for (Location drop : session.getSupplyDrops()) {
             try {
                 if (drop.getWorld() != null) drop.getBlock().setType(Material.AIR, false);
@@ -394,6 +395,15 @@ public final class ActiveState implements GameState {
             final int intervalTicks = Math.max(20, cfg.getSupplyDropInterval() * 20);
             if (tickCounter >= firstTicks && (tickCounter - firstTicks) % intervalTicks == 0) {
                 dropSupply();
+            }
+        }
+
+        // Power-up waves on a fixed cadence (skip tick 0 so they don't all land at once).
+        final var pum = plugin.getPowerUpModule();
+        if (pum.isEnabled()) {
+            final int interval = Math.max(20, pum.getIntervalSeconds() * 20);
+            if (tickCounter > 0 && tickCounter % interval == 0) {
+                pum.spawnWave(arena, session);
             }
         }
 
