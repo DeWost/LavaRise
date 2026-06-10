@@ -54,6 +54,7 @@ public final class EndingState implements GameState {
             // Persist the win + best survival time, then run any reward commands.
             plugin.getStatsManager().recordWin(winner.getUniqueId(), winner.getName());
             plugin.getStatsManager().recordSurvivalTime(winner.getUniqueId(), winner.getName(), elapsed);
+            plugin.getAchievementManager().checkAndAward(winner);
             runWinCommands(winner);
 
             // Winner announcement

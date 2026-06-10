@@ -68,6 +68,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             case "list" -> handleList(sender);
             case "stats" -> handleStats(sender, args);
             case "top" -> handleTop(sender, args);
+            case "achievements", "ach" -> handleAchievements(sender, args);
             case "info" -> handleInfo(sender, args);
             case "party", "p" -> handleParty(sender, args);
             case "queue", "q" -> handleQueue(sender, args);
@@ -77,6 +78,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             case "skip" -> handleSkip(sender, args);
             case "freeze" -> handleFreeze(sender, args);
             case "stop" -> handleStop(sender, args);
+            case "admin" -> handleAdmin(sender);
             case "reload" -> handleReload(sender);
             case "survival" -> handleSurvival(sender, args);
             case "event" -> handleEvent(sender, args);
@@ -202,6 +204,46 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         msg(sender, "<gray>Deaths: <yellow>" + stats.getDeaths(target));
         msg(sender, "<gray>Best survival: <yellow>" + stats.getBestTime(target) + "s");
         msg(sender, "<gray>Win rate: <yellow>" + String.format("%.1f%%", stats.getWinRate(target) * 100));
+        return true;
+    }
+
+    private boolean handleAchievements(CommandSender sender, String[] args) {
+        final dev.lavarise.feature.AchievementManager am = plugin.getAchievementManager();
+        if (!am.isEnabled()) {
+            msg(sender, "<red>Achievements are disabled on this server.");
+            return true;
+        }
+
+        final UUID target;
+        final String name;
+        if (args.length >= 2) {
+            final org.bukkit.OfflinePlayer off = plugin.getServer().getOfflinePlayerIfCached(args[1]);
+            if (off == null) {
+                msg(sender, "<red>Unknown player — never seen on this server.");
+                return true;
+            }
+            target = off.getUniqueId();
+            name = off.getName() != null ? off.getName() : args[1];
+        } else if (sender instanceof Player p) {
+            target = p.getUniqueId();
+            name = p.getName();
+        } else {
+            msg(sender, "<red>Usage: /lavarise achievements <player>");
+            return true;
+        }
+
+        final var list = am.getAchievements();
+        final long earned = list.stream().filter(a -> am.hasEarned(target, a.id())).count();
+        msg(sender, "<gradient:red:gold><bold>Achievements — " + name + "</bold></gradient> <dark_gray>("
+                + earned + "/" + list.size() + ")");
+        for (var a : list) {
+            final boolean done = am.hasEarned(target, a.id());
+            final long have = am.statValue(target, a.stat());
+            final String progress = done ? "" : " <dark_gray>(" + Math.min(have, a.threshold())
+                    + "/" + a.threshold() + " " + a.stat() + ")";
+            msg(sender, (done ? "<green>✔ " : "<dark_gray>✘ ") + "<yellow>" + a.name()
+                    + " <gray>- " + a.description() + progress);
+        }
         return true;
     }
 
@@ -785,10 +827,12 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         msg(sender, "<yellow>/lr list <gray>- Browse arenas");
         msg(sender, "<yellow>/lr stats [player] <gray>- View statistics");
         msg(sender, "<yellow>/lr top [wins|kills|time] <gray>- Leaderboard");
+        msg(sender, "<yellow>/lr achievements [player] <gray>- View unlocked milestones");
         msg(sender, "<yellow>/lr info [arena] <gray>- Arena status");
         msg(sender, "<yellow>/lr party <gray>- invite/accept/leave/kick/disband; join together");
         msg(sender, "<yellow>/lr queue [leave] <gray>- matchmaking queue");
         if (sender.hasPermission("lavarise.admin")) {
+            msg(sender, "<gold>Admin: <yellow>admin <gray>- arena control panel (GUI)");
             msg(sender, "<gold>Admin: <yellow>setup <name> [radius] <gray>- one-command arena where you stand");
             msg(sender, "<gold>Admin: <yellow>create/pos1/pos2/setlobby/setgamespawn/setspectator/save/delete");
             msg(sender, "<gold>Admin: <yellow>setkit <arena> <kit|none> <gray>- force a kit (custom-kit arena)");
@@ -796,6 +840,13 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             msg(sender, "<gold>Admin: <yellow>survival <start|stop> [world]");
             msg(sender, "<gold>Admin: <yellow>event <start|pause|resume|stop> <arena>");
         }
+    }
+
+    private boolean handleAdmin(CommandSender sender) {
+        if (notAdmin(sender)) return true;
+        if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
+        plugin.getAdminGUI().open(player);
+        return true;
     }
 
     private boolean notAdmin(CommandSender sender) {
@@ -814,9 +865,9 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         List<String> completions = new ArrayList<>();
         if (args.length == 1) {
-            completions.addAll(List.of("join", "play", "random", "kit", "customkit", "vote", "leave", "list", "stats", "top", "info", "party", "queue"));
+            completions.addAll(List.of("join", "play", "random", "kit", "customkit", "vote", "leave", "list", "stats", "top", "achievements", "info", "party", "queue"));
             if (sender.hasPermission("lavarise.admin")) {
-                completions.addAll(List.of("setup", "create", "pos1", "pos2", "setlobby", "setgamespawn",
+                completions.addAll(List.of("admin", "setup", "create", "pos1", "pos2", "setlobby", "setgamespawn",
                         "setspectator", "save", "delete", "setkit", "start", "skip", "freeze", "stop", "reload", "stress",
                         "survival", "event"));
             }

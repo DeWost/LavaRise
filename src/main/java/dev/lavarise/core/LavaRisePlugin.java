@@ -42,12 +42,15 @@ public final class LavaRisePlugin extends JavaPlugin {
     private ScoreboardModule scoreboardModule;
     private BossBarModule bossBarModule;
     private StatsManager statsManager;
+    private dev.lavarise.feature.AchievementManager achievementManager;
+    private dev.lavarise.feature.PowerUpModule powerUpModule;
     private KitManager kitManager;
     private dev.lavarise.feature.CustomKitManager customKitManager;
     private dev.lavarise.party.PartyManager partyManager;
     private dev.lavarise.party.QueueManager queueManager;
     private KitSelectorGUI kitSelectorGUI;
     private VoteGUI voteGUI;
+    private dev.lavarise.feature.gui.AdminGUI adminGUI;
     private dev.lavarise.hook.VaultHook vaultHook;
     private AutoArenaController autoArena;
 
@@ -74,6 +77,7 @@ public final class LavaRisePlugin extends JavaPlugin {
 
         // ── 2. Data Layer ───────────────────────────────────
         this.statsManager = new StatsManager(this);
+        this.achievementManager = new dev.lavarise.feature.AchievementManager(this);
         this.arenaRepository = new ArenaRepository(this);
 
         // ── 3. Game Manager ─────────────────────────────────
@@ -97,10 +101,13 @@ public final class LavaRisePlugin extends JavaPlugin {
         this.guiManager = new ArenaSelectorGUI(this);
         this.scoreboardModule = new ScoreboardModule(this);
         this.bossBarModule = new BossBarModule(this);
+        this.powerUpModule = new dev.lavarise.feature.PowerUpModule(this);
+        pm.registerEvents(this.powerUpModule, this);
         this.kitManager = new KitManager(this);
         this.customKitManager = new dev.lavarise.feature.CustomKitManager(this);
         this.kitSelectorGUI = new KitSelectorGUI(this);
         this.voteGUI = new VoteGUI(this);
+        this.adminGUI = new dev.lavarise.feature.gui.AdminGUI(this);
         this.partyManager = new dev.lavarise.party.PartyManager(this);
         this.queueManager = new dev.lavarise.party.QueueManager(this);
 
@@ -171,6 +178,11 @@ public final class LavaRisePlugin extends JavaPlugin {
             statsManager.close();
         }
 
+        // Persist earned achievements
+        if (achievementManager != null) {
+            achievementManager.save();
+        }
+
         getLogger().info("LavaRise disabled. All games ended gracefully.");
         instance = null;
     }
@@ -221,6 +233,14 @@ public final class LavaRisePlugin extends JavaPlugin {
         return statsManager;
     }
 
+    public dev.lavarise.feature.AchievementManager getAchievementManager() {
+        return achievementManager;
+    }
+
+    public dev.lavarise.feature.PowerUpModule getPowerUpModule() {
+        return powerUpModule;
+    }
+
     public dev.lavarise.hook.VaultHook getVaultHook() {
         return vaultHook;
     }
@@ -241,6 +261,10 @@ public final class LavaRisePlugin extends JavaPlugin {
         return voteGUI;
     }
 
+    public dev.lavarise.feature.gui.AdminGUI getAdminGUI() {
+        return adminGUI;
+    }
+
     /**
      * Reloads the entire plugin configuration and arenas.
      */
@@ -248,6 +272,8 @@ public final class LavaRisePlugin extends JavaPlugin {
         reloadConfig();
         configManager.loadAll();
         arenaRepository.loadArenas();
+        if (achievementManager != null) achievementManager.load();
+        if (powerUpModule != null) powerUpModule.load();
         if (kitManager != null) kitManager.load();
         if (autoArena != null) autoArena.onReload();
         getLogger().info("LavaRise configuration reloaded.");

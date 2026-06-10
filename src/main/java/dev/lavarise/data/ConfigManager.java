@@ -156,7 +156,7 @@ public final class ConfigManager {
     }
 
     /** Current config.yml schema version — bump whenever new keys are added. */
-    private static final int CURRENT_CONFIG_VERSION = 3;
+    private static final int CURRENT_CONFIG_VERSION = 5;
 
     /**
      * Merge new options from the bundled default into the admin's config.yml on
@@ -368,12 +368,47 @@ public final class ConfigManager {
         return config.getBoolean("arena-defaults." + newKey, config.getBoolean("arena." + legacyKey, def));
     }
 
+    /**
+     * Load the message catalog for {@code general.language}. English
+     * ({@code messages.yml}) is the canonical catalog and the fallback for any
+     * key a translation is missing, so a partial translation never shows a raw
+     * "Missing message" string. A localized catalog is taken from
+     * {@code messages_<lang>.yml} in the data folder (auto-extracted from the jar
+     * if bundled); an unknown language logs a warning and falls back to English.
+     */
     private void loadMessages() {
-        final File messagesFile = new File(plugin.getDataFolder(), "messages.yml");
-        if (!messagesFile.exists()) {
-            plugin.saveResource("messages.yml", false);
+        final String lang = plugin.getConfig().getString("general.language", "en")
+                .trim().toLowerCase(java.util.Locale.ROOT);
+
+        final FileConfiguration english = loadCatalog("messages.yml");
+        if (lang.isEmpty() || lang.equals("en")) {
+            this.messagesConfig = english;
+            return;
         }
-        this.messagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
+
+        final String fileName = "messages_" + lang + ".yml";
+        final File langFile = new File(plugin.getDataFolder(), fileName);
+        if (!langFile.exists() && plugin.getResource(fileName) == null) {
+            plugin.getLogger().warning("Language '" + lang + "' not available ("
+                    + fileName + " not found) — falling back to English.");
+            this.messagesConfig = english;
+            return;
+        }
+
+        final FileConfiguration localized = loadCatalog(fileName);
+        // Keys absent from the translation transparently resolve to English.
+        localized.setDefaults(english);
+        this.messagesConfig = localized;
+        plugin.debug("Messages language: " + lang);
+    }
+
+    /** Extract (first run) and load a bundled message catalog from the data folder. */
+    private FileConfiguration loadCatalog(String fileName) {
+        final File file = new File(plugin.getDataFolder(), fileName);
+        if (!file.exists() && plugin.getResource(fileName) != null) {
+            plugin.saveResource(fileName, false);
+        }
+        return YamlConfiguration.loadConfiguration(file);
     }
 
     // ── Getters: general / performance ──────────────────────

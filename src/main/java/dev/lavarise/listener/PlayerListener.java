@@ -76,6 +76,7 @@ public class PlayerListener implements Listener {
         final Player killer = player.getKiller();
         if (killer != null && !killer.equals(player)) {
             plugin.getStatsManager().recordKill(killer.getUniqueId(), killer.getName());
+            plugin.getAchievementManager().checkAndAward(killer);
             session.recordSessionKill(killer.getUniqueId());
             final int streak = session.getSessionKills(killer.getUniqueId());
             killer.sendMessage(plugin.getMiniMessage().deserialize(
