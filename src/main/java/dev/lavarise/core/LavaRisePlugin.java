@@ -42,6 +42,7 @@ public final class LavaRisePlugin extends JavaPlugin {
     private ScoreboardModule scoreboardModule;
     private BossBarModule bossBarModule;
     private StatsManager statsManager;
+    private dev.lavarise.feature.AchievementManager achievementManager;
     private KitManager kitManager;
     private dev.lavarise.feature.CustomKitManager customKitManager;
     private dev.lavarise.party.PartyManager partyManager;
@@ -74,6 +75,7 @@ public final class LavaRisePlugin extends JavaPlugin {
 
         // ── 2. Data Layer ───────────────────────────────────
         this.statsManager = new StatsManager(this);
+        this.achievementManager = new dev.lavarise.feature.AchievementManager(this);
         this.arenaRepository = new ArenaRepository(this);
 
         // ── 3. Game Manager ─────────────────────────────────
@@ -171,6 +173,11 @@ public final class LavaRisePlugin extends JavaPlugin {
             statsManager.close();
         }
 
+        // Persist earned achievements
+        if (achievementManager != null) {
+            achievementManager.save();
+        }
+
         getLogger().info("LavaRise disabled. All games ended gracefully.");
         instance = null;
     }
@@ -221,6 +228,10 @@ public final class LavaRisePlugin extends JavaPlugin {
         return statsManager;
     }
 
+    public dev.lavarise.feature.AchievementManager getAchievementManager() {
+        return achievementManager;
+    }
+
     public dev.lavarise.hook.VaultHook getVaultHook() {
         return vaultHook;
     }
@@ -248,6 +259,7 @@ public final class LavaRisePlugin extends JavaPlugin {
         reloadConfig();
         configManager.loadAll();
         arenaRepository.loadArenas();
+        if (achievementManager != null) achievementManager.load();
         if (kitManager != null) kitManager.load();
         if (autoArena != null) autoArena.onReload();
         getLogger().info("LavaRise configuration reloaded.");

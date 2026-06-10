@@ -81,7 +81,10 @@ public final class MinigameModeHandler extends GameModeHandler {
             if (id.equals(winner.getUniqueId())) continue;
             if (session.getTeam(id) == winningTeam) {
                 Player p = plugin.getServer().getPlayer(id);
-                if (p != null) plugin.getStatsManager().recordWin(id, p.getName());
+                if (p != null) {
+                    plugin.getStatsManager().recordWin(id, p.getName());
+                    plugin.getAchievementManager().checkAndAward(p);
+                }
             }
         }
     }

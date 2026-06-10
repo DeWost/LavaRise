@@ -4,7 +4,7 @@
 # ============================================================
 
 # Internal config version — do not edit (used for auto-migration on upgrade).
-config-version: 3
+config-version: 4
 
 # General settings
 general:
@@ -461,3 +461,72 @@ effects:
     warning: "block.note_block.pling"
     # Warning threshold — play warning when lava is within N blocks of player
     warning-distance: 5
+
+# ─── Achievements / Milestones ───────────────────────────────
+# Lifetime milestones awarded automatically from a player's stats. Each entry:
+#   name/description (MiniMessage shown in /lr achievements), stat
+#   (wins|kills|games|best_time, best_time in seconds), threshold, and optional
+#   reward-commands run from console ({player} = the player's name).
+achievements:
+  enabled: true
+  list:
+    first_blood:
+      name: "First Blood"
+      description: "Get your first kill"
+      stat: kills
+      threshold: 1
+      reward-commands: []
+    slayer:
+      name: "Slayer"
+      description: "Reach 25 kills"
+      stat: kills
+      threshold: 25
+      reward-commands: []
+    massacre:
+      name: "Massacre"
+      description: "Reach 100 kills"
+      stat: kills
+      threshold: 100
+      reward-commands: []
+    winner:
+      name: "Winner"
+      description: "Win your first game"
+      stat: wins
+      threshold: 1
+      reward-commands: []
+    champion:
+      name: "Champion"
+      description: "Win 10 games"
+      stat: wins
+      threshold: 10
+      reward-commands: []
+    legend:
+      name: "Legend"
+      description: "Win 50 games"
+      stat: wins
+      threshold: 50
+      reward-commands: []
+    regular:
+      name: "Regular"
+      description: "Play 10 games"
+      stat: games
+      threshold: 10
+      reward-commands: []
+    veteran:
+      name: "Veteran"
+      description: "Play 100 games"
+      stat: games
+      threshold: 100
+      reward-commands: []
+    survivor:
+      name: "Survivor"
+      description: "Survive 5 minutes in a single game"
+      stat: best_time
+      threshold: 300
+      reward-commands: []
+    immortal:
+      name: "Immortal"
+      description: "Survive 10 minutes in a single game"
+      stat: best_time
+      threshold: 600
+      reward-commands: []
