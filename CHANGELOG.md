@@ -4,6 +4,13 @@ All notable changes to LavaRise are documented here.
 This project follows [Conventional Commits](https://www.conventionalcommits.org/)
 and roughly [Semantic Versioning](https://semver.org/).
 
+## [1.9.0](https://github.com/DeWost/LavaRise/compare/v1.8.1...v1.9.0) (2026-06-10)
+
+
+### Features
+
+* power-ups, achievements, admin GUI & localization (TR) ([#81](https://github.com/DeWost/LavaRise/issues/81)) ([72b37c9](https://github.com/DeWost/LavaRise/commit/72b37c9f530c00597c051ac42a5a6f410ebd8ca1))
+
 ## [1.8.1](https://github.com/DeWost/LavaRise/compare/v1.8.0...v1.8.1) (2026-06-08)
 
 
