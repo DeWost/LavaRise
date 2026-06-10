@@ -78,6 +78,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             case "skip" -> handleSkip(sender, args);
             case "freeze" -> handleFreeze(sender, args);
             case "stop" -> handleStop(sender, args);
+            case "admin" -> handleAdmin(sender);
             case "reload" -> handleReload(sender);
             case "survival" -> handleSurvival(sender, args);
             case "event" -> handleEvent(sender, args);
@@ -831,6 +832,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         msg(sender, "<yellow>/lr party <gray>- invite/accept/leave/kick/disband; join together");
         msg(sender, "<yellow>/lr queue [leave] <gray>- matchmaking queue");
         if (sender.hasPermission("lavarise.admin")) {
+            msg(sender, "<gold>Admin: <yellow>admin <gray>- arena control panel (GUI)");
             msg(sender, "<gold>Admin: <yellow>setup <name> [radius] <gray>- one-command arena where you stand");
             msg(sender, "<gold>Admin: <yellow>create/pos1/pos2/setlobby/setgamespawn/setspectator/save/delete");
             msg(sender, "<gold>Admin: <yellow>setkit <arena> <kit|none> <gray>- force a kit (custom-kit arena)");
@@ -838,6 +840,13 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             msg(sender, "<gold>Admin: <yellow>survival <start|stop> [world]");
             msg(sender, "<gold>Admin: <yellow>event <start|pause|resume|stop> <arena>");
         }
+    }
+
+    private boolean handleAdmin(CommandSender sender) {
+        if (notAdmin(sender)) return true;
+        if (!(sender instanceof Player player)) { sender.sendMessage("Players only."); return true; }
+        plugin.getAdminGUI().open(player);
+        return true;
     }
 
     private boolean notAdmin(CommandSender sender) {
@@ -858,7 +867,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         if (args.length == 1) {
             completions.addAll(List.of("join", "play", "random", "kit", "customkit", "vote", "leave", "list", "stats", "top", "achievements", "info", "party", "queue"));
             if (sender.hasPermission("lavarise.admin")) {
-                completions.addAll(List.of("setup", "create", "pos1", "pos2", "setlobby", "setgamespawn",
+                completions.addAll(List.of("admin", "setup", "create", "pos1", "pos2", "setlobby", "setgamespawn",
                         "setspectator", "save", "delete", "setkit", "start", "skip", "freeze", "stop", "reload", "stress",
                         "survival", "event"));
             }

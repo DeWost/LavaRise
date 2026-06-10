@@ -50,6 +50,7 @@ public final class LavaRisePlugin extends JavaPlugin {
     private dev.lavarise.party.QueueManager queueManager;
     private KitSelectorGUI kitSelectorGUI;
     private VoteGUI voteGUI;
+    private dev.lavarise.feature.gui.AdminGUI adminGUI;
     private dev.lavarise.hook.VaultHook vaultHook;
     private AutoArenaController autoArena;
 
@@ -106,6 +107,7 @@ public final class LavaRisePlugin extends JavaPlugin {
         this.customKitManager = new dev.lavarise.feature.CustomKitManager(this);
         this.kitSelectorGUI = new KitSelectorGUI(this);
         this.voteGUI = new VoteGUI(this);
+        this.adminGUI = new dev.lavarise.feature.gui.AdminGUI(this);
         this.partyManager = new dev.lavarise.party.PartyManager(this);
         this.queueManager = new dev.lavarise.party.QueueManager(this);
 
@@ -257,6 +259,10 @@ public final class LavaRisePlugin extends JavaPlugin {
 
     public VoteGUI getVoteGUI() {
         return voteGUI;
+    }
+
+    public dev.lavarise.feature.gui.AdminGUI getAdminGUI() {
+        return adminGUI;
     }
 
     /**
