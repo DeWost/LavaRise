@@ -4,6 +4,13 @@ All notable changes to LavaRise are documented here.
 This project follows [Conventional Commits](https://www.conventionalcommits.org/)
 and roughly [Semantic Versioning](https://semver.org/).
 
+## [1.10.0](https://github.com/DeWost/LavaRise/compare/v1.9.0...v1.10.0) (2026-06-10)
+
+
+### Features
+
+* cosmetics, spectator teleporter & in-game double jump ([#83](https://github.com/DeWost/LavaRise/issues/83)) ([346d822](https://github.com/DeWost/LavaRise/commit/346d822f1b162a6e4300d3f667e972eae2ce97d6))
+
 ## [1.9.0](https://github.com/DeWost/LavaRise/compare/v1.8.1...v1.9.0) (2026-06-10)
 
 
