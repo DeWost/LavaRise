@@ -50,6 +50,7 @@ public final class ConfigManager {
     private int queueMinPlayers;
     private boolean customKitsVotable;
     private boolean mandatoryVoting;
+    private boolean spectatorMenuEnabled;
     private boolean finalShowdownEnabled;
     private int finalShowdownPlayers;
     private boolean supplyDropsEnabled;
@@ -156,7 +157,7 @@ public final class ConfigManager {
     }
 
     /** Current config.yml schema version — bump whenever new keys are added. */
-    private static final int CURRENT_CONFIG_VERSION = 5;
+    private static final int CURRENT_CONFIG_VERSION = 6;
 
     /**
      * Merge new options from the bundled default into the admin's config.yml on
@@ -249,6 +250,7 @@ public final class ConfigManager {
         this.queueMinPlayers = Math.max(2, config.getInt("queue.min-players", 2));
         this.customKitsVotable = config.getBoolean("custom-kits.votable", true);
         this.mandatoryVoting = config.getBoolean("voting.mandatory", false);
+        this.spectatorMenuEnabled = config.getBoolean("gameplay.spectator-menu", true);
         this.finalShowdownEnabled = config.getBoolean("gameplay.final-showdown.enabled", true);
         this.finalShowdownPlayers = Math.max(2, config.getInt("gameplay.final-showdown.players", 2));
         this.supplyDropsEnabled = config.getBoolean("gameplay.supply-drops.enabled", false);
@@ -442,6 +444,7 @@ public final class ConfigManager {
     public int getQueueMinPlayers() { return queueMinPlayers; }
     public boolean isCustomKitsVotable() { return customKitsVotable; }
     public boolean isMandatoryVoting() { return mandatoryVoting; }
+    public boolean isSpectatorMenuEnabled() { return spectatorMenuEnabled; }
     public boolean isFinalShowdownEnabled() { return finalShowdownEnabled; }
     public int getFinalShowdownPlayers() { return finalShowdownPlayers; }
     public boolean isSupplyDropsEnabled() { return supplyDropsEnabled; }

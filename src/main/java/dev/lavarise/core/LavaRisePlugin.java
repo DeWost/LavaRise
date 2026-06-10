@@ -8,6 +8,7 @@ import dev.lavarise.listener.ArenaEventRouter;
 import dev.lavarise.listener.PlayerListener;
 import dev.lavarise.feature.gui.ArenaSelectorGUI;
 import dev.lavarise.feature.gui.KitSelectorGUI;
+import dev.lavarise.feature.gui.SpectatorMenu;
 import dev.lavarise.feature.gui.VoteGUI;
 import dev.lavarise.feature.BossBarModule;
 import dev.lavarise.feature.KitManager;
@@ -51,8 +52,11 @@ public final class LavaRisePlugin extends JavaPlugin {
     private KitSelectorGUI kitSelectorGUI;
     private VoteGUI voteGUI;
     private dev.lavarise.feature.gui.AdminGUI adminGUI;
+    private SpectatorMenu spectatorMenu;
     private dev.lavarise.hook.VaultHook vaultHook;
     private AutoArenaController autoArena;
+    private dev.lavarise.feature.CosmeticManager cosmeticManager;
+    private dev.lavarise.feature.DoubleJumpModule doubleJumpModule;
 
     @Override
     public void onEnable() {
@@ -78,6 +82,7 @@ public final class LavaRisePlugin extends JavaPlugin {
         // ── 2. Data Layer ───────────────────────────────────
         this.statsManager = new StatsManager(this);
         this.achievementManager = new dev.lavarise.feature.AchievementManager(this);
+        this.cosmeticManager = new dev.lavarise.feature.CosmeticManager(this);
         this.arenaRepository = new ArenaRepository(this);
 
         // ── 3. Game Manager ─────────────────────────────────
@@ -103,11 +108,14 @@ public final class LavaRisePlugin extends JavaPlugin {
         this.bossBarModule = new BossBarModule(this);
         this.powerUpModule = new dev.lavarise.feature.PowerUpModule(this);
         pm.registerEvents(this.powerUpModule, this);
+        this.doubleJumpModule = new dev.lavarise.feature.DoubleJumpModule(this);
+        pm.registerEvents(this.doubleJumpModule, this);
         this.kitManager = new KitManager(this);
         this.customKitManager = new dev.lavarise.feature.CustomKitManager(this);
         this.kitSelectorGUI = new KitSelectorGUI(this);
         this.voteGUI = new VoteGUI(this);
         this.adminGUI = new dev.lavarise.feature.gui.AdminGUI(this);
+        this.spectatorMenu = new SpectatorMenu(this);
         this.partyManager = new dev.lavarise.party.PartyManager(this);
         this.queueManager = new dev.lavarise.party.QueueManager(this);
 
@@ -183,6 +191,11 @@ public final class LavaRisePlugin extends JavaPlugin {
             achievementManager.save();
         }
 
+        // Persist cosmetic selections
+        if (cosmeticManager != null) {
+            cosmeticManager.save();
+        }
+
         getLogger().info("LavaRise disabled. All games ended gracefully.");
         instance = null;
     }
@@ -237,8 +250,16 @@ public final class LavaRisePlugin extends JavaPlugin {
         return achievementManager;
     }
 
+    public dev.lavarise.feature.CosmeticManager getCosmeticManager() {
+        return cosmeticManager;
+    }
+
     public dev.lavarise.feature.PowerUpModule getPowerUpModule() {
         return powerUpModule;
+    }
+
+    public dev.lavarise.feature.DoubleJumpModule getDoubleJumpModule() {
+        return doubleJumpModule;
     }
 
     public dev.lavarise.hook.VaultHook getVaultHook() {
@@ -265,6 +286,10 @@ public final class LavaRisePlugin extends JavaPlugin {
         return adminGUI;
     }
 
+    public SpectatorMenu getSpectatorMenu() {
+        return spectatorMenu;
+    }
+
     /**
      * Reloads the entire plugin configuration and arenas.
      */
@@ -273,7 +298,9 @@ public final class LavaRisePlugin extends JavaPlugin {
         configManager.loadAll();
         arenaRepository.loadArenas();
         if (achievementManager != null) achievementManager.load();
+        if (cosmeticManager != null) cosmeticManager.load();
         if (powerUpModule != null) powerUpModule.load();
+        if (doubleJumpModule != null) doubleJumpModule.load();
         if (kitManager != null) kitManager.load();
         if (autoArena != null) autoArena.onReload();
         getLogger().info("LavaRise configuration reloaded.");

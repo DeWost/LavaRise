@@ -4,7 +4,7 @@
 # ============================================================
 
 # Internal config version — do not edit (used for auto-migration on upgrade).
-config-version: 5
+config-version: 6
 
 # General settings
 general:
@@ -117,6 +117,12 @@ gameplay:
   # Health restored to a player when they get a PvP kill (2 = 1 heart; 0 = off).
   # Rewards winning a fight and keeps the pace aggressive.
   kill-heal: 0
+
+  # Spectator teleport menu: give eliminated players a compass (slot 0) that
+  # opens a chest GUI listing every alive player as a clickable head. Clicking
+  # a head teleports the spectator to that player. Disable to stop giving the
+  # compass (spectators still enter spectator mode as normal).
+  spectator-menu: true
 
   # Final showdown: when the field narrows to this many players, announce a
   # dramatic finish and make the survivors glow so they can find each other
@@ -267,6 +273,22 @@ gameplay:
       - STONE_SWORD:1
       - STONE_PICKAXE:1
       - COOKED_BEEF:8
+
+  # Double jump: press space twice in the air to boost upward and forward.
+  # Alive in-game players get setAllowFlight(true) so they can trigger it;
+  # the actual flight mode is never engaged — the server intercepts the toggle.
+  double-jump:
+    enabled: true
+    # Seconds before the same player can double-jump again.
+    cooldown: 3
+    # Upward velocity component.
+    power: 0.9
+    # Forward velocity multiplier (based on the player's look direction).
+    forward: 0.6
+    # Particle spawned at the player's feet on each jump. Standard Bukkit Particle name.
+    particle: CLOUD
+    # Sound played on each jump. Standard Bukkit sound key.
+    sound: "entity.bat_takeoff"
 
 # ─── Procedural / Random Arenas ──────────────────────────────
 # Quick-join (/lr join with no arena) sends players to a RANDOM open arena;
@@ -580,3 +602,79 @@ achievements:
       stat: best_time
       threshold: 600
       reward-commands: []
+
+# ─── Cosmetics ───────────────────────────────────────────────
+# Player-selectable cosmetic effects. Three categories:
+#   kill-effect  — played at the victim's location when a player gets a kill.
+#   win-effect   — shown around the winner at game end.
+#   death-cry    — a sound broadcast to the arena when the owner is eliminated.
+#
+# Each entry: id (config key), name (MiniMessage), icon (Material), effect
+# (particle/effect/sound key) and optional "requires" (achievement id to unlock).
+# The first entry in each category is always the free "None" default.
+cosmetics:
+  enabled: true
+
+  kill-effect:
+    none:
+      name: "<gray>None"
+      icon: BARRIER
+      effect: "NONE"
+    lightning:
+      name: "<yellow>Lightning Strike"
+      icon: LIGHTNING_ROD
+      effect: "LIGHTNING"
+    flame:
+      name: "<red>Flame Burst"
+      icon: BLAZE_POWDER
+      effect: "FLAME"
+    explosion:
+      name: "<dark_red>Explosion"
+      icon: TNT
+      effect: "EXPLOSION"
+      requires: "first_blood"
+    heart:
+      name: "<light_purple>Hearts"
+      icon: PINK_DYE
+      effect: "HEART"
+      requires: "slayer"
+
+  win-effect:
+    none:
+      name: "<gray>None"
+      icon: BARRIER
+      effect: "NONE"
+    fireworks_show:
+      name: "<gold>Fireworks Show"
+      icon: FIREWORK_ROCKET
+      effect: "FIREWORKS_SHOW"
+    totem:
+      name: "<aqua>Totem Burst"
+      icon: TOTEM_OF_UNDYING
+      effect: "TOTEM"
+      requires: "winner"
+    fireworks_spiral:
+      name: "<light_purple>Fireworks Spiral"
+      icon: FIREWORK_STAR
+      effect: "FIREWORKS_SPIRAL"
+      requires: "champion"
+
+  death-cry:
+    none:
+      name: "<gray>None"
+      icon: BARRIER
+      effect: "NONE"
+    blaze_death:
+      name: "<red>Blaze Scream"
+      icon: BLAZE_ROD
+      effect: "entity.blaze.death"
+    ender_dragon:
+      name: "<dark_purple>Dragon Roar"
+      icon: DRAGON_HEAD
+      effect: "entity.ender_dragon.death"
+      requires: "regular"
+    ghast_death:
+      name: "<white>Ghast Wail"
+      icon: GHAST_TEAR
+      effect: "entity.ghast.death"
+      requires: "veteran"
