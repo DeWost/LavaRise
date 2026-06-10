@@ -53,6 +53,7 @@ public final class LavaRisePlugin extends JavaPlugin {
     private dev.lavarise.feature.gui.AdminGUI adminGUI;
     private dev.lavarise.hook.VaultHook vaultHook;
     private AutoArenaController autoArena;
+    private dev.lavarise.feature.CosmeticManager cosmeticManager;
 
     @Override
     public void onEnable() {
@@ -78,6 +79,7 @@ public final class LavaRisePlugin extends JavaPlugin {
         // ── 2. Data Layer ───────────────────────────────────
         this.statsManager = new StatsManager(this);
         this.achievementManager = new dev.lavarise.feature.AchievementManager(this);
+        this.cosmeticManager = new dev.lavarise.feature.CosmeticManager(this);
         this.arenaRepository = new ArenaRepository(this);
 
         // ── 3. Game Manager ─────────────────────────────────
@@ -183,6 +185,11 @@ public final class LavaRisePlugin extends JavaPlugin {
             achievementManager.save();
         }
 
+        // Persist cosmetic selections
+        if (cosmeticManager != null) {
+            cosmeticManager.save();
+        }
+
         getLogger().info("LavaRise disabled. All games ended gracefully.");
         instance = null;
     }
@@ -237,6 +244,10 @@ public final class LavaRisePlugin extends JavaPlugin {
         return achievementManager;
     }
 
+    public dev.lavarise.feature.CosmeticManager getCosmeticManager() {
+        return cosmeticManager;
+    }
+
     public dev.lavarise.feature.PowerUpModule getPowerUpModule() {
         return powerUpModule;
     }
@@ -273,6 +284,7 @@ public final class LavaRisePlugin extends JavaPlugin {
         configManager.loadAll();
         arenaRepository.loadArenas();
         if (achievementManager != null) achievementManager.load();
+        if (cosmeticManager != null) cosmeticManager.load();
         if (powerUpModule != null) powerUpModule.load();
         if (kitManager != null) kitManager.load();
         if (autoArena != null) autoArena.onReload();

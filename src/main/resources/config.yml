@@ -4,7 +4,7 @@
 # ============================================================
 
 # Internal config version — do not edit (used for auto-migration on upgrade).
-config-version: 5
+config-version: 6
 
 # General settings
 general:
@@ -580,3 +580,79 @@ achievements:
       stat: best_time
       threshold: 600
       reward-commands: []
+
+# ─── Cosmetics ───────────────────────────────────────────────
+# Player-selectable cosmetic effects. Three categories:
+#   kill-effect  — played at the victim's location when a player gets a kill.
+#   win-effect   — shown around the winner at game end.
+#   death-cry    — a sound broadcast to the arena when the owner is eliminated.
+#
+# Each entry: id (config key), name (MiniMessage), icon (Material), effect
+# (particle/effect/sound key) and optional "requires" (achievement id to unlock).
+# The first entry in each category is always the free "None" default.
+cosmetics:
+  enabled: true
+
+  kill-effect:
+    none:
+      name: "<gray>None"
+      icon: BARRIER
+      effect: "NONE"
+    lightning:
+      name: "<yellow>Lightning Strike"
+      icon: LIGHTNING_ROD
+      effect: "LIGHTNING"
+    flame:
+      name: "<red>Flame Burst"
+      icon: BLAZE_POWDER
+      effect: "FLAME"
+    explosion:
+      name: "<dark_red>Explosion"
+      icon: TNT
+      effect: "EXPLOSION"
+      requires: "first_blood"
+    heart:
+      name: "<light_purple>Hearts"
+      icon: PINK_DYE
+      effect: "HEART"
+      requires: "slayer"
+
+  win-effect:
+    none:
+      name: "<gray>None"
+      icon: BARRIER
+      effect: "NONE"
+    fireworks_show:
+      name: "<gold>Fireworks Show"
+      icon: FIREWORK_ROCKET
+      effect: "FIREWORKS_SHOW"
+    totem:
+      name: "<aqua>Totem Burst"
+      icon: TOTEM_OF_UNDYING
+      effect: "TOTEM"
+      requires: "winner"
+    fireworks_spiral:
+      name: "<light_purple>Fireworks Spiral"
+      icon: FIREWORK_STAR
+      effect: "FIREWORKS_SPIRAL"
+      requires: "champion"
+
+  death-cry:
+    none:
+      name: "<gray>None"
+      icon: BARRIER
+      effect: "NONE"
+    blaze_death:
+      name: "<red>Blaze Scream"
+      icon: BLAZE_ROD
+      effect: "entity.blaze.death"
+    ender_dragon:
+      name: "<dark_purple>Dragon Roar"
+      icon: DRAGON_HEAD
+      effect: "entity.ender_dragon.death"
+      requires: "regular"
+    ghast_death:
+      name: "<white>Ghast Wail"
+      icon: GHAST_TEAR
+      effect: "entity.ghast.death"
+      requires: "veteran"

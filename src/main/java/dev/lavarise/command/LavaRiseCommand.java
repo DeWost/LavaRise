@@ -69,6 +69,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             case "stats" -> handleStats(sender, args);
             case "top" -> handleTop(sender, args);
             case "achievements", "ach" -> handleAchievements(sender, args);
+            case "cosmetics" -> handleCosmetics(sender);
             case "info" -> handleInfo(sender, args);
             case "party", "p" -> handleParty(sender, args);
             case "queue", "q" -> handleQueue(sender, args);
@@ -244,6 +245,24 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             msg(sender, (done ? "<green>✔ " : "<dark_gray>✘ ") + "<yellow>" + a.name()
                     + " <gray>- " + a.description() + progress);
         }
+        return true;
+    }
+
+    private boolean handleCosmetics(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("Players only.");
+            return true;
+        }
+        if (!player.hasPermission("lavarise.play")) {
+            msg(player, plugin.getConfigManager().getMessage("general.no-permission"));
+            return true;
+        }
+        final dev.lavarise.feature.CosmeticManager cm = plugin.getCosmeticManager();
+        if (cm == null || !cm.isEnabled()) {
+            msg(player, "<red>Cosmetics are disabled on this server.");
+            return true;
+        }
+        cm.openGui(player);
         return true;
     }
 
@@ -828,6 +847,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         msg(sender, "<yellow>/lr stats [player] <gray>- View statistics");
         msg(sender, "<yellow>/lr top [wins|kills|time] <gray>- Leaderboard");
         msg(sender, "<yellow>/lr achievements [player] <gray>- View unlocked milestones");
+        msg(sender, "<yellow>/lr cosmetics <gray>- Open cosmetics selection GUI");
         msg(sender, "<yellow>/lr info [arena] <gray>- Arena status");
         msg(sender, "<yellow>/lr party <gray>- invite/accept/leave/kick/disband; join together");
         msg(sender, "<yellow>/lr queue [leave] <gray>- matchmaking queue");
@@ -865,7 +885,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         List<String> completions = new ArrayList<>();
         if (args.length == 1) {
-            completions.addAll(List.of("join", "play", "random", "kit", "customkit", "vote", "leave", "list", "stats", "top", "achievements", "info", "party", "queue"));
+            completions.addAll(List.of("join", "play", "random", "kit", "customkit", "vote", "leave", "list", "stats", "top", "achievements", "cosmetics", "info", "party", "queue"));
             if (sender.hasPermission("lavarise.admin")) {
                 completions.addAll(List.of("admin", "setup", "create", "pos1", "pos2", "setlobby", "setgamespawn",
                         "setspectator", "save", "delete", "setkit", "start", "skip", "freeze", "stop", "reload", "stress",

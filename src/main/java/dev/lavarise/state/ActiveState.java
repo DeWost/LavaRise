@@ -233,6 +233,7 @@ public final class ActiveState implements GameState {
         plugin.getStatsManager().recordDeath(player.getUniqueId(), player.getName());
         plugin.getStatsManager().recordSurvivalTime(player.getUniqueId(), player.getName(), session.getElapsedSeconds());
         plugin.getAchievementManager().checkAndAward(player);
+        plugin.getCosmeticManager().playDeathCry(player, session.getAllPlayerIds());
         plugin.getBossBarModule().removeFor(player);
 
         // Hypixel-style elimination summary: placement, kills and survival time.
