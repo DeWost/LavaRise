@@ -4,7 +4,7 @@
 # ============================================================
 
 # Internal config version — do not edit (used for auto-migration on upgrade).
-config-version: 5
+config-version: 6
 
 # General settings
 general:
@@ -117,6 +117,12 @@ gameplay:
   # Health restored to a player when they get a PvP kill (2 = 1 heart; 0 = off).
   # Rewards winning a fight and keeps the pace aggressive.
   kill-heal: 0
+
+  # Spectator teleport menu: give eliminated players a compass (slot 0) that
+  # opens a chest GUI listing every alive player as a clickable head. Clicking
+  # a head teleports the spectator to that player. Disable to stop giving the
+  # compass (spectators still enter spectator mode as normal).
+  spectator-menu: true
 
   # Final showdown: when the field narrows to this many players, announce a
   # dramatic finish and make the survivors glow so they can find each other

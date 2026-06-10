@@ -1,6 +1,8 @@
 package dev.lavarise.arena;
 
 import dev.lavarise.core.LavaRisePlugin;
+import dev.lavarise.feature.LeaveItem;
+import dev.lavarise.feature.SpectatorCompassItem;
 import dev.lavarise.state.GameState;
 import dev.lavarise.state.LobbyState;
 import org.bukkit.GameMode;
@@ -343,6 +345,20 @@ public final class ArenaSession {
         if (arena.getConfig().spectatorSpawn() != null) {
             player.teleport(arena.getConfig().spectatorSpawn());
         }
+        giveSpectatorItems(player);
+    }
+
+    /**
+     * Hand the spectator their compass + leave item (slot 0 and slot 8).
+     * Only called when the game is running; guarded by the config toggle.
+     */
+    public void giveSpectatorItems(Player player) {
+        if (!plugin.getConfigManager().isSpectatorMenuEnabled()) {
+            return;
+        }
+        player.getInventory().clear();
+        player.getInventory().setItem(0, SpectatorCompassItem.create(plugin));
+        player.getInventory().setItem(8, LeaveItem.create(plugin));
     }
 
     /**
@@ -473,6 +489,13 @@ public final class ArenaSession {
                 // EndingState entirely, so clear the HUD here or it leaks/freezes.
                 plugin.getBossBarModule().removeFor(player);
                 plugin.getScoreboardModule().cleanup(player);
+                // Clear spectator items (compass, leave bed) before returning to lobby.
+                if (SpectatorCompassItem.is(plugin, player.getInventory().getItem(0))) {
+                    player.getInventory().setItem(0, null);
+                }
+                if (LeaveItem.is(plugin, player.getInventory().getItem(8))) {
+                    player.getInventory().setItem(8, null);
+                }
                 player.setGameMode(GameMode.SURVIVAL);
                 if (arena.getConfig().lobbySpawn() != null) {
                     player.teleport(arena.getConfig().lobbySpawn());

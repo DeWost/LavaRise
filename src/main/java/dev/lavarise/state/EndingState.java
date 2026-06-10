@@ -4,6 +4,7 @@ import dev.lavarise.arena.Arena;
 import dev.lavarise.arena.ArenaSession;
 import dev.lavarise.core.LavaRisePlugin;
 import dev.lavarise.engine.WorldResetter;
+import dev.lavarise.feature.SpectatorCompassItem;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import org.bukkit.FireworkEffect;
@@ -156,6 +157,9 @@ public final class EndingState implements GameState {
                 p.setGlowing(false);    // clear any final-showdown glow
                 p.resetPlayerTime();    // restore real time/weather
                 p.resetPlayerWeather();
+                // Strip any spectator-phase items (compass, leave bed) before
+                // returning players to the lobby so they don't carry them over.
+                clearSpectatorItems(p);
                 p.setGameMode(GameMode.SURVIVAL);
                 if (arena.getConfig().lobbySpawn() != null) {
                     p.teleport(arena.getConfig().lobbySpawn());
@@ -193,6 +197,21 @@ public final class EndingState implements GameState {
         } else {
             arena.createSession();
             plugin.debug("Arena " + arena.getName() + " reset complete.");
+        }
+    }
+
+    /**
+     * Remove the spectator compass (slot 0) and leave item (slot 8) from a
+     * player's inventory so they don't carry these items back to the lobby.
+     * Safe to call on survivors (who never had these items).
+     */
+    private void clearSpectatorItems(Player player) {
+        final var inv = player.getInventory();
+        if (SpectatorCompassItem.is(plugin, inv.getItem(0))) {
+            inv.setItem(0, null);
+        }
+        if (dev.lavarise.feature.LeaveItem.is(plugin, inv.getItem(8))) {
+            inv.setItem(8, null);
         }
     }
 

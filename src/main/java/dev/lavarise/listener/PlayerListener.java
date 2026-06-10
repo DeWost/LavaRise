@@ -3,6 +3,7 @@ package dev.lavarise.listener;
 import dev.lavarise.arena.Arena;
 import dev.lavarise.arena.ArenaSession;
 import dev.lavarise.core.LavaRisePlugin;
+import dev.lavarise.feature.SpectatorCompassItem;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -174,6 +175,11 @@ public class PlayerListener implements Listener {
         plugin.getServer().getScheduler().runTask(plugin, () -> {
             if (player.isOnline()) {
                 player.setGameMode(GameMode.SPECTATOR);
+                // Give the compass + leave item now that inventory is clear post-respawn
+                // and the gamemode is confirmed.
+                if (arena.getSession() != null) {
+                    arena.getSession().giveSpectatorItems(player);
+                }
             }
         });
     }
@@ -217,7 +223,8 @@ public class PlayerListener implements Listener {
     }
 
     /**
-     * Right-clicking the lobby compass opens the kit-vote menu.
+     * Right-clicking a compass either opens the kit-vote menu (lobby) or the
+     * spectator teleport menu (running game), depending on which compass is held.
      */
     @EventHandler
     public void onCompassUse(PlayerInteractEvent event) {
@@ -230,6 +237,18 @@ public class PlayerListener implements Listener {
         final Arena arena = plugin.getGameManager().getArenaForPlayer(player.getUniqueId());
         if (arena == null) return;
         final ArenaSession session = arena.getSession();
+
+        // Spectator teleport compass (PDC-tagged) — only when game is running.
+        if (SpectatorCompassItem.is(plugin, event.getItem())) {
+            if (session != null && session.isSpectator(player.getUniqueId())
+                    && session.getCurrentState().isGameRunning()) {
+                event.setCancelled(true);
+                plugin.getSpectatorMenu().open(player);
+            }
+            return;
+        }
+
+        // Lobby kit-vote compass (untagged) — only when game is joinable.
         if (session != null && session.isJoinable()) {
             event.setCancelled(true);
             plugin.getVoteGUI().open(player);
