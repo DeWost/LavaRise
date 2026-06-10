@@ -8,6 +8,7 @@ import dev.lavarise.listener.ArenaEventRouter;
 import dev.lavarise.listener.PlayerListener;
 import dev.lavarise.feature.gui.ArenaSelectorGUI;
 import dev.lavarise.feature.gui.KitSelectorGUI;
+import dev.lavarise.feature.gui.SpectatorMenu;
 import dev.lavarise.feature.gui.VoteGUI;
 import dev.lavarise.feature.BossBarModule;
 import dev.lavarise.feature.KitManager;
@@ -51,6 +52,7 @@ public final class LavaRisePlugin extends JavaPlugin {
     private KitSelectorGUI kitSelectorGUI;
     private VoteGUI voteGUI;
     private dev.lavarise.feature.gui.AdminGUI adminGUI;
+    private SpectatorMenu spectatorMenu;
     private dev.lavarise.hook.VaultHook vaultHook;
     private AutoArenaController autoArena;
     private dev.lavarise.feature.CosmeticManager cosmeticManager;
@@ -113,6 +115,7 @@ public final class LavaRisePlugin extends JavaPlugin {
         this.kitSelectorGUI = new KitSelectorGUI(this);
         this.voteGUI = new VoteGUI(this);
         this.adminGUI = new dev.lavarise.feature.gui.AdminGUI(this);
+        this.spectatorMenu = new SpectatorMenu(this);
         this.partyManager = new dev.lavarise.party.PartyManager(this);
         this.queueManager = new dev.lavarise.party.QueueManager(this);
 
@@ -281,6 +284,10 @@ public final class LavaRisePlugin extends JavaPlugin {
 
     public dev.lavarise.feature.gui.AdminGUI getAdminGUI() {
         return adminGUI;
+    }
+
+    public SpectatorMenu getSpectatorMenu() {
+        return spectatorMenu;
     }
 
     /**
