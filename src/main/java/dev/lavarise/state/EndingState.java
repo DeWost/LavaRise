@@ -76,6 +76,8 @@ public final class EndingState implements GameState {
                     "<red><bold>GAME OVER!</bold> <gray>No survivors. Duration: <white>" + elapsed + "s"));
         }
 
+        plugin.getDiscordHook().onGameEnd(arena, session, winner, elapsed);
+
         // Results screen: podium + each player's personal placement / kills.
         showResults();
 
