@@ -4,6 +4,13 @@ All notable changes to LavaRise are documented here.
 This project follows [Conventional Commits](https://www.conventionalcommits.org/)
 and roughly [Semantic Versioning](https://semver.org/).
 
+## [1.12.0](https://github.com/DeWost/LavaRise/compare/v1.11.0...v1.12.0) (2026-06-11)
+
+
+### Features
+
+* sky loot chests, height climb rewards & holographic leaderboards ([#87](https://github.com/DeWost/LavaRise/issues/87)) ([1d2d9db](https://github.com/DeWost/LavaRise/commit/1d2d9dbc3d8a11c4a864d7c29bebc21aa628f933))
+
 ## [1.11.0](https://github.com/DeWost/LavaRise/compare/v1.10.0...v1.11.0) (2026-06-11)
 
 
