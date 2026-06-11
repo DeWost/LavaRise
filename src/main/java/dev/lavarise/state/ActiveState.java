@@ -194,6 +194,7 @@ public final class ActiveState implements GameState {
     private void cleanupSessionEffects() {
         plugin.getPowerUpModule().cleanup(session); // remove outstanding glowing pickups
         plugin.getDeathCrateModule().cleanup(session); // remove death-crate chests
+        plugin.getChaosEventModule().clearActive(session); // cancel active chaos event + strip effects
         for (Location drop : session.getSupplyDrops()) {
             try {
                 if (drop.getWorld() != null) drop.getBlock().setType(Material.AIR, false);
@@ -412,6 +413,15 @@ public final class ActiveState implements GameState {
             final int interval = Math.max(20, pum.getIntervalSeconds() * 20);
             if (tickCounter > 0 && tickCounter % interval == 0) {
                 pum.spawnWave(arena, session);
+            }
+        }
+
+        // Chaos events on a fixed cadence (skip tick 0 to let the game settle first).
+        final var chaos = plugin.getChaosEventModule();
+        if (chaos.isEnabled()) {
+            final int intervalTicks = Math.max(20, chaos.getIntervalSeconds() * 20);
+            if (tickCounter > 0 && tickCounter % intervalTicks == 0) {
+                chaos.triggerRandom(arena, session);
             }
         }
 
