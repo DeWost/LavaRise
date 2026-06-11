@@ -54,6 +54,7 @@ public final class LavaRisePlugin extends JavaPlugin {
     private dev.lavarise.feature.gui.AdminGUI adminGUI;
     private SpectatorMenu spectatorMenu;
     private dev.lavarise.hook.VaultHook vaultHook;
+    private dev.lavarise.hook.DiscordHook discordHook;
     private AutoArenaController autoArena;
     private dev.lavarise.feature.CosmeticManager cosmeticManager;
     private dev.lavarise.feature.DoubleJumpModule doubleJumpModule;
@@ -136,6 +137,9 @@ public final class LavaRisePlugin extends JavaPlugin {
         if (vaultHook.setup()) {
             getLogger().info("Vault economy hooked — reward payouts enabled.");
         }
+
+        this.discordHook = new dev.lavarise.hook.DiscordHook(this);
+        this.discordHook.load();
 
         if (configManager.isUpdateCheck()) {
             new UpdateChecker(this).checkAsync();
@@ -290,6 +294,10 @@ public final class LavaRisePlugin extends JavaPlugin {
         return vaultHook;
     }
 
+    public dev.lavarise.hook.DiscordHook getDiscordHook() {
+        return discordHook;
+    }
+
     public KitManager getKitManager() {
         return kitManager;
     }
@@ -329,6 +337,7 @@ public final class LavaRisePlugin extends JavaPlugin {
         if (doubleJumpModule != null) doubleJumpModule.load();
         if (deathCrateModule != null) deathCrateModule.load();
         if (kitManager != null) kitManager.load();
+        if (discordHook != null) discordHook.load();
         if (autoArena != null) autoArena.onReload();
         getLogger().info("LavaRise configuration reloaded.");
     }

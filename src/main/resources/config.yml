@@ -728,3 +728,18 @@ levels:
   growth: 1.15
   # Optional console commands on level-up. Placeholders: {player}, {level}
   level-up-commands: []
+
+# ─── Discord Webhook ─────────────────────────────────────────
+# Post an embed to a Discord channel when a game ends.
+# Disabled by default; set enabled: true and paste your webhook URL to activate.
+discord:
+  enabled: false
+  # Full Discord webhook URL (Channels > Edit > Integrations > Webhooks).
+  webhook-url: ""
+  # Display name that appears in Discord for messages from this hook.
+  username: "LavaRise"
+  # Optional avatar URL for the webhook bot icon (leave blank to use the
+  # webhook's own avatar set in Discord).
+  avatar-url: ""
+  # Post an embed when a game ends (winner, duration, top-3 kills).
+  on-game-end: true
