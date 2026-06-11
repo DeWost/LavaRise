@@ -61,6 +61,7 @@ public final class LavaRisePlugin extends JavaPlugin {
     private dev.lavarise.feature.DeathCrateModule deathCrateModule;
     private dev.lavarise.feature.LevelManager levelManager;
     private dev.lavarise.feature.ChaosEventModule chaosEventModule;
+    private dev.lavarise.feature.HologramManager hologramManager;
 
     @Override
     public void onEnable() {
@@ -126,6 +127,9 @@ public final class LavaRisePlugin extends JavaPlugin {
         this.spectatorMenu = new SpectatorMenu(this);
         this.partyManager = new dev.lavarise.party.PartyManager(this);
         this.queueManager = new dev.lavarise.party.QueueManager(this);
+        this.hologramManager = new dev.lavarise.feature.HologramManager(this);
+        // Spawn holograms one tick later so all worlds are fully loaded.
+        getServer().getScheduler().runTask(this, () -> hologramManager.load());
 
         // ── 6. Integrations ─────────────────────────────────
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
@@ -212,6 +216,11 @@ public final class LavaRisePlugin extends JavaPlugin {
             cosmeticManager.save();
         }
 
+        // Despawn hologram armor stands
+        if (hologramManager != null) {
+            hologramManager.disable();
+        }
+
         getLogger().info("LavaRise disabled. All games ended gracefully.");
         instance = null;
     }
@@ -290,6 +299,10 @@ public final class LavaRisePlugin extends JavaPlugin {
         return chaosEventModule;
     }
 
+    public dev.lavarise.feature.HologramManager getHologramManager() {
+        return hologramManager;
+    }
+
     public dev.lavarise.hook.VaultHook getVaultHook() {
         return vaultHook;
     }
@@ -339,6 +352,7 @@ public final class LavaRisePlugin extends JavaPlugin {
         if (kitManager != null) kitManager.load();
         if (discordHook != null) discordHook.load();
         if (autoArena != null) autoArena.onReload();
+        if (hologramManager != null) hologramManager.reload();
         getLogger().info("LavaRise configuration reloaded.");
     }
 

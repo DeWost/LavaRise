@@ -4,7 +4,7 @@
 # ============================================================
 
 # Internal config version — do not edit (used for auto-migration on upgrade).
-config-version: 7
+config-version: 8
 
 # General settings
 general:
@@ -743,3 +743,11 @@ discord:
   avatar-url: ""
   # Post an embed when a game ends (winner, duration, top-3 kills).
   on-game-end: true
+
+# ─── Holographic Leaderboards ─────────────────────────────────
+# Floating text leaderboards rendered with invisible armor stands.
+# No external plugin required.
+# Create one with: /lr hologram create <wins|kills|games|best_time>
+holograms:
+  # How often (in seconds) hologram text is refreshed from current stats.
+  refresh-seconds: 30
