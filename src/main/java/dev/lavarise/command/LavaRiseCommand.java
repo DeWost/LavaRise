@@ -94,6 +94,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             case "delete" -> handleDelete(sender, args);
             case "setkit" -> handleSetKit(sender, args);
             case "stress" -> handleStress(sender, args);
+            case "hologram", "holo" -> handleHologram(sender, args);
             default -> { sendHelp(sender); yield true; }
         };
     }
@@ -777,6 +778,93 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    // ── Admin: holograms ───────────────────────────────────────
+
+    private boolean handleHologram(CommandSender sender, String[] args) {
+        if (notAdmin(sender)) {
+            return true;
+        }
+        final dev.lavarise.feature.HologramManager hm = plugin.getHologramManager();
+        if (hm == null) {
+            msg(sender, "<red>HologramManager is not available.");
+            return true;
+        }
+        final String sub = args.length >= 2 ? args[1].toLowerCase() : "list";
+        switch (sub) {
+            case "create" -> {
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage("Players only.");
+                    return true;
+                }
+                if (args.length < 3) {
+                    msg(sender, "<red>Usage: /lr hologram create <wins|kills|games|best_time>");
+                    return true;
+                }
+                final String stat = normaliseStat(args[2]);
+                if (stat == null) {
+                    msg(sender, "<red>Unknown stat. Valid: wins, kills, games, best_time");
+                    return true;
+                }
+                final Location loc = player.getLocation();
+                final int index = hm.create(loc, stat);
+                msg(sender, "<green>Hologram #" + index + " created for stat <yellow>" + stat
+                        + "</yellow> at your location.");
+            }
+            case "list" -> {
+                final List<dev.lavarise.feature.HologramManager.HologramEntry> list = hm.getHolograms();
+                if (list.isEmpty()) {
+                    msg(sender, "<gray>No holograms defined. Use /lr hologram create <stat>.");
+                    return true;
+                }
+                msg(sender, "<gradient:red:gold><bold>Holograms (" + list.size() + ")</bold></gradient>");
+                for (int i = 0; i < list.size(); i++) {
+                    final dev.lavarise.feature.HologramManager.HologramEntry entry = list.get(i);
+                    final Location loc = entry.location();
+                    final String world = loc.getWorld() != null ? loc.getWorld().getName() : "?";
+                    msg(sender, "<yellow>#" + i + " <gray>stat=<white>" + entry.stat()
+                            + " <gray>@ " + world + " "
+                            + Math.round(loc.getX()) + " "
+                            + Math.round(loc.getY()) + " "
+                            + Math.round(loc.getZ()));
+                }
+            }
+            case "remove" -> {
+                if (args.length < 3) {
+                    msg(sender, "<red>Usage: /lr hologram remove <index>");
+                    return true;
+                }
+                final int idx;
+                try {
+                    idx = Integer.parseInt(args[2]);
+                } catch (NumberFormatException ex) {
+                    msg(sender, "<red>Index must be an integer.");
+                    return true;
+                }
+                if (hm.remove(idx)) {
+                    msg(sender, "<green>Hologram #" + idx + " removed.");
+                } else {
+                    msg(sender, "<red>No hologram at index " + idx + ".");
+                }
+            }
+            default -> msg(sender, "<yellow>/lr hologram create <stat> <gray>| list | remove <index>");
+        }
+        return true;
+    }
+
+    /**
+     * Normalise a user-supplied stat name to one of the four canonical keys.
+     * Returns null if not recognised.
+     */
+    private static String normaliseStat(final String raw) {
+        return switch (raw.toLowerCase()) {
+            case "wins", "win" -> "wins";
+            case "kills", "kill" -> "kills";
+            case "games", "game" -> "games";
+            case "best_time", "time", "best", "survival" -> "best_time";
+            default -> null;
+        };
+    }
+
     // ── Admin: stress test ──────────────────────────────────
 
     private boolean handleStress(CommandSender sender, String[] args) {
@@ -859,6 +947,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             msg(sender, "<gold>Admin: <yellow>start/skip/freeze/stop/reload/stress");
             msg(sender, "<gold>Admin: <yellow>survival <start|stop> [world]");
             msg(sender, "<gold>Admin: <yellow>event <start|pause|resume|stop> <arena>");
+            msg(sender, "<gold>Admin: <yellow>hologram create <stat> <gray>| list | remove <index> <gray>— holographic leaderboards");
         }
     }
 
@@ -889,7 +978,7 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
             if (sender.hasPermission("lavarise.admin")) {
                 completions.addAll(List.of("admin", "setup", "create", "pos1", "pos2", "setlobby", "setgamespawn",
                         "setspectator", "save", "delete", "setkit", "start", "skip", "freeze", "stop", "reload", "stress",
-                        "survival", "event"));
+                        "survival", "event", "hologram", "holo"));
             }
         } else if (args.length == 2) {
             String sub = args[0].toLowerCase();
@@ -901,9 +990,15 @@ public class LavaRiseCommand implements CommandExecutor, TabCompleter {
                 completions.addAll(List.of("start", "stop"));
             } else if (sub.equals("event")) {
                 completions.addAll(List.of("start", "pause", "resume", "stop"));
+            } else if (sub.equals("hologram") || sub.equals("holo")) {
+                completions.addAll(List.of("create", "list", "remove"));
             }
         } else if (args.length == 3 && args[0].equalsIgnoreCase("event")) {
             plugin.getArenaRepository().getArenas().forEach(a -> completions.add(a.getName()));
+        } else if (args.length == 3 && (args[0].equalsIgnoreCase("hologram") || args[0].equalsIgnoreCase("holo"))) {
+            if (args[1].equalsIgnoreCase("create")) {
+                completions.addAll(List.of("wins", "kills", "games", "best_time"));
+            }
         }
         return completions.stream()
                 .filter(c -> c.toLowerCase().startsWith(args[args.length - 1].toLowerCase()))

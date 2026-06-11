@@ -61,6 +61,9 @@ public final class LavaRisePlugin extends JavaPlugin {
     private dev.lavarise.feature.DeathCrateModule deathCrateModule;
     private dev.lavarise.feature.LevelManager levelManager;
     private dev.lavarise.feature.ChaosEventModule chaosEventModule;
+    private dev.lavarise.feature.HologramManager hologramManager;
+    private dev.lavarise.feature.HeightRewardModule heightRewardModule;
+    private dev.lavarise.feature.SkyLootModule skyLootModule;
 
     @Override
     public void onEnable() {
@@ -113,11 +116,13 @@ public final class LavaRisePlugin extends JavaPlugin {
         this.bossBarModule = new BossBarModule(this);
         this.powerUpModule = new dev.lavarise.feature.PowerUpModule(this);
         pm.registerEvents(this.powerUpModule, this);
+        this.heightRewardModule = new dev.lavarise.feature.HeightRewardModule(this);
         this.chaosEventModule = new dev.lavarise.feature.ChaosEventModule(this);
         this.doubleJumpModule = new dev.lavarise.feature.DoubleJumpModule(this);
         pm.registerEvents(this.doubleJumpModule, this);
         this.deathCrateModule = new dev.lavarise.feature.DeathCrateModule(this);
         pm.registerEvents(this.deathCrateModule, this);
+        this.skyLootModule = new dev.lavarise.feature.SkyLootModule(this);
         this.kitManager = new KitManager(this);
         this.customKitManager = new dev.lavarise.feature.CustomKitManager(this);
         this.kitSelectorGUI = new KitSelectorGUI(this);
@@ -126,6 +131,9 @@ public final class LavaRisePlugin extends JavaPlugin {
         this.spectatorMenu = new SpectatorMenu(this);
         this.partyManager = new dev.lavarise.party.PartyManager(this);
         this.queueManager = new dev.lavarise.party.QueueManager(this);
+        this.hologramManager = new dev.lavarise.feature.HologramManager(this);
+        // Spawn holograms one tick later so all worlds are fully loaded.
+        getServer().getScheduler().runTask(this, () -> hologramManager.load());
 
         // ── 6. Integrations ─────────────────────────────────
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
@@ -212,6 +220,11 @@ public final class LavaRisePlugin extends JavaPlugin {
             cosmeticManager.save();
         }
 
+        // Despawn hologram armor stands
+        if (hologramManager != null) {
+            hologramManager.disable();
+        }
+
         getLogger().info("LavaRise disabled. All games ended gracefully.");
         instance = null;
     }
@@ -290,6 +303,18 @@ public final class LavaRisePlugin extends JavaPlugin {
         return chaosEventModule;
     }
 
+    public dev.lavarise.feature.HologramManager getHologramManager() {
+        return hologramManager;
+    }
+
+    public dev.lavarise.feature.HeightRewardModule getHeightRewardModule() {
+        return heightRewardModule;
+    }
+
+    public dev.lavarise.feature.SkyLootModule getSkyLootModule() {
+        return skyLootModule;
+    }
+
     public dev.lavarise.hook.VaultHook getVaultHook() {
         return vaultHook;
     }
@@ -333,12 +358,15 @@ public final class LavaRisePlugin extends JavaPlugin {
         if (levelManager != null) levelManager.load();
         if (cosmeticManager != null) cosmeticManager.load();
         if (powerUpModule != null) powerUpModule.load();
+        if (heightRewardModule != null) heightRewardModule.load();
         if (chaosEventModule != null) chaosEventModule.load();
         if (doubleJumpModule != null) doubleJumpModule.load();
         if (deathCrateModule != null) deathCrateModule.load();
+        if (skyLootModule != null) skyLootModule.load();
         if (kitManager != null) kitManager.load();
         if (discordHook != null) discordHook.load();
         if (autoArena != null) autoArena.onReload();
+        if (hologramManager != null) hologramManager.reload();
         getLogger().info("LavaRise configuration reloaded.");
     }
 
