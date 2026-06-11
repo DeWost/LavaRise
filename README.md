@@ -52,6 +52,9 @@
 | 🛡️ | **Real Elimination** | Players actually burn in the lava and drop their loot (PvP too); the eliminated become spectators with a live HUD. |
 | ⚔️ | **Battle-Royale Hype** | Killstreak & multi-kill call-outs, bounties on top players, combat-log protection, a glowing **final showdown**, and optional **supply drops**. |
 | ⚡ | **In-Game Power-Ups** | Glowing buff pickups (speed, jump, strength, resistance, invisibility, instant heal) drop above the lava during the rising phase — grab them to swing the fight. |
+| 📦 | **Sky Loot Chests** | Tiered loot chests scatter at increasing heights when a game starts — **climb higher for better loot** (Scavenger-style), the classic reason to build up. |
+| 🧗 | **Height Rewards** | Reaching height milestones above the lava grants effects, XP and rewards — the rising-lava core skill, rewarded. |
+| 🪧 | **Holographic Leaderboards** | `/lr hologram create <stat>` places a floating armour-stand leaderboard (wins/kills/games/best-time) that auto-refreshes — **no hologram plugin required**. |
 | 🏆 | **Achievements** | Config-driven lifetime milestones (kills/wins/games/survival) with a server broadcast, title and optional reward commands; browse with `/lr achievements`. |
 | 🖥️ | **Admin Control Panel** | `/lr admin` opens a live GUI — force-start, stop, freeze/resume or delete any arena with a click, colour-coded by state. |
 | 🎉 | **Cosmetics** | Per-player **kill effects**, **win effects** and **death cries** picked in a `/lr cosmetics` GUI — config-driven and optionally unlocked by achievements. |
@@ -156,6 +159,7 @@ Base command `/lavarise` — aliases **`/lr`**, **`/lava`**.
 | Command | Description |
 |---|---|
 | `/lr admin` | **Control panel GUI** — force-start / stop / freeze / delete any arena with a click |
+| `/lr hologram create <stat>` · `list` · `remove <index>` | Place/manage **holographic leaderboards** (wins/kills/games/best_time) |
 | `/lr setup <name> [radius]` | **One-command arena** — builds a ready-to-play arena centred where you stand |
 | `/lr create · pos1 · pos2 · setlobby · setgamespawn · setspectator · save` | Arena setup wizard (manual, fine-grained) |
 | `/lr setkit <arena> <kit\|none>` | Force one kit on an arena (custom-kit arena) |
@@ -224,7 +228,7 @@ Everything lives in `config.yml` (fully commented). Key sections:
 - **`storage`** — stats backend: `yaml` (zero-setup, default) or `mysql` (network-wide, shared across a proxy) with `sync-interval` and connection settings; auto-falls back to YAML if MySQL is unreachable.
 - **`performance`** — `max-blocks-per-tick`, `engine-interval-ticks`, `preload-chunks`.
 - **`arena-defaults`** — defaults for new arenas (players, countdowns, lava Y-range, pvp, keep-inventory, hunger).
-- **`gameplay`** — `grace-period`, `pvp-during-grace`, `pvp-after-height` (height-gated PvP), `auto-pickup`, `auto-smelt`, `deny-mob-spawns`, `arena-border` (per-player border that keeps players inside each arena), `void-elimination` + `void-buffer` (out-of-bounds guard), `killstreaks` + `bounty` (BR call-outs & bounties), `combat-log-protect`, `final-showdown` (glowing last players), `supply-drops` (loot chests), `power-ups` (glowing buff pickups during the rising phase — type/effect/interval/despawn), `double-jump` (power/cooldown/particle/sound), `spectator-menu` (teleport compass), `death-crates` (loot crate on kill — despawn/glow), `chaos-events` (random mid-game events — interval/duration/event list), `acceleration`, `dynamic-speed`, `sudden-death`, `world-border`, `block-give`.
+- **`gameplay`** — `grace-period`, `pvp-during-grace`, `pvp-after-height` (height-gated PvP), `auto-pickup`, `auto-smelt`, `deny-mob-spawns`, `arena-border` (per-player border that keeps players inside each arena), `void-elimination` + `void-buffer` (out-of-bounds guard), `killstreaks` + `bounty` (BR call-outs & bounties), `combat-log-protect`, `final-showdown` (glowing last players), `supply-drops` (loot chests), `power-ups` (glowing buff pickups during the rising phase — type/effect/interval/despawn), `double-jump` (power/cooldown/particle/sound), `spectator-menu` (teleport compass), `death-crates` (loot crate on kill — despawn/glow), `chaos-events` (random mid-game events — interval/duration/event list), `sky-loot` (height-tiered loot chests at game start — climb for better loot), `height-rewards` (milestone rewards for climbing above the lava), `acceleration`, `dynamic-speed`, `sudden-death`, `world-border`, `block-give`.
 - **`kits`** — KteRising's 7 kits out of the box (Classic, OP, Elytra, ElytraOP, Trident, TridentOP, UltraOP), each with `icon`, enchantable `items`, and a per-kit `countdown` (seconds before the lava rises — fair kits get a long build, OP kits start fast). Voted with `/lr vote` (lobby compass) or `/lr kit`.
 - **`achievements`** — config-driven lifetime milestones (10 defaults). Each: `name`, `description`, `stat` (`wins`/`kills`/`games`/`best_time`), `threshold`, and optional `reward-commands` (`{player}`). Earned ones persist in `achievements.yml`; browse with `/lr achievements`.
 - **`cosmetics`** — per-player **kill-effect** / **win-effect** / **death-cry** options (each with an icon, particle/effect/sound, and an optional `requires` achievement to unlock). Selections persist in `cosmetics.yml`; chosen via the `/lr cosmetics` GUI.
