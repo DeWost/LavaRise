@@ -54,9 +54,13 @@ public final class LavaRisePlugin extends JavaPlugin {
     private dev.lavarise.feature.gui.AdminGUI adminGUI;
     private SpectatorMenu spectatorMenu;
     private dev.lavarise.hook.VaultHook vaultHook;
+    private dev.lavarise.hook.DiscordHook discordHook;
     private AutoArenaController autoArena;
     private dev.lavarise.feature.CosmeticManager cosmeticManager;
     private dev.lavarise.feature.DoubleJumpModule doubleJumpModule;
+    private dev.lavarise.feature.DeathCrateModule deathCrateModule;
+    private dev.lavarise.feature.LevelManager levelManager;
+    private dev.lavarise.feature.ChaosEventModule chaosEventModule;
 
     @Override
     public void onEnable() {
@@ -82,6 +86,7 @@ public final class LavaRisePlugin extends JavaPlugin {
         // ── 2. Data Layer ───────────────────────────────────
         this.statsManager = new StatsManager(this);
         this.achievementManager = new dev.lavarise.feature.AchievementManager(this);
+        this.levelManager = new dev.lavarise.feature.LevelManager(this);
         this.cosmeticManager = new dev.lavarise.feature.CosmeticManager(this);
         this.arenaRepository = new ArenaRepository(this);
 
@@ -108,8 +113,11 @@ public final class LavaRisePlugin extends JavaPlugin {
         this.bossBarModule = new BossBarModule(this);
         this.powerUpModule = new dev.lavarise.feature.PowerUpModule(this);
         pm.registerEvents(this.powerUpModule, this);
+        this.chaosEventModule = new dev.lavarise.feature.ChaosEventModule(this);
         this.doubleJumpModule = new dev.lavarise.feature.DoubleJumpModule(this);
         pm.registerEvents(this.doubleJumpModule, this);
+        this.deathCrateModule = new dev.lavarise.feature.DeathCrateModule(this);
+        pm.registerEvents(this.deathCrateModule, this);
         this.kitManager = new KitManager(this);
         this.customKitManager = new dev.lavarise.feature.CustomKitManager(this);
         this.kitSelectorGUI = new KitSelectorGUI(this);
@@ -129,6 +137,9 @@ public final class LavaRisePlugin extends JavaPlugin {
         if (vaultHook.setup()) {
             getLogger().info("Vault economy hooked — reward payouts enabled.");
         }
+
+        this.discordHook = new dev.lavarise.hook.DiscordHook(this);
+        this.discordHook.load();
 
         if (configManager.isUpdateCheck()) {
             new UpdateChecker(this).checkAsync();
@@ -191,6 +202,11 @@ public final class LavaRisePlugin extends JavaPlugin {
             achievementManager.save();
         }
 
+        // Persist level XP
+        if (levelManager != null) {
+            levelManager.save();
+        }
+
         // Persist cosmetic selections
         if (cosmeticManager != null) {
             cosmeticManager.save();
@@ -250,6 +266,10 @@ public final class LavaRisePlugin extends JavaPlugin {
         return achievementManager;
     }
 
+    public dev.lavarise.feature.LevelManager getLevelManager() {
+        return levelManager;
+    }
+
     public dev.lavarise.feature.CosmeticManager getCosmeticManager() {
         return cosmeticManager;
     }
@@ -262,8 +282,20 @@ public final class LavaRisePlugin extends JavaPlugin {
         return doubleJumpModule;
     }
 
+    public dev.lavarise.feature.DeathCrateModule getDeathCrateModule() {
+        return deathCrateModule;
+    }
+
+    public dev.lavarise.feature.ChaosEventModule getChaosEventModule() {
+        return chaosEventModule;
+    }
+
     public dev.lavarise.hook.VaultHook getVaultHook() {
         return vaultHook;
+    }
+
+    public dev.lavarise.hook.DiscordHook getDiscordHook() {
+        return discordHook;
     }
 
     public KitManager getKitManager() {
@@ -298,10 +330,14 @@ public final class LavaRisePlugin extends JavaPlugin {
         configManager.loadAll();
         arenaRepository.loadArenas();
         if (achievementManager != null) achievementManager.load();
+        if (levelManager != null) levelManager.load();
         if (cosmeticManager != null) cosmeticManager.load();
         if (powerUpModule != null) powerUpModule.load();
+        if (chaosEventModule != null) chaosEventModule.load();
         if (doubleJumpModule != null) doubleJumpModule.load();
+        if (deathCrateModule != null) deathCrateModule.load();
         if (kitManager != null) kitManager.load();
+        if (discordHook != null) discordHook.load();
         if (autoArena != null) autoArena.onReload();
         getLogger().info("LavaRise configuration reloaded.");
     }

@@ -4,7 +4,7 @@
 # ============================================================
 
 # Internal config version — do not edit (used for auto-migration on upgrade).
-config-version: 6
+config-version: 7
 
 # General settings
 general:
@@ -194,6 +194,24 @@ gameplay:
         duration: 0
         amplifier: 0
 
+  # Mid-game chaos events: every interval seconds a random event is applied to ALL
+  # alive players for duration seconds, then automatically reverted.
+  # Only one event can be active per arena at a time.
+  chaos-events:
+    enabled: true
+    # Seconds between automatic event triggers.
+    interval: 60
+    # Seconds each event lasts before effects are stripped.
+    duration: 12
+    # Which event ids to include. Leave empty to enable all built-in events.
+    # Built-in ids: speed_surge, adrenaline, low_gravity, blinding_fog, meteor_shower
+    events:
+      - speed_surge
+      - adrenaline
+      - low_gravity
+      - blinding_fog
+      - meteor_shower
+
   # Bounties: a player who reaches this many kills has a bounty on their head;
   # whoever eliminates them claims it (announced to the arena).
   bounty:
@@ -273,6 +291,16 @@ gameplay:
       - STONE_SWORD:1
       - STONE_PICKAXE:1
       - COOKED_BEEF:8
+
+  # Death crates: on death, capture the player's drops into a chest tombstone
+  # placed at (or near) their death spot. The chest auto-despawns after the
+  # configured seconds and all crates are removed when the game ends.
+  death-crates:
+    enabled: true
+    # Seconds before the crate chest despawns. Minimum 5.
+    despawn: 30
+    # Spawn a brief SOUL_FIRE_FLAME particle burst above the crate on placement.
+    glow: true
 
   # Double jump: press space twice in the air to boost upward and forward.
   # Alive in-game players get setAllowFlight(true) so they can trigger it;
@@ -678,3 +706,40 @@ cosmetics:
       icon: GHAST_TEAR
       effect: "entity.ghast.death"
       requires: "veteran"
+
+# ─── Level & XP Progression ──────────────────────────────────
+# Players earn XP for kills, wins, participation and survival time.
+# Total XP is persisted per UUID in levels.yml. Level is derived on the fly
+# from the exponential curve: xpForLevel(n) = round(base-xp * growth^(n-1)).
+levels:
+  enabled: true
+  # XP awarded for each PvP kill
+  xp-per-kill: 25
+  # XP awarded for winning a game
+  xp-per-win: 100
+  # XP awarded to every participant when a game starts
+  xp-per-game: 10
+  # XP awarded per second of survival when eliminated
+  xp-per-survival-second: 1
+  # Maximum survival XP earnable in a single game
+  survival-xp-cap: 300
+  # XP curve: base-xp × growth^(level-1) = XP needed to advance from that level
+  base-xp: 100
+  growth: 1.15
+  # Optional console commands on level-up. Placeholders: {player}, {level}
+  level-up-commands: []
+
+# ─── Discord Webhook ─────────────────────────────────────────
+# Post an embed to a Discord channel when a game ends.
+# Disabled by default; set enabled: true and paste your webhook URL to activate.
+discord:
+  enabled: false
+  # Full Discord webhook URL (Channels > Edit > Integrations > Webhooks).
+  webhook-url: ""
+  # Display name that appears in Discord for messages from this hook.
+  username: "LavaRise"
+  # Optional avatar URL for the webhook bot icon (leave blank to use the
+  # webhook's own avatar set in Discord).
+  avatar-url: ""
+  # Post an embed when a game ends (winner, duration, top-3 kills).
+  on-game-end: true

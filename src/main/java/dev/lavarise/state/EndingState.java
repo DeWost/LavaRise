@@ -57,6 +57,7 @@ public final class EndingState implements GameState {
             plugin.getStatsManager().recordSurvivalTime(winner.getUniqueId(), winner.getName(), elapsed);
             plugin.getAchievementManager().checkAndAward(winner);
             plugin.getCosmeticManager().playWinEffect(winner);
+            plugin.getLevelManager().addXp(winner, plugin.getLevelManager().xpPerWin(), "win");
             runWinCommands(winner);
 
             // Winner announcement
@@ -75,6 +76,8 @@ public final class EndingState implements GameState {
             broadcastToArena(plugin.getMiniMessage().deserialize(
                     "<red><bold>GAME OVER!</bold> <gray>No survivors. Duration: <white>" + elapsed + "s"));
         }
+
+        plugin.getDiscordHook().onGameEnd(arena, session, winner, elapsed);
 
         // Results screen: podium + each player's personal placement / kills.
         showResults();
