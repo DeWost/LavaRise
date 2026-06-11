@@ -192,6 +192,7 @@ public final class ActiveState implements GameState {
      */
     private void cleanupSessionEffects() {
         plugin.getPowerUpModule().cleanup(session); // remove outstanding glowing pickups
+        plugin.getDeathCrateModule().cleanup(session); // remove death-crate chests
         for (Location drop : session.getSupplyDrops()) {
             try {
                 if (drop.getWorld() != null) drop.getBlock().setType(Material.AIR, false);

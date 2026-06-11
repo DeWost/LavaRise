@@ -4,7 +4,7 @@
 # ============================================================
 
 # Internal config version — do not edit (used for auto-migration on upgrade).
-config-version: 6
+config-version: 7
 
 # General settings
 general:
@@ -273,6 +273,16 @@ gameplay:
       - STONE_SWORD:1
       - STONE_PICKAXE:1
       - COOKED_BEEF:8
+
+  # Death crates: on death, capture the player's drops into a chest tombstone
+  # placed at (or near) their death spot. The chest auto-despawns after the
+  # configured seconds and all crates are removed when the game ends.
+  death-crates:
+    enabled: true
+    # Seconds before the crate chest despawns. Minimum 5.
+    despawn: 30
+    # Spawn a brief SOUL_FIRE_FLAME particle burst above the crate on placement.
+    glow: true
 
   # Double jump: press space twice in the air to boost upward and forward.
   # Alive in-game players get setAllowFlight(true) so they can trigger it;
