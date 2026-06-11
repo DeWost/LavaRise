@@ -62,6 +62,7 @@ public final class LavaRisePlugin extends JavaPlugin {
     private dev.lavarise.feature.LevelManager levelManager;
     private dev.lavarise.feature.ChaosEventModule chaosEventModule;
     private dev.lavarise.feature.HologramManager hologramManager;
+    private dev.lavarise.feature.HeightRewardModule heightRewardModule;
 
     @Override
     public void onEnable() {
@@ -114,6 +115,7 @@ public final class LavaRisePlugin extends JavaPlugin {
         this.bossBarModule = new BossBarModule(this);
         this.powerUpModule = new dev.lavarise.feature.PowerUpModule(this);
         pm.registerEvents(this.powerUpModule, this);
+        this.heightRewardModule = new dev.lavarise.feature.HeightRewardModule(this);
         this.chaosEventModule = new dev.lavarise.feature.ChaosEventModule(this);
         this.doubleJumpModule = new dev.lavarise.feature.DoubleJumpModule(this);
         pm.registerEvents(this.doubleJumpModule, this);
@@ -303,6 +305,10 @@ public final class LavaRisePlugin extends JavaPlugin {
         return hologramManager;
     }
 
+    public dev.lavarise.feature.HeightRewardModule getHeightRewardModule() {
+        return heightRewardModule;
+    }
+
     public dev.lavarise.hook.VaultHook getVaultHook() {
         return vaultHook;
     }
@@ -346,6 +352,7 @@ public final class LavaRisePlugin extends JavaPlugin {
         if (levelManager != null) levelManager.load();
         if (cosmeticManager != null) cosmeticManager.load();
         if (powerUpModule != null) powerUpModule.load();
+        if (heightRewardModule != null) heightRewardModule.load();
         if (chaosEventModule != null) chaosEventModule.load();
         if (doubleJumpModule != null) doubleJumpModule.load();
         if (deathCrateModule != null) deathCrateModule.load();
