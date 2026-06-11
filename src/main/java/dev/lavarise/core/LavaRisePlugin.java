@@ -61,6 +61,7 @@ public final class LavaRisePlugin extends JavaPlugin {
     private dev.lavarise.feature.DeathCrateModule deathCrateModule;
     private dev.lavarise.feature.LevelManager levelManager;
     private dev.lavarise.feature.ChaosEventModule chaosEventModule;
+    private dev.lavarise.feature.SkyLootModule skyLootModule;
 
     @Override
     public void onEnable() {
@@ -118,6 +119,7 @@ public final class LavaRisePlugin extends JavaPlugin {
         pm.registerEvents(this.doubleJumpModule, this);
         this.deathCrateModule = new dev.lavarise.feature.DeathCrateModule(this);
         pm.registerEvents(this.deathCrateModule, this);
+        this.skyLootModule = new dev.lavarise.feature.SkyLootModule(this);
         this.kitManager = new KitManager(this);
         this.customKitManager = new dev.lavarise.feature.CustomKitManager(this);
         this.kitSelectorGUI = new KitSelectorGUI(this);
@@ -290,6 +292,10 @@ public final class LavaRisePlugin extends JavaPlugin {
         return chaosEventModule;
     }
 
+    public dev.lavarise.feature.SkyLootModule getSkyLootModule() {
+        return skyLootModule;
+    }
+
     public dev.lavarise.hook.VaultHook getVaultHook() {
         return vaultHook;
     }
@@ -336,6 +342,7 @@ public final class LavaRisePlugin extends JavaPlugin {
         if (chaosEventModule != null) chaosEventModule.load();
         if (doubleJumpModule != null) doubleJumpModule.load();
         if (deathCrateModule != null) deathCrateModule.load();
+        if (skyLootModule != null) skyLootModule.load();
         if (kitManager != null) kitManager.load();
         if (discordHook != null) discordHook.load();
         if (autoArena != null) autoArena.onReload();
