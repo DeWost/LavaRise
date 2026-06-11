@@ -4,6 +4,13 @@ All notable changes to LavaRise are documented here.
 This project follows [Conventional Commits](https://www.conventionalcommits.org/)
 and roughly [Semantic Versioning](https://semver.org/).
 
+## [1.11.0](https://github.com/DeWost/LavaRise/compare/v1.10.0...v1.11.0) (2026-06-11)
+
+
+### Features
+
+* death crates, levels & XP, chaos events, and Discord webhook ([#85](https://github.com/DeWost/LavaRise/issues/85)) ([25a7686](https://github.com/DeWost/LavaRise/commit/25a76861c7ddab6011d74aec859fcb05188de14f))
+
 ## [1.10.0](https://github.com/DeWost/LavaRise/compare/v1.9.0...v1.10.0) (2026-06-10)
 
 
