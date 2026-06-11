@@ -4,7 +4,7 @@
 # ============================================================
 
 # Internal config version — do not edit (used for auto-migration on upgrade).
-config-version: 6
+config-version: 7
 
 # General settings
 general:
@@ -193,6 +193,24 @@ gameplay:
         effect: heal
         duration: 0
         amplifier: 0
+
+  # Mid-game chaos events: every interval seconds a random event is applied to ALL
+  # alive players for duration seconds, then automatically reverted.
+  # Only one event can be active per arena at a time.
+  chaos-events:
+    enabled: true
+    # Seconds between automatic event triggers.
+    interval: 60
+    # Seconds each event lasts before effects are stripped.
+    duration: 12
+    # Which event ids to include. Leave empty to enable all built-in events.
+    # Built-in ids: speed_surge, adrenaline, low_gravity, blinding_fog, meteor_shower
+    events:
+      - speed_surge
+      - adrenaline
+      - low_gravity
+      - blinding_fog
+      - meteor_shower
 
   # Bounties: a player who reaches this many kills has a bounty on their head;
   # whoever eliminates them claims it (announced to the arena).
