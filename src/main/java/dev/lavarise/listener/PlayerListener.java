@@ -79,6 +79,7 @@ public class PlayerListener implements Listener {
             plugin.getStatsManager().recordKill(killer.getUniqueId(), killer.getName());
             plugin.getAchievementManager().checkAndAward(killer);
             plugin.getCosmeticManager().playKillEffect(killer, player.getLocation());
+            plugin.getLevelManager().addXp(killer, plugin.getLevelManager().xpPerKill(), "kill");
             session.recordSessionKill(killer.getUniqueId());
             final int streak = session.getSessionKills(killer.getUniqueId());
             killer.sendMessage(plugin.getMiniMessage().deserialize(

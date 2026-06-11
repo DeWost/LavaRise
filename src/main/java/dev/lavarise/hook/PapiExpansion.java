@@ -47,6 +47,20 @@ public class PapiExpansion extends PlaceholderExpansion {
                 case "deaths": return String.valueOf(stats.getDeaths(player.getUniqueId()));
                 case "best_time": return String.valueOf(stats.getBestTime(player.getUniqueId()));
                 case "winrate": return String.format("%.1f", stats.getWinRate(player.getUniqueId()) * 100);
+                case "level": return String.valueOf(plugin.getLevelManager().getLevel(player.getUniqueId()));
+                case "xp": return String.valueOf(plugin.getLevelManager().getXp(player.getUniqueId()));
+                case "xp_needed": return String.valueOf(plugin.getLevelManager().getXpNeeded(player.getUniqueId()));
+                case "total_xp": return String.valueOf(plugin.getLevelManager().getTotalXp(player.getUniqueId()));
+                case "xp_progress": {
+                    final java.util.UUID id = player.getUniqueId();
+                    final long xpIn = plugin.getLevelManager().getXp(id);
+                    final long xpNeeded = plugin.getLevelManager().getXpNeeded(id);
+                    final long levelCost = xpIn + xpNeeded;
+                    if (levelCost <= 0) {
+                        return "100%";
+                    }
+                    return String.format("%.1f%%", (double) xpIn / levelCost * 100.0);
+                }
                 default: break;
             }
         }

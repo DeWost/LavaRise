@@ -57,6 +57,7 @@ public final class LavaRisePlugin extends JavaPlugin {
     private AutoArenaController autoArena;
     private dev.lavarise.feature.CosmeticManager cosmeticManager;
     private dev.lavarise.feature.DoubleJumpModule doubleJumpModule;
+    private dev.lavarise.feature.LevelManager levelManager;
 
     @Override
     public void onEnable() {
@@ -82,6 +83,7 @@ public final class LavaRisePlugin extends JavaPlugin {
         // ── 2. Data Layer ───────────────────────────────────
         this.statsManager = new StatsManager(this);
         this.achievementManager = new dev.lavarise.feature.AchievementManager(this);
+        this.levelManager = new dev.lavarise.feature.LevelManager(this);
         this.cosmeticManager = new dev.lavarise.feature.CosmeticManager(this);
         this.arenaRepository = new ArenaRepository(this);
 
@@ -191,6 +193,11 @@ public final class LavaRisePlugin extends JavaPlugin {
             achievementManager.save();
         }
 
+        // Persist level XP
+        if (levelManager != null) {
+            levelManager.save();
+        }
+
         // Persist cosmetic selections
         if (cosmeticManager != null) {
             cosmeticManager.save();
@@ -250,6 +257,10 @@ public final class LavaRisePlugin extends JavaPlugin {
         return achievementManager;
     }
 
+    public dev.lavarise.feature.LevelManager getLevelManager() {
+        return levelManager;
+    }
+
     public dev.lavarise.feature.CosmeticManager getCosmeticManager() {
         return cosmeticManager;
     }
@@ -298,6 +309,7 @@ public final class LavaRisePlugin extends JavaPlugin {
         configManager.loadAll();
         arenaRepository.loadArenas();
         if (achievementManager != null) achievementManager.load();
+        if (levelManager != null) levelManager.load();
         if (cosmeticManager != null) cosmeticManager.load();
         if (powerUpModule != null) powerUpModule.load();
         if (doubleJumpModule != null) doubleJumpModule.load();
