@@ -124,6 +124,7 @@ public final class ActiveState implements GameState {
             if (p == null || !p.isOnline()) continue;
 
             plugin.getStatsManager().recordGamePlayed(uuid, p.getName());
+            plugin.getLevelManager().addXp(p, plugin.getLevelManager().xpPerGame(), "game");
             plugin.getAchievementManager().checkAndAward(p);
             p.closeInventory(); // dismiss any open lobby vote GUI
 
@@ -239,6 +240,7 @@ public final class ActiveState implements GameState {
         plugin.getStatsManager().recordSurvivalTime(player.getUniqueId(), player.getName(), session.getElapsedSeconds());
         plugin.getAchievementManager().checkAndAward(player);
         plugin.getCosmeticManager().playDeathCry(player, session.getAllPlayerIds());
+        plugin.getLevelManager().addXp(player, Math.min(plugin.getLevelManager().survivalXpCap(), session.getElapsedSeconds() * plugin.getLevelManager().xpPerSurvivalSecond()), "survival");
         plugin.getBossBarModule().removeFor(player);
 
         // Hypixel-style elimination summary: placement, kills and survival time.

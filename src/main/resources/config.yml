@@ -688,3 +688,25 @@ cosmetics:
       icon: GHAST_TEAR
       effect: "entity.ghast.death"
       requires: "veteran"
+
+# ─── Level & XP Progression ──────────────────────────────────
+# Players earn XP for kills, wins, participation and survival time.
+# Total XP is persisted per UUID in levels.yml. Level is derived on the fly
+# from the exponential curve: xpForLevel(n) = round(base-xp * growth^(n-1)).
+levels:
+  enabled: true
+  # XP awarded for each PvP kill
+  xp-per-kill: 25
+  # XP awarded for winning a game
+  xp-per-win: 100
+  # XP awarded to every participant when a game starts
+  xp-per-game: 10
+  # XP awarded per second of survival when eliminated
+  xp-per-survival-second: 1
+  # Maximum survival XP earnable in a single game
+  survival-xp-cap: 300
+  # XP curve: base-xp × growth^(level-1) = XP needed to advance from that level
+  base-xp: 100
+  growth: 1.15
+  # Optional console commands on level-up. Placeholders: {player}, {level}
+  level-up-commands: []

@@ -57,6 +57,7 @@ public final class EndingState implements GameState {
             plugin.getStatsManager().recordSurvivalTime(winner.getUniqueId(), winner.getName(), elapsed);
             plugin.getAchievementManager().checkAndAward(winner);
             plugin.getCosmeticManager().playWinEffect(winner);
+            plugin.getLevelManager().addXp(winner, plugin.getLevelManager().xpPerWin(), "win");
             runWinCommands(winner);
 
             // Winner announcement
