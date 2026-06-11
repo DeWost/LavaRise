@@ -348,6 +348,56 @@ gameplay:
         commands: []
         xp: 50
 
+  # Sky Loot Chests — tiered loot chests scattered at increasing heights inside
+  # the arena. Higher altitude = better loot, rewarding players who climb to
+  # survive the rising lava. Chests are placed once at game start and removed
+  # when the game ends (whether naturally or by force).
+  sky-loot:
+    enabled: true
+    # Spawn a FLAME particle burst above each chest on placement so players
+    # can spot them from a distance.
+    glow: true
+    # Each tier defines how many chests to place, the height band (blocks ABOVE
+    # lavaStartY), and the loot inside. Higher tiers should use a greater
+    # min-height so better loot is always higher up.
+    # Loot format: MATERIAL:AMOUNT[:ENCHANT:LEVEL...]
+    tiers:
+      common:
+        name: "<gray>⬜ Common"
+        count: 5
+        min-height: 5
+        max-height: 20
+        items:
+          - "COBBLESTONE:32"
+          - "OAK_PLANKS:16"
+          - "COOKED_BEEF:4"
+          - "WOODEN_SWORD:1"
+          - "DIRT:16"
+      rare:
+        name: "<aqua>🔵 Rare"
+        count: 3
+        min-height: 20
+        max-height: 45
+        items:
+          - "IRON_CHESTPLATE:1"
+          - "IRON_SWORD:1"
+          - "GOLDEN_APPLE:2"
+          - "COBBLESTONE:64"
+          - "ARROW:16"
+          - "BOW:1"
+      legendary:
+        name: "<gold>⭐ Legendary"
+        count: 1
+        min-height: 45
+        max-height: 80
+        items:
+          - "DIAMOND_CHESTPLATE:1:protection:3"
+          - "DIAMOND_SWORD:1:sharpness:3"
+          - "DIAMOND_PICKAXE:1:efficiency:3"
+          - "ENDER_PEARL:4"
+          - "GOLDEN_APPLE:4"
+          - "DIAMOND_BLOCK:1"
+
 # ─── Procedural / Random Arenas ──────────────────────────────
 # Quick-join (/lr join with no arena) sends players to a RANDOM open arena;
 # /lr random always builds a fresh one. When none are free, a new arena is

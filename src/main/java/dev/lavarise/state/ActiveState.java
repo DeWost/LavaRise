@@ -157,6 +157,7 @@ public final class ActiveState implements GameState {
             playSound(p, cfg.getSoundGameStart(), 0.7f, 1.5f);
         }
 
+        plugin.getSkyLootModule().placeChests(arena, session);
         session.getModeHandler().onGameStart(arena, session);
 
         // Seed the HUD baseline so the first in-tick refresh only fires once the
@@ -194,6 +195,7 @@ public final class ActiveState implements GameState {
     private void cleanupSessionEffects() {
         plugin.getPowerUpModule().cleanup(session); // remove outstanding glowing pickups
         plugin.getDeathCrateModule().cleanup(session); // remove death-crate chests
+        plugin.getSkyLootModule().clear(session); // remove sky loot chests
         plugin.getChaosEventModule().clearActive(session); // cancel active chaos event + strip effects
         plugin.getHeightRewardModule().clear(session); // reset per-game height-tier tracking
         for (Location drop : session.getSupplyDrops()) {
