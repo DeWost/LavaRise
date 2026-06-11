@@ -4,7 +4,7 @@
 # ============================================================
 
 # Internal config version — do not edit (used for auto-migration on upgrade).
-config-version: 7
+config-version: 8
 
 # General settings
 general:
@@ -317,6 +317,36 @@ gameplay:
     particle: CLOUD
     # Sound played on each jump. Standard Bukkit sound key.
     sound: "entity.bat_takeoff"
+
+  # Height climb rewards: award players for reaching block heights above the
+  # arena's lava-start Y. Each tier is granted ONCE per player per game.
+  # Tier keys: height (blocks above lava-start), message (MiniMessage, {height}
+  # placeholder), optional effect / effect-duration / effect-amplifier, optional
+  # commands (list, {player} placeholder), optional xp.
+  height-rewards:
+    enabled: true
+    tiers:
+      - height: 20
+        message: "<gold>✦ <bold>20 BLOCKS HIGH!</bold> <gold>✦ <yellow>You're climbing!"
+        effect: "speed"
+        effect-duration: 10
+        effect-amplifier: 0
+        commands: []
+        xp: 15
+      - height: 40
+        message: "<aqua>✦ <bold>40 BLOCKS HIGH!</bold> <aqua>✦ <white>Impressive altitude!"
+        effect: "jump_boost"
+        effect-duration: 10
+        effect-amplifier: 1
+        commands: []
+        xp: 30
+      - height: 60
+        message: "<light_purple>✦ <bold>60 BLOCKS HIGH!</bold> <light_purple>✦ <white>Sky climber!"
+        effect: "regeneration"
+        effect-duration: 8
+        effect-amplifier: 1
+        commands: []
+        xp: 50
 
 # ─── Procedural / Random Arenas ──────────────────────────────
 # Quick-join (/lr join with no arena) sends players to a RANDOM open arena;

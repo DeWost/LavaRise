@@ -195,6 +195,7 @@ public final class ActiveState implements GameState {
         plugin.getPowerUpModule().cleanup(session); // remove outstanding glowing pickups
         plugin.getDeathCrateModule().cleanup(session); // remove death-crate chests
         plugin.getChaosEventModule().clearActive(session); // cancel active chaos event + strip effects
+        plugin.getHeightRewardModule().clear(session); // reset per-game height-tier tracking
         for (Location drop : session.getSupplyDrops()) {
             try {
                 if (drop.getWorld() != null) drop.getBlock().setType(Material.AIR, false);
@@ -414,6 +415,11 @@ public final class ActiveState implements GameState {
             if (tickCounter > 0 && tickCounter % interval == 0) {
                 pum.spawnWave(arena, session);
             }
+        }
+
+        // Height climb rewards — check every 15 ticks (cheap Y-comparison per alive player).
+        if (tickCounter % 15 == 0) {
+            plugin.getHeightRewardModule().check(arena, session);
         }
 
         // Chaos events on a fixed cadence (skip tick 0 to let the game settle first).
