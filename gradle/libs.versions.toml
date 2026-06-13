@@ -5,8 +5,8 @@ adventure-minimessage = "4.17.0"
 shadow = "9.4.2"
 run-task = "2.3.1"
 paperweight = "2.0.0-beta.21"
-junit = "5.14.4"
-mockito = "5.18.0"
+junit = "6.1.0"
+mockito = "5.23.0"
 
 [libraries]
 paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-api" }
